@@ -1,0 +1,669 @@
+#!/usr/local/bin/perl -w
+# -*- cperl -*-
+
+###############################################################################
+#
+#
+#			Makedepend 0.05
+#
+#
+#  1. What is different form the X11 makedepend ?
+#
+#	* This works on ANY platform which has perl, for instance on
+#	  Windows.
+#	* This works for ANY compilers / preprocessors.
+#	* This can eliminate the system include headers like gcc -MM.
+#	* Some options are omittid (-m, -v, -Y).
+#
+#  2. How to customize makedepend for your preprocessor ?
+#
+#	0. for gcc, no problem!
+#	   for g++, use --cpp=g++ option.
+#	   for Visual C++, use --cpp=vc -o.obj option.
+#	   for Borland C++ 5.5, use --cpp=bcc32 -o.obj option
+#	     (but it is too slow to use)
+#	   for other compilers/preprocessors, read next.
+#
+#	1. search CUSTOMIZABLE1 in this file.
+#
+#	2. cusomize $commandline, $line, $path_delimiter for your
+#	   preprocessor.
+#
+#	3. if you know how to get the system include directory from
+#	   your preprocessor, customize @OPTION_IGNORE in the
+#	   CUSTOMIZABLE2 section in this file.
+#
+#  3. History
+#
+#	2001/08/08 version 0.05
+#		* First, Makefile.new is created, then Makefile is
+#		  renamed to Makefile.bak, and Makefile.new is renamed
+#		  to Makefile.  (Thanks to Marvin Wolfthal)
+#
+#	2000/11/10 version 0.04
+#		* now dir/.. is eliminated.
+#		* --abosolute added.
+#		* --path-delimiter added.
+#		* --cpp-bin added.
+#
+#	2000/10/31 version 0.03
+#	2000/10/30 version 0.02
+#	2000/04/12 version 0.01
+#		
+#  4. Copyright
+#
+#	Copyright (c) 1998-2000 TAGA Nayuta <nayuta@ganaware.org>
+#	All rights reserved.
+#
+#	Redistribution and use in source and binary forms, with or
+#	without modification, are permitted provided that the
+#	following conditions are met:
+#	1. Redistributions of source code must retain the above
+#	   copyright notice, this list of conditions and the following
+#	   disclaimer.
+#	2. Redistributions in binary form must reproduce the above
+#	   copyright notice, this list of conditions and the following
+#	   disclaimer in the documentation and/or other materials
+#	   provided with the distribution.
+#	3. The name of the author may not be used to endorse or
+#	   promote products derived from this software without
+#	   specific prior written permission.
+#
+#	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY
+#	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+#	THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+#	PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+#	AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#	SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+#	NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#	LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+#	HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#	OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+#	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#
+###############################################################################
+
+use Cwd;
+use File::Spec;
+
+sub usage {
+  print <<'__EOM__'
+Usage: makedepend [OPTION]... <SRCS>...
+Make dependency informations for Makefile on ANY platform.
+
+-a
+	Append the dependencies to the end of the file instead of
+	replacing them.
+
+-f<MAKEFILE>
+	Filename.  This allows you to specify an alternate makefile in
+	which makedepend can place its output.  Specifying "-" as the
+	file name (i.e., -f-) sends the output to standard output
+	instead of modifying an existing file.  The default is
+	"Makefile".
+
+-o<OBJSUFFIX>
+	Object file suffix.  Some systems may have object files whose
+	suffix is something other than ".o".  This option allows you
+	to specify another suffix, such as ".obj" with -o.obj and so
+	forth.
+
+-p<OBJPREFIX>
+	Object file prefix.  The prefix is prepended to the name of
+	the object file.  This is usually used to designate a
+	different directory for the object file.  The default is the
+	empty string.
+
+-s<STRING>
+	Starting string delimiter.  This option permits you to specify
+	a different string for makedepend to look for in the makefile.
+	The default is "# DO NOT DELETE".
+
+-w<WIDTH>
+	Line width.  Normally, makedepend will ensure that every
+	output line that it writes will be no wider than 78 characters
+	for the sake of readability.  This option enables you to
+	change this width.
+
+-- [OPTION]... --
+	If makedepend encounters a double hyphen (--) in the argument
+	list, then any unrecognized argument following it will be
+	silently ignored; a second double hyphen terminates this
+	special treatment.  In this way, makedepend can be made to
+	safely ignore esoteric compiler arguments that might normally
+	be found in a CFLAGS make macro.  All options that makedepend
+	recognizes and appear between the pair of double hyphens are
+	processed normally.
+
+--cpp=<PREPROCESSORTYPE>
+	The preprocessor type.
+	Currently supported <PREPROCESSORTYPES>s are:
+		gcc   ... it uses gcc with -E (default).
+		g++   ... it uses g++ with -E.
+		vc    ... it uses cl.exe with -E.
+		bcc32 ... it uses cpp32.exe with -ocon (too slow).
+
+--cpp-bin=<PREPROCESSORPATH>
+	The preprocessor executable file name.
+	The default depends on --cpp.
+
+--ignore=<INCLUDEPATH>
+	A list of default include pathes separated by ";".  Makedepend
+	ignores header files in the default include pathes as if a
+	source had no dependency on them.  Currently the default is
+	the system include directories if PREPROCESSORTYPE is gcc, g++
+	or vc.  However it is empty PREPROCESSORTYPE is bcc32.  If you
+	don't want to ignore the system include directories but
+	INCLUDEPATH, specify --ignore= --ignore=<INCLUDEPATH>.
+
+--newline=<NEWLINE>
+	Newline code.  If NEWLINE is:
+		unix ... 0x0a (unix default).
+		dos  ... 0x0d 0x0a (windows default).
+		mac  ... 0x0d .
+
+--path-delimiter=<PATH_DELIMITER>
+	Output path delimiter.
+		unix ... '/' (default)
+		os   ... os default
+		dos  ... '\'
+		dosq ... '\\'
+
+--absolute
+	Makedepend output filenames by relative directory from current
+	directory.  If you prefer absolute directory, specify this
+	option.  This option affect only #include <...>.
+
+--verbose[=LEVEL]
+	0, 1 or 2.  The default LEVEL is 1.
+
+-D<NAME>=<DEF> or -D<NAME> or -I<INCLUDEDIR>
+	They are simply passed to the preprocessor.
+
+-m or -v or -Y<INCLUDEDIR>
+	They are ignored.
+
+Copyright (c) 1998-2000 TAGA Nayuta <nayuta@ganaware.org>
+__EOM__
+  ;
+  exit;
+}
+
+
+###############################################################################
+# system configuration
+
+# Is using Windows ?
+$isActivePerlWindows = $^O eq "MSWin32";
+$isCygwin = $^O eq "cygwin";
+$isWindows = $isActivePerlWindows || $isCygwin;
+
+# Does ignore case of filename ?
+$ignoreCase = $isWindows;
+
+# null device filename
+if ( $isActivePerlWindows ) {
+  $nullDevice = "nul";
+} else {
+  $nullDevice = "/dev/null";
+}
+
+
+###############################################################################
+# options
+
+# -a
+$OPTION_APPEND = 0;
+
+# -f
+$OPTION_FILENAME = "Makefile";
+
+# -o
+$OPTION_SUFFIX = ".o";
+
+# -p
+$OPTION_PREFIX = "";
+
+# -s
+$OPTION_STRING = "# DO NOT DELETE";
+
+# -w
+$OPTION_WIDTH = 78;
+
+# --cpp
+$OPTION_CPP = "gcc";
+
+# --cpp-bin
+$OPTION_CPP_BIN = "";
+
+# newline code (--newline select this value)
+$OPTION_NEWLINE = $isActivePerlWindows ? "\x0d\x0a" : "\x0a";
+
+# path delimiter (--path-delimiter select this value)
+$OPTION_PATH_DELIMITER = "/";
+
+# --verbose
+$OPTION_VERBOSE = 0;
+
+# --absolute
+$OPTION_ABSOLUTE = 0;
+
+# options passed to preprocessor
+@OPTION_OPTIONS = ();
+
+# ignored include path
+@OPTION_IGNORE = ();
+
+# source filenames
+@OPTION_SRCS = ();
+
+# ignore system include directories ?
+$ignoreSystemIncludeDirectories = 0;
+
+
+###############################################################################
+# parse options
+
+$isInMixed = 0;			# is in -- <OPTIONS> -- ?
+
+foreach $i ( @ARGV ) {
+  if ( $i =~ /^-a(.*)$/ ) {
+    $OPTION_APPEND = 1;
+    
+  } elsif ( $i =~ /^-f(.*)$/ ) {
+    $OPTION_FILENAME = $1;
+
+  } elsif ( $i =~ /^-o(.*)$/ ) {
+    $OPTION_SUFFIX = $1;
+
+  } elsif ( $i =~ /^-p(.*)$/ ) {
+    $OPTION_PREFIX = $1;
+
+  } elsif ( $i =~ /^-s(.*)$/ ) {
+    $OPTION_STRING = $1;
+
+  } elsif ( $i =~ /^-w(.*)$/ ) {
+    $OPTION_WIDTH = $1;
+
+  } elsif ( $i =~ /^--$/ ) {
+    $isInMixed = 1 - $isInMixed;
+
+  } elsif ( $i =~ /^--cpp=(.*)$/ ) {
+    $OPTION_CPP = $1;
+
+  } elsif ( $i =~ /^--cpp-bin=(.*)$/ ) {
+    $OPTION_CPP_BIN = $1;
+
+  } elsif ( $i =~ /^--ignore=$/ ) {
+    $ignoreSystemIncludeDirectories = 1;
+    @OPTION_IGNORE = ();
+
+  } elsif ( $i =~ /^--ignore=(.*)$/ ) {
+    &parseIgnore($1);
+
+  } elsif ( $i =~ /^--newline=(.*)$/ ) {
+    if ( $1 eq "unix" ) {
+      $OPTION_NEWLINE = "\x0a";
+    } elsif ( $1 eq "dos" ) {
+      $OPTION_NEWLINE = "\x0d\x0a";
+    } elsif ( $1 eq "mac" ) {
+      $OPTION_NEWLINE = "\x0d";
+    } else {
+      &usage;
+    }
+
+  } elsif ( $i =~ /^--path-delimiter=(.*)$/ ) {
+    if ( $1 eq "unix" ) {
+      $OPTION_PATH_DELIMITER = "/";
+    } elsif ( $1 eq "os" ) {
+      $OPTION_PATH_DELIMITER = $isActivePerlWindows ? "\\" : "/";
+    } elsif ( $1 eq "dos" ) {
+      $OPTION_PATH_DELIMITER = "\\";
+    } elsif ( $1 eq "dosq" ) {
+      $OPTION_PATH_DELIMITER = "\\\\";
+    } else {
+      &usage;
+    }
+
+  } elsif ( $i =~ /^--verbose$/ ) {
+    $OPTION_VERBOSE = 1;
+
+  } elsif ( $i =~ /^--verbose=(\d+)$/ ) {
+    $OPTION_VERBOSE = $1;
+
+  } elsif ( $i =~ /^--absolute$/ ) {
+    $OPTION_ABSOLUTE = 1;
+
+  } elsif ( $i =~ /^-[DI]/ ) {
+    push(@OPTION_OPTIONS, $i);
+
+  } elsif ( $i =~ /^(-m|-v|-Y.*)$/ ) {
+    # ignored
+
+  } else {
+    if ( $isInMixed ) {
+      push(@OPTION_OPTIONS, $i);
+
+    } elsif ( $i =~ /^-/ ) {
+      &usage;
+
+    } else {
+      push(@OPTION_SRCS, &reduceDirectory($i));
+    }
+  }
+}
+
+&usage if ( @OPTION_SRCS == 0 );
+
+
+###############################################################################
+# CUSTOMIZABLE1: select preprocessor and set $IGNORE
+
+# $commandline
+#	It executes a C/C++ preprocessor.  The preprocessed source
+#	code must be printed to the stdout.
+
+# $line
+#	It is a regexp to retrieve included filename from preprocessor
+#	output.  $1 must be a filename.
+
+# $path_delimiter
+#	$1 of $line is separated by this $path_delimiter.  Makedepend
+#	automatically replaces it with '/'.
+
+if ( $OPTION_CPP =~ /^(gcc|g\+\+)$/ ) {
+  $OPTION_CPP_BIN = $OPTION_CPP unless ( $OPTION_CPP_BIN );
+  $commandline = $OPTION_CPP_BIN . " -E ";
+  $line = '^# \\d+ "(.*)"';
+  # $path_delimiter = '/';	# default
+  
+} elsif ( $OPTION_CPP eq "vc" ) {
+  $OPTION_CPP_BIN = "cl.exe" unless ( $OPTION_CPP_BIN );
+  $commandline = $OPTION_CPP_BIN . " -E -nologo ";
+  $line = '^#line \\d+ "(.*)"';
+  $path_delimiter = '\\\\';
+
+} elsif ( $OPTION_CPP eq "bcc32" ) {
+  $OPTION_CPP_BIN = "cpp32.exe" unless ( $OPTION_CPP_BIN );
+  $commandline = $OPTION_CPP_BIN . " -ocon ";
+  $line = '^/[*] (\\S+) \\d+: [*]/';
+  $path_delimiter = '\\';
+
+} else {
+  &usage;
+  
+}
+
+
+###############################################################################
+# CUSTOMIZABLE2: set @OPTION_IGNORE
+
+# @OPTION_IGNORE
+#	It is a list of include path that should be ignored by
+#	makedepend.  Generally, it is directories specified by
+#	--ignore option, if it is specified.  If --ignore option is
+#	not specified, we set the system include directories on it.
+
+if ( ! $ignoreSystemIncludeDirectories ) {
+  if ( $OPTION_CPP =~ /^(gcc|g\+\+)$/ ) {
+    my($get_cpp_path) = "$OPTION_CPP_BIN -print-prog-name=cpp";
+    if ( 2 <= $OPTION_VERBOSE ) {
+      print STDERR "Getting cpp path ...\n";
+      print STDERR "  $get_cpp_path\n";
+      print STDERR "\n";
+    }
+    my($cpp) = `$get_cpp_path`;
+    chomp($cpp);
+    $cpp .= " -lang-c++" if ( $OPTION_CPP eq "g++" );
+    $cpp = "sh -c '$cpp -v < $nullDevice 2>&1'";
+    if ( 2 <= $OPTION_VERBOSE ) {
+      print STDERR "Getting system include directories ...\n";
+      print STDERR "  $cpp\n";
+      print STDERR "\n";
+    }
+    open(CPP, "$cpp|") || die $!;
+    while (<CPP>) {
+      goto get_inc_list if ( /^#include <...> search starts here:/ );
+    }
+    goto end_get_inc_list;
+  get_inc_list:
+    while (<CPP>) {
+      last if ( /^End of search list./ );
+      chomp;
+      push(@OPTION_IGNORE, &reduceDirectory($1)) if ( /^\s+(\S.*)\s*$/ );
+    }
+    close CPP;
+  end_get_inc_list:
+  
+  } elsif ( $OPTION_CPP eq "vc" ) {
+    &parseIgnore($ENV{include});
+
+  } elsif ( $OPTION_CPP eq "bcc32" ) {
+    ;
+  } else {
+    ;
+  }
+}
+
+
+###############################################################################
+
+# parse ignored directories for --option
+sub parseIgnore {
+  my ($ignore) = $_[0];
+  return unless ($ignore);
+  @OPTION_IGNORE = ( @OPTION_IGNORE , split( /;/ , $ignore));
+  my($i);
+  for ( $i = 0; $i < @OPTION_IGNORE; $i ++ ) {
+    # DOS-style-path to UNIX path
+    $OPTION_IGNORE[$i] =~ s:\\:/:g if ( $isWindows );
+    $OPTION_IGNORE[$i] =~ s/^\s*(\S.*\S)\s*$/$1/;
+  }
+}
+
+if ( 2 <= $OPTION_VERBOSE && 0 < @OPTION_IGNORE) {
+  print STDERR "The following include directories are ignored.\n";
+  foreach $i (@OPTION_IGNORE) {
+    print STDERR "  " . $i . "\n";
+  }
+  print "\n";
+}
+
+
+###############################################################################
+# create cpp commandline
+
+
+foreach $i ( @OPTION_OPTIONS ) {
+  # quote
+  if ( $isActivePerlWindows ) {
+    $i =~ s/\"/\"\"\"\"/g;
+  } else {
+    $i =~ s/\"/\\\"/g;
+  }
+  $commandline .= $i . " ";
+}
+
+
+###############################################################################
+# prepare output
+
+
+if ( $OPTION_FILENAME eq "-" ) {
+  binmode STDOUT;
+} else {
+  if ( ! -f $OPTION_FILENAME ) {
+    print "$0: error: $OPTION_FILENAME is not present\n" ;
+    exit 1;
+  }
+  $NEW_FILENAME = $OPTION_FILENAME . ".new";
+  $BACKUP_FILENAME = $OPTION_FILENAME . ".bak";
+  open(MAKEFILEORIG, "<$OPTION_FILENAME") || die $!;
+  unlink $NEW_FILENAME;
+  open(MAKEFILENEW, ">$NEW_FILENAME") || die $!;
+  binmode MAKEFILENEW;
+  select MAKEFILENEW;
+  while (<MAKEFILEORIG>) {
+    chomp;
+    if ( /^\Q$OPTION_STRING\E/ ) {
+      if ( $OPTION_APPEND ) {
+	$OPTION_STRING = "";
+      } else {
+	last;
+      }
+    }
+    print $_ . $OPTION_NEWLINE;
+  }
+  close(MAKEFILEORIG);
+}
+
+if ( $OPTION_STRING ) {
+  print $OPTION_STRING . $OPTION_NEWLINE;
+  print $OPTION_NEWLINE;
+}
+
+
+###############################################################################
+# cpp
+
+# eliminate dir/.. 
+sub reduceDirectory {
+  my($path) = @_;
+
+  # C:/hogehoge => C:, /hogehoge
+  # //localhost/hogehoge => //localhost, /hogehoge
+  my($drive) = "";
+  if ($isWindows) {
+    if ( $path =~ /^([a-zA-Z]:)(.*)$/ ||
+	 $path =~ m@^(//[^/]+)(|/.*)$@ ) {
+      $drive = $1;
+      $path = $2;
+    }
+  }
+
+  # /./ => /, // => /
+  while ( $path =~ s:/\.?/:/: ) { ; }
+
+  # /hoge/../ => /
+  my($normalDir) = "(?:[^./]|[^./][^/]|[^/][^./]|[^/][^/][^/]+)";
+  while ( $path =~ m:^(.*)/$normalDir/\.\.(|/.*)$:o ) {
+    $path = $1 . $2;
+  }
+
+  # ^hoge/../muha => muha
+  $path =~ s:^$normalDir/\.\.(|/(.*))$:$2:o;
+
+  return $drive . $path if ($isWindows);
+  return $path;
+}
+
+# absolute path to relative directory against cwd
+#	$path = /usr/bin
+#	$cwd = /usr/local/lib
+#	return: ../../bin
+sub getRelativeDirectory {
+  my($path) = @_;
+  $path = &reduceDirectory($path);
+  my($cwd) = getcwd() . "/";
+  $cwd =~ s:\\:/:g if ( $isWindows );
+  $cwd = &reduceDirectory($cwd);
+  my($cwd2) = $cwd;
+  $cwd2 =~ s@^/cygdrive/([a-z])@$1:@i if ( $isCygwin );
+  
+  if ( ( $ignoreCase  && "$path\n$cwd" =~ m:^(.*)/(.*)\n\1/(.*)$:i ) ||
+       ( !$ignoreCase && "$path\n$cwd" =~ m:^(.*)/(.*)\n\1/(.*)$:  ) ||
+       ( $ignoreCase  && "$path\n$cwd2" =~ m:^(.*)/(.*)\n\1/(.*)$:i ) ||
+       ( !$ignoreCase && "$path\n$cwd2" =~ m:^(.*)/(.*)\n\1/(.*)$:  )) {
+    my($path) = $2;
+    my($dir) = $3;
+    if (0 < length($dir)) {
+      $dir =~ s:[^/]+:..:g;
+      return "$dir/$path";
+    } else {
+      return $path;
+    }
+  }
+  return $path;
+}
+
+# make dependency information
+foreach $source ( @OPTION_SRCS ) {
+
+  $source = &getRelativeDirectory($source);
+  if ( $OPTION_VERBOSE == 1 ) {
+    print STDERR "$source\n";
+  } elsif ( 2 <= $OPTION_VERBOSE ) {
+    print STDERR "Running preprocessor ...\n";
+    print STDERR "  $commandline $source\n";
+  }
+  
+  open(CXX, "$commandline $source|") || next;
+  my(%dependFiles);
+
+  while (<CXX>) {
+    chomp;
+    next if ( ! /$line/o );
+    $_ = $1;
+
+    # replace path delimiter
+    s/\Q$path_delimiter\E/\//og if ( $path_delimiter );
+
+    # exclude source file name
+    if ( $ignoreCase ) {
+      next if ( /^\Q$source\E$/i );
+    } else {
+      next if ( /^\Q$source\E$/ );
+    }
+    $dependFiles{&reduceDirectory($_)} = 1;
+  }
+
+  close (CXX);
+  
+  # exclude standard header file
+  my(@dependFiles) = ();
+ EXCLUDE: foreach $i ( sort(keys(%dependFiles)) ) {
+    foreach $j ( @OPTION_IGNORE ) {
+      next if ( $j eq "" );
+      if ( $ignoreCase ) {
+	next EXCLUDE if ( $i =~ /^\Q$j\E/i );
+      } else {
+	next EXCLUDE if ( $i =~ /^\Q$j\E/ );
+      }
+    }
+    push(@dependFiles, $i);
+  }
+
+  next if ( scalar(@dependFiles) == 0 );
+
+  # output object filename
+  $source =~ s/(\.(C|c|cc|cxx|cpp)|)$/$OPTION_SUFFIX/;
+  $source =~ s:/:$OPTION_PATH_DELIMITER:g;
+  print $OPTION_PREFIX . $source . ":";
+  $len = length($OPTION_PREFIX . $source . ":");
+
+  # output header filenames
+ HEADER: foreach $i ( @dependFiles ) {
+    # get relative directory
+    $i = &getRelativeDirectory($i) if ( ! $OPTION_ABSOLUTE );
+    $i =~ s:/:$OPTION_PATH_DELIMITER:g;
+
+    # output
+    if ( $OPTION_WIDTH - 2 <= $len + length(" " . $i) ) {
+      printf " \\" . $OPTION_NEWLINE;
+      $len = 0;
+    }
+    print " ", $i;
+    $len += length(" " . $i);
+  }
+  print $OPTION_NEWLINE;
+}
+
+if ( $OPTION_FILENAME ne "-" ) {
+  select STDIN;
+  close MAKEFILENEW;
+  
+  rename $OPTION_FILENAME, $BACKUP_FILENAME;
+  rename $NEW_FILENAME, $OPTION_FILENAME;
+}

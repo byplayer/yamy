@@ -1,0 +1,98 @@
+#
+# Dvorak layout for 窓使いの憂鬱
+#
+# Written by KANAI Makoto <kanai@nadmin.org>
+#         on May. 2, 2000
+#
+# [使い方]
+# .mayuの中で
+#     include "104.mayu"
+# に続いて
+#     include "dvorak.mayu"
+# として読み込ませる｡
+# その後は、アンダースコア付のキー別名を使った指定が可能。
+# 例: window EditControl /:Edit$/ : Global
+#     key C-_H	=> BackSpace
+#
+
+def alias  _A			= A
+def alias  _B			= N
+def alias  _C			= I
+def alias  _D			= H
+def alias  _E			= D
+def alias  _F			= Y
+def alias  _G			= U
+def alias  _H			= J
+def alias  _I			= G
+def alias  _J			= C
+def alias  _K			= V
+def alias  _L			= P
+def alias  _M			= M
+def alias  _N			= L
+def alias  _O			= S
+def alias  _P			= R
+def alias  _Q			= X
+def alias  _R			= O
+def alias  _S			= Semicolon
+def alias  _T			= K
+def alias  _U			= F
+def alias  _V			= Period
+def alias  _W			= Comma
+def alias  _X			= B
+def alias  _Y			= T
+def alias  _Z			= Slash
+def alias  _CloseBracket	= Equal
+def alias  _Comma		= W
+def alias  _Equal		= CloseBracket
+def alias  _Minus		= Quote
+def alias  _OpenBracket		= Minus
+def alias  _Period		= E
+def alias  _Quote		= Q
+def alias  _Semicolon		= Z
+def alias  _Slash		= OpenBracket
+#def alias  _BackQuote		= BackQuote
+#def alias  _BackSlash		= BackSlash
+#def alias  _BackSpace		= BackSpace
+#def alias  _Caps		= Caps
+#def alias  _Enter		= Enter
+#def alias  _Escape		= Escape
+#def alias  _Space		= Space
+#def alias  _Tab		= Tab
+
+key *_A			=> *A
+key *_B			=> *B
+key *_C			=> *C
+key *_D			=> *D
+key *_E			=> *E
+key *_F			=> *F
+key *_G			=> *G
+key *_H			=> *H
+key *_I			=> *I
+key *_J			=> *J
+key *_K			=> *K
+key *_L			=> *L
+key *_M			=> *M
+key *_N			=> *N
+key *_O			=> *O
+key *_P			=> *P
+key *_Q			=> *Q
+key *_R			=> *R
+key *_S			=> *S
+key *_T			=> *T
+key *_U			=> *U
+key *_V			=> *V
+key *_W			=> *W
+key *_X			=> *X
+key *_Y			=> *Y
+key *_Z			=> *Z
+key *_CloseBracket	=> *CloseBracket
+key *_Comma		=> *Comma
+key *_Equal		=> *Equal
+key *_Minus		=> *Minus
+key *_OpenBracket	=> *OpenBracket
+key *_Period		=> *Period
+key *_Quote		=> *Quote
+key *_Semicolon		=> *Semicolon
+key *_Slash		=> *Slash
+
+#--

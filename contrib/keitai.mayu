@@ -1,0 +1,555 @@
+keymap2 Œg‘Ñ_0 : Global
+keymap2 Œg‘Ñ_1 : Global
+keymap2 Œg‘Ñ_2 : Global
+keymap2 Œg‘Ñ_3 : Global
+keymap2 Œg‘Ñ_4 : Global
+keymap2 Œg‘Ñ_5 : Global
+keymap2 Œg‘Ñ_6 : Global
+keymap2 Œg‘Ñ_7 : Global
+keymap2 Œg‘Ñ_8 : Global
+keymap2 Œg‘Ñ_9 : Global
+keymap2 Œg‘Ñ_ : Global
+
+keymap2 Œg‘Ñ____ : Global
+ key *IC-IL-Num0 => BS &Prefix(Œg‘Ñ_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_ : Global
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_9_9_9_9_9 : Global
+ key *IC-IL-Num3 => BS R A &Prefix(Œg‘Ñ_9)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_9_9_9_9 : Global
+ key *IC-IL-Num3 => BS R O &Prefix(Œg‘Ñ_9_9_9_9_9)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_9_9_9 : Global
+ key *IC-IL-Num3 => BS R E &Prefix(Œg‘Ñ_9_9_9_9)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_9_9 : Global
+ key *IC-IL-Num3 => BS R U &Prefix(Œg‘Ñ_9_9_9)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_9 : Global
+ key *IC-IL-Num3 => BS R I &Prefix(Œg‘Ñ_9_9)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8_8_8_8_8_8 : Global
+ key *IC-IL-Num2 => BS Y A &Prefix(Œg‘Ñ_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8_8_8_8_8 : Global
+ key *IC-IL-Num2 => BS X Y O &Prefix(Œg‘Ñ_8_8_8_8_8_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8_8_8_8 : Global
+ key *IC-IL-Num2 => BS X Y U &Prefix(Œg‘Ñ_8_8_8_8_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8_8_8 : Global
+ key *IC-IL-Num2 => BS X Y A &Prefix(Œg‘Ñ_8_8_8_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8_8 : Global
+ key *IC-IL-Num2 => BS Y O &Prefix(Œg‘Ñ_8_8_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_8 : Global
+ key *IC-IL-Num2 => BS Y U &Prefix(Œg‘Ñ_8_8)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_7_7_7_7_7 : Global
+ key *IC-IL-Num1 => BS M A &Prefix(Œg‘Ñ_7)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_7_7_7_7 : Global
+ key *IC-IL-Num1 => BS M O &Prefix(Œg‘Ñ_7_7_7_7_7)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_7_7_7 : Global
+ key *IC-IL-Num1 => BS M E &Prefix(Œg‘Ñ_7_7_7_7)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_7_7 : Global
+ key *IC-IL-Num1 => BS M U &Prefix(Œg‘Ñ_7_7_7)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_7 : Global
+ key *IC-IL-Num1 => BS M I &Prefix(Œg‘Ñ_7_7)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+
+keymap2 Œg‘Ñ_6_6_6_6_6_ : Global
+
+keymap2 Œg‘Ñ_6_6_6_6_6____ : Global
+ key *IC-IL-Num0 => BS BS B O &Prefix(Œg‘Ñ_6_6_6_6_6_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6_6___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_6_6_6_6_6____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6_6__ : Global
+ key *IC-IL-Num0 => BS H O Comma &Prefix(Œg‘Ñ_6_6_6_6_6___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6_6_ : Global
+ key *IC-IL-Num0 => BS P O &Prefix(Œg‘Ñ_6_6_6_6_6__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6_6 : Global
+ key *IC-IL-Num6 => BS H A &Prefix(Œg‘Ñ_6)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS B O &Prefix(Œg‘Ñ_6_6_6_6_6_)
+
+keymap2 Œg‘Ñ_6_6_6_6_ : Global
+
+keymap2 Œg‘Ñ_6_6_6_6____ : Global
+ key *IC-IL-Num0 => BS BS B E &Prefix(Œg‘Ñ_6_6_6_6_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_6_6_6_6____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6__ : Global
+ key *IC-IL-Num0 => BS H E Comma &Prefix(Œg‘Ñ_6_6_6_6___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6_ : Global
+ key *IC-IL-Num0 => BS P E &Prefix(Œg‘Ñ_6_6_6_6__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_6 : Global
+ key *IC-IL-Num6 => BS H O &Prefix(Œg‘Ñ_6_6_6_6_6)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS B E &Prefix(Œg‘Ñ_6_6_6_6_)
+
+keymap2 Œg‘Ñ_6_6_6_ : Global
+
+keymap2 Œg‘Ñ_6_6_6____ : Global
+ key *IC-IL-Num0 => BS BS B U &Prefix(Œg‘Ñ_6_6_6_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_6_6_6____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6__ : Global
+ key *IC-IL-Num0 => BS F U Comma &Prefix(Œg‘Ñ_6_6_6___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6_ : Global
+ key *IC-IL-Num0 => BS P U &Prefix(Œg‘Ñ_6_6_6__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_6 : Global
+ key *IC-IL-Num6 => BS H E &Prefix(Œg‘Ñ_6_6_6_6)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS B U &Prefix(Œg‘Ñ_6_6_6_)
+
+keymap2 Œg‘Ñ_6_6_ : Global
+
+keymap2 Œg‘Ñ_6_6____ : Global
+ key *IC-IL-Num0 => BS BS B I &Prefix(Œg‘Ñ_6_6_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_6_6____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6__ : Global
+ key *IC-IL-Num0 => BS H I Comma &Prefix(Œg‘Ñ_6_6___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6_ : Global
+ key *IC-IL-Num0 => BS P I &Prefix(Œg‘Ñ_6_6__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_6 : Global
+ key *IC-IL-Num6 => BS F U &Prefix(Œg‘Ñ_6_6_6)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS B I &Prefix(Œg‘Ñ_6_6_)
+
+keymap2 Œg‘Ñ_6_ : Global
+
+keymap2 Œg‘Ñ_6____ : Global
+ key *IC-IL-Num0 => BS BS B A &Prefix(Œg‘Ñ_6_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_6____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6__ : Global
+ key *IC-IL-Num0 => BS H A Comma &Prefix(Œg‘Ñ_6___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6_ : Global
+ key *IC-IL-Num0 => BS P A &Prefix(Œg‘Ñ_6__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_6 : Global
+ key *IC-IL-Num6 => BS H I &Prefix(Œg‘Ñ_6_6)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS B A &Prefix(Œg‘Ñ_6_)
+keymap2 Œg‘Ñ_5_5_5_5_5 : Global
+ key *IC-IL-Num5 => BS N A &Prefix(Œg‘Ñ_5)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_5_5_5_5 : Global
+ key *IC-IL-Num5 => BS N O &Prefix(Œg‘Ñ_5_5_5_5_5)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_5_5_5 : Global
+ key *IC-IL-Num5 => BS N E &Prefix(Œg‘Ñ_5_5_5_5)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_5_5 : Global
+ key *IC-IL-Num5 => BS N U &Prefix(Œg‘Ñ_5_5_5)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_5 : Global
+ key *IC-IL-Num5 => BS N I &Prefix(Œg‘Ñ_5_5)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_4_4_4_4_4_4 : Global
+ key *IC-IL-Num4 => BS T A &Prefix(Œg‘Ñ_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+
+keymap2 Œg‘Ñ_4_4_4_4_4_ : Global
+
+keymap2 Œg‘Ñ_4_4_4_4_4____ : Global
+ key *IC-IL-Num0 => BS BS D O &Prefix(Œg‘Ñ_4_4_4_4_4_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4_4___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_4_4_4_4_4____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4_4__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_4_4_4_4_4___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4_4_ : Global
+ key *IC-IL-Num0 => BS T O &Prefix(Œg‘Ñ_4_4_4_4_4__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4_4 : Global
+ key *IC-IL-Num4 => BS X T U &Prefix(Œg‘Ñ_4_4_4_4_4_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS D O &Prefix(Œg‘Ñ_4_4_4_4_4_)
+
+keymap2 Œg‘Ñ_4_4_4_4_ : Global
+
+keymap2 Œg‘Ñ_4_4_4_4____ : Global
+ key *IC-IL-Num0 => BS BS D E &Prefix(Œg‘Ñ_4_4_4_4_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_4_4_4_4____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_4_4_4_4___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4_ : Global
+ key *IC-IL-Num0 => BS T E &Prefix(Œg‘Ñ_4_4_4_4__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_4 : Global
+ key *IC-IL-Num4 => BS T O &Prefix(Œg‘Ñ_4_4_4_4_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS D E &Prefix(Œg‘Ñ_4_4_4_4_)
+
+keymap2 Œg‘Ñ_4_4_4_ : Global
+
+keymap2 Œg‘Ñ_4_4_4____ : Global
+ key *IC-IL-Num0 => BS BS D U &Prefix(Œg‘Ñ_4_4_4_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_4_4_4____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_4_4_4___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4_ : Global
+ key *IC-IL-Num0 => BS T U &Prefix(Œg‘Ñ_4_4_4__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_4 : Global
+ key *IC-IL-Num4 => BS T E &Prefix(Œg‘Ñ_4_4_4_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS D U &Prefix(Œg‘Ñ_4_4_4_)
+
+keymap2 Œg‘Ñ_4_4_ : Global
+
+keymap2 Œg‘Ñ_4_4____ : Global
+ key *IC-IL-Num0 => BS BS D I &Prefix(Œg‘Ñ_4_4_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_4_4____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_4_4___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4_ : Global
+ key *IC-IL-Num0 => BS T I &Prefix(Œg‘Ñ_4_4__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_4 : Global
+ key *IC-IL-Num4 => BS T U &Prefix(Œg‘Ñ_4_4_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS D I &Prefix(Œg‘Ñ_4_4_)
+
+keymap2 Œg‘Ñ_4_ : Global
+
+keymap2 Œg‘Ñ_4____ : Global
+ key *IC-IL-Num0 => BS BS D A &Prefix(Œg‘Ñ_4_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_4____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_4___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4_ : Global
+ key *IC-IL-Num0 => BS T A &Prefix(Œg‘Ñ_4__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_4 : Global
+ key *IC-IL-Num4 => BS T I &Prefix(Œg‘Ñ_4_4)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS D A &Prefix(Œg‘Ñ_4_)
+
+keymap2 Œg‘Ñ_3_3_3_3_3_ : Global
+
+keymap2 Œg‘Ñ_3_3_3_3_3____ : Global
+ key *IC-IL-Num0 => BS BS Z O &Prefix(Œg‘Ñ_3_3_3_3_3_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3_3___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_3_3_3_3_3____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3_3__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_3_3_3_3_3___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3_3_ : Global
+ key *IC-IL-Num0 => BS S O &Prefix(Œg‘Ñ_3_3_3_3_3__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3_3 : Global
+ key *IC-IL-Num9 => BS S A &Prefix(Œg‘Ñ_3)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS Z O &Prefix(Œg‘Ñ_3_3_3_3_3_)
+
+keymap2 Œg‘Ñ_3_3_3_3_ : Global
+
+keymap2 Œg‘Ñ_3_3_3_3____ : Global
+ key *IC-IL-Num0 => BS BS Z E &Prefix(Œg‘Ñ_3_3_3_3_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_3_3_3_3____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_3_3_3_3___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3_ : Global
+ key *IC-IL-Num0 => BS S E &Prefix(Œg‘Ñ_3_3_3_3__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_3 : Global
+ key *IC-IL-Num9 => BS S O &Prefix(Œg‘Ñ_3_3_3_3_3)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS Z E &Prefix(Œg‘Ñ_3_3_3_3_)
+
+keymap2 Œg‘Ñ_3_3_3_ : Global
+
+keymap2 Œg‘Ñ_3_3_3____ : Global
+ key *IC-IL-Num0 => BS BS Z U &Prefix(Œg‘Ñ_3_3_3_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_3_3_3____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_3_3_3___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3_ : Global
+ key *IC-IL-Num0 => BS S U &Prefix(Œg‘Ñ_3_3_3__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_3 : Global
+ key *IC-IL-Num9 => BS S E &Prefix(Œg‘Ñ_3_3_3_3)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS Z U &Prefix(Œg‘Ñ_3_3_3_)
+
+keymap2 Œg‘Ñ_3_3_ : Global
+
+keymap2 Œg‘Ñ_3_3____ : Global
+ key *IC-IL-Num0 => BS BS J I &Prefix(Œg‘Ñ_3_3_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_3_3____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_3_3___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3_ : Global
+ key *IC-IL-Num0 => BS S I &Prefix(Œg‘Ñ_3_3__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_3 : Global
+ key *IC-IL-Num9 => BS S U &Prefix(Œg‘Ñ_3_3_3)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS J I &Prefix(Œg‘Ñ_3_3_)
+
+keymap2 Œg‘Ñ_3_ : Global
+
+keymap2 Œg‘Ñ_3____ : Global
+ key *IC-IL-Num0 => BS BS Z A &Prefix(Œg‘Ñ_3_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_3____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_3___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3_ : Global
+ key *IC-IL-Num0 => BS S A &Prefix(Œg‘Ñ_3__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_3 : Global
+ key *IC-IL-Num9 => BS S I &Prefix(Œg‘Ñ_3_3)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS Z A &Prefix(Œg‘Ñ_3_)
+
+keymap2 Œg‘Ñ_2_2_2_2_2_ : Global
+
+keymap2 Œg‘Ñ_2_2_2_2_2____ : Global
+ key *IC-IL-Num0 => BS BS G O &Prefix(Œg‘Ñ_2_2_2_2_2_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2_2___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_2_2_2_2_2____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2_2__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_2_2_2_2_2___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2_2_ : Global
+ key *IC-IL-Num0 => BS K O &Prefix(Œg‘Ñ_2_2_2_2_2__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2_2 : Global
+ key *IC-IL-Num8 => BS K A &Prefix(Œg‘Ñ_2)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS G O &Prefix(Œg‘Ñ_2_2_2_2_2_)
+
+keymap2 Œg‘Ñ_2_2_2_2_ : Global
+
+keymap2 Œg‘Ñ_2_2_2_2____ : Global
+ key *IC-IL-Num0 => BS BS G E &Prefix(Œg‘Ñ_2_2_2_2_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_2_2_2_2____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_2_2_2_2___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2_ : Global
+ key *IC-IL-Num0 => BS K E &Prefix(Œg‘Ñ_2_2_2_2__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_2 : Global
+ key *IC-IL-Num8 => BS K O &Prefix(Œg‘Ñ_2_2_2_2_2)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS G E &Prefix(Œg‘Ñ_2_2_2_2_)
+
+keymap2 Œg‘Ñ_2_2_2_ : Global
+
+keymap2 Œg‘Ñ_2_2_2____ : Global
+ key *IC-IL-Num0 => BS BS G U &Prefix(Œg‘Ñ_2_2_2_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_2_2_2____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_2_2_2___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2_ : Global
+ key *IC-IL-Num0 => BS K U &Prefix(Œg‘Ñ_2_2_2__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_2 : Global
+ key *IC-IL-Num8 => BS K E &Prefix(Œg‘Ñ_2_2_2_2)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS G U &Prefix(Œg‘Ñ_2_2_2_)
+
+keymap2 Œg‘Ñ_2_2_ : Global
+
+keymap2 Œg‘Ñ_2_2____ : Global
+ key *IC-IL-Num0 => BS BS G I &Prefix(Œg‘Ñ_2_2_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_2_2____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_2_2___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2_ : Global
+ key *IC-IL-Num0 => BS K I &Prefix(Œg‘Ñ_2_2__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_2 : Global
+ key *IC-IL-Num8 => BS K U &Prefix(Œg‘Ñ_2_2_2)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS G I &Prefix(Œg‘Ñ_2_2_)
+
+keymap2 Œg‘Ñ_2_ : Global
+
+keymap2 Œg‘Ñ_2____ : Global
+ key *IC-IL-Num0 => BS BS G A &Prefix(Œg‘Ñ_2_)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2___ : Global
+ key *IC-IL-Num0 => BS FullStop &Prefix(Œg‘Ñ_2____)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2__ : Global
+ key *IC-IL-Num0 => Comma &Prefix(Œg‘Ñ_2___)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2_ : Global
+ key *IC-IL-Num0 => BS K A &Prefix(Œg‘Ñ_2__)
+ key *IC-IL-¨ => &Ignore
+keymap2 Œg‘Ñ_2 : Global
+ key *IC-IL-Num8 => BS K I &Prefix(Œg‘Ñ_2_2)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => BS G A &Prefix(Œg‘Ñ_2_)
+keymap2 Œg‘Ñ_1_1_1_1_1_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS A &Prefix(Œg‘Ñ_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS X O &Prefix(Œg‘Ñ_1_1_1_1_1_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS X E &Prefix(Œg‘Ñ_1_1_1_1_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS X U &Prefix(Œg‘Ñ_1_1_1_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS X I &Prefix(Œg‘Ñ_1_1_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS X A &Prefix(Œg‘Ñ_1_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1_1 : Global
+ key *IC-IL-Num7 => BS O &Prefix(Œg‘Ñ_1_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1_1 : Global
+ key *IC-IL-Num7 => BS E &Prefix(Œg‘Ñ_1_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1_1 : Global
+ key *IC-IL-Num7 => BS U &Prefix(Œg‘Ñ_1_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_1 : Global
+ key *IC-IL-Num7 => BS I &Prefix(Œg‘Ñ_1_1)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_0_0_0 : Global
+ key *IC-IL-NumFullStop => BS W A &Prefix(Œg‘Ñ_0)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_0_0 : Global
+ key *IC-IL-NumFullStop => BS N N &Prefix(Œg‘Ñ_0_0_0)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap2 Œg‘Ñ_0 : Global
+ key *IC-IL-NumFullStop => BS W O &Prefix(Œg‘Ñ_0_0)
+ key *IC-IL-¨ => &Ignore
+ key *IC-IL-Num0 => &Prefix(Œg‘Ñ_)
+keymap Global
+ key *IC-IL-NumFullStop => W A &Prefix(Œg‘Ñ_0)
+ key *IC-IL-Num7 => A &Prefix(Œg‘Ñ_1)
+ key *IC-IL-Num8 => K A &Prefix(Œg‘Ñ_2)
+ key *IC-IL-Num9 => S A &Prefix(Œg‘Ñ_3)
+ key *IC-IL-Num4 => T A &Prefix(Œg‘Ñ_4)
+ key *IC-IL-Num5 => N A &Prefix(Œg‘Ñ_5)
+ key *IC-IL-Num6 => H A &Prefix(Œg‘Ñ_6)
+ key *IC-IL-Num1 => M A &Prefix(Œg‘Ñ_7)
+ key *IC-IL-Num2 => Y A &Prefix(Œg‘Ñ_8)
+ key *IC-IL-Num3 => R A &Prefix(Œg‘Ñ_9)

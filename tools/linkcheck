@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+
+# HTML local link checker
+# usage: linkcheck ../doc/*.html
+
+my %HREF_EXTERNAL;
+my %HREF_LOCAL_FILE;
+my %HREF_LOCAL;
+my %NAME;
+
+foreach $i ( @ARGV ) {
+  open(FILE, "<$i");
+  $NAME{"$i"} = 1;
+  $NAME{"$i#"} = 1;
+  while (<FILE>) {
+    chomp;
+    while (/href\s*?=\s*?"([^"]*)"/ig) {
+      my $href = $1;
+      if ($href =~ /^\w+:/) {
+	$HREF_EXTERNAL{"$href"} = 1;
+      } elsif ($href =~ /^#/) {
+	$HREF_LOCAL{"$i$href"} = 1;
+      } elsif ($href =~ /html$/ || $href =~ /html#/) {
+	$HREF_LOCAL{"$href"} = 1;
+      } else {
+	$HREF_LOCAL_FILE{"$href"} = 1;
+      }
+    }
+    while (/name\s*?=\s*?"([^"]*)"/ig) {
+      $NAME{"$i#$1"} = 1;
+    }
+  }
+}
+
+foreach $i ( sort keys %HREF_EXTERNAL ) {
+  print "external: $i\n";
+}
+
+foreach $i ( sort keys %HREF_LOCAL_FILE ) {
+  if (-f $i) {
+    print "file: $i\n";
+  } else {
+    print "missing: $i\n";
+  }
+}
+
+foreach $i ( sort keys %HREF_LOCAL ) {
+  if ($NAME{$i}) {
+    print "local: $i\n";
+  } else {
+    print "missing: $i\n";
+  }
+}

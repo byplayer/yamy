@@ -1,0 +1,31 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ëãégÇ¢ÇÃóJüT - AX.mayu
+# Copyright (C) 2002, èºñ{ îéãI <matsumoto678@oki.com>
+#
+
+define KBD109onAX
+
+def subst  S-*_2		= $QUOTATION_MARK
+def subst  S-*_6		= $AMPERSAND
+def subst  S-*_7		= $APOSTROPHE
+def subst  S-*_8		= $LEFT_PARENTHESIS
+def subst  S-*_9		= $RIGHT_PARENTHESIS
+
+def subst  S-*BackSlash		= $LOW_LINE
+def subst  S-*_0		= $TILDE # Ç±ÇÍÇÕÇ»Ç≠ÇƒÇ‡Ç¢Ç¢
+
+def subst  S-*Hyphen		= $EQUALS_SIGN
+def subst ~S-*Equal		= $CIRCUMFLEX_ACCENT
+def subst  S-*Equal		= $TILDE
+def subst ~S-*OpenBracket	= $COMMERCIAL_AT
+def subst  S-*OpenBracket	= $GRAVE_ACCENT
+
+def subst ~S-*CloseBracket	= $LEFT_SQUARE_BRACKET
+def subst  S-*CloseBracket	= $LEFT_CURLY_BRACKET
+
+def subst  S-*Semicolon		= $PLUS_SIGN
+def subst ~S-*Quote		= $COLON
+def subst  S-*Quote		= $ASTERISK
+
+def subst ~S-*GraveAccent	= $RIGHT_SQUARE_BRACKET
+def subst  S-*GraveAccent	= $RIGHT_CURLY_BRACKET

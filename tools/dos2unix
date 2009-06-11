@@ -1,0 +1,20 @@
+#!/usr/local/bin/perl -w
+# -*- cperl -*-
+
+binmode STDIN;
+binmode STDOUT;
+
+foreach $i ( @ARGV ) {
+  open (FILE, "<$i");
+  binmode FILE;
+  @lines = <FILE>;
+  close (FILE);
+  
+  open (FILE, ">$i");
+  binmode FILE;
+  foreach $j ( @lines ) {
+    $j =~ s/\x0d\x0a/\x0a/g;
+    print FILE $j;
+  }
+  close (FILE);
+}

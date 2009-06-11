@@ -1,0 +1,263 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# MADO TSUKAI NO YUUTSU - 104.mayu
+# Copyright (C) 1999-2005, TAGA Nayuta <nayuta@users.sourceforge.net>
+#
+
+define KBD101
+define KBD102
+define KBD104
+define KBD105
+define KBD107
+define KBD108
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 101/102/104/105/107/108 US keyboard definition
+#
+
+def key Esc Escape			=    0x01
+def key _1				=    0x02 # 1!
+def key _2				=    0x03 # 2@
+def key _3				=    0x04 # 3#
+def key _4				=    0x05 # 4$
+def key _5				=    0x06 # 5%
+def key _6				=    0x07 # 6^
+def key _7				=    0x08 # 7&
+def key _8				=    0x09 # 8*
+def key _9				=    0x0a # 9(
+def key _0				=    0x0b # 0)
+def key HyphenMinus Hyphen Minus	=    0x0c # -_
+def key EqualsSign Equal		=    0x0d # =+
+def key BackSpace BS Back		=    0x0e
+def key Tab				=    0x0f
+def key Q				=    0x10
+def key ScanPreviousTrack PreviousTrack	= E0-0x10 # (Media Player)
+def key W				=    0x11
+def key E				=    0x12
+def key R				=    0x13
+def key T				=    0x14
+def key Y				=    0x15
+def key U				=    0x16
+def key I				=    0x17
+def key O				=    0x18
+def key P				=    0x19
+def key ScanNextTrack NextTrack		= E0-0x19 # (Media Player)
+def key LeftSquareBracket OpenBracket	=    0x1a # [{
+def key RightSquareBracket CloseBracket	=    0x1b # ]}
+def key Enter Return			=    0x1c
+def key NumEnter NumReturn		= E0-0x1c
+def key LeftControl LControl LCtrl	=    0x1d
+def key RightControl RControl RCtrl	= E0-0x1d
+def key Pause				= E1-0x1d 0x45 # Pause
+def key A				=    0x1e
+def key S				=    0x1f
+def key D				=    0x20
+def key Mute				= E0-0x20 # (Media Player)
+def key F				=    0x21
+def key ALCalculator			= E0-0x21 # (N/A) Calculator 
+def key G				=    0x22
+def key Play/Pause			= E0-0x22 # (Media Player)
+def key H				=    0x23
+def key J				=    0x24
+def key Stop				= E0-0x24 # (Media Player)
+def key K				=    0x25
+def key L				=    0x26
+def key Semicolon			=    0x27 # ;:
+def key Apostrophe Quote		=    0x28 # '"
+def key GraveAccent BackQuote		=    0x29 # `~
+def key LeftShift LShift		=    0x2a
+# def ignore				= E0-0x2a # what is this? (ignore)
+def key ReverseSolidus BackSlash	=    0x2b # \|
+def key Z				=    0x2c
+def key X				=    0x2d
+def key C				=    0x2e
+def key VolumeDecrement VolumeDown	= E0-0x2e
+def key V				=    0x2f
+def key B				=    0x30
+def key VolumeIncrement VolumeUp	= E0-0x30
+def key N				=    0x31
+def key M				=    0x32
+def key ACHome Internet			= E0-0x32 # (Internet Explorer)
+def key Comma				=    0x33 # ,<
+def key FullStop Period			=    0x34 # .>
+def key Solidus Slash			=    0x35 # /?
+def key NumSolidus NumSlash		= E0-0x35 # Numpad /
+def key RightShift RShift		=    0x36
+def key NumAsterisk NumMultiply		=    0x37 # Numpad *
+def key PrintScreen Snapshot		= E0-0x37
+def key LeftAlt LAlt LMenu		=    0x38
+def key RightAlt RAlt RMenu		= E0-0x38
+def key Space				=    0x39
+def key CapsLock Capital Caps		=    0x3a # CapsLock
+def key F1				=    0x3b
+def key F2				=    0x3c
+def key F3				=    0x3d
+def key F4				=    0x3e
+def key F5				=    0x3f
+def key F6				=    0x40
+def key F7				=    0x41
+def key F8				=    0x42
+def key F9				=    0x43
+def key F10				=    0x44
+def key NumLock				=    0x45
+def key ScrollLock Scroll		=    0x46
+def key Break				= E0-0x46 # Break
+def key Num7				=    0x47 # Numpad 7
+def key Home				= E0-0x47
+def key Num8				=    0x48 # Numpad 8
+def key Up				= E0-0x48
+def key Num9				=    0x49 # Numpad 9
+def key PageUp Prior			= E0-0x49
+def key NumHyphenMinus NumMinus		=    0x4a # Numpad -
+def key Num4				=    0x4b # Numpad 4
+def key Left				= E0-0x4b
+def key Num5				=    0x4c # Numpad 5
+def key Num6				=    0x4d # Numpad 6
+def key Right				= E0-0x4d
+def key NumPlusSign NumPlus		=    0x4e # Numpad +
+def key Num1				=    0x4f # Numpad 1
+def key End				= E0-0x4f
+def key Num2				=    0x50
+def key Down				= E0-0x50
+def key Num3				=    0x51
+def key PageDown Next			= E0-0x51
+def key Num0				=    0x52
+def key Insert				= E0-0x52
+def key NumFullStop NumPeriod		=    0x53 # Numpad .
+def key Delete Del			= E0-0x53
+def key SysRq				=    0x54
+def key Less				=    0x56 # < >
+def key F11				=    0x57
+def key F12				=    0x58
+def key LeftWindows LWindows LWin	= E0-0x5b
+def key RightWindows RWindows RWin	= E0-0x5c
+def key Applications Apps		= E0-0x5d
+def key PowerOff			= E0-0x5e # Power off    (107 keyboard)
+def key Sleep				= E0-0x5f # Sleep        (107 keyboard)
+def key WakeUp				= E0-0x63 # Wake up      (107 keyboard)
+def key ACSearch			= E0-0x65 # (Internet Explorer)
+def key ACBookmarks			= E0-0x66 # (Internet Explorer)
+def key ACRefresh			= E0-0x67 # (Internet Explorer)
+def key ACStop				= E0-0x68 # (Internet Explorer)
+def key ACForward			= E0-0x69 # (Internet Explorer)
+def key ACBack				= E0-0x6a # (Internet Explorer)
+def key ALLocalBrowser			= E0-0x6b # (N/A) My Computer 
+def key ALEmailReader Email		= E0-0x6c
+def key ALConsumerControlConfiguration	= E0-0x6d # (N/A) Media Player
+
+
+
+
+
+# def overflow				=    0xff # overflow (ignore)
+
+def sync				=    0x7e # scan code used by &Sync
+
+def mod Shift	= LShift RShift
+def mod Alt	= LAlt RAlt
+def mod Control	= LControl RControl
+def mod Windows	= LWindows RWindows
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# define some key sequence
+#
+
+keyseq $ToggleIME		= A-BackQuote
+keyseq $CapsLock		= CapsLock
+
+keyseq $SPACE			= ~S-*Space			#  
+keyseq $EXCLAMATION_MARK	=  S-*_1			# !
+keyseq $QUOTATION_MARK		=  S-*Apostrophe		# "
+keyseq $NUMBER_SIGN		=  S-*_3			# #
+keyseq $DOLLAR_SIGN		=  S-*_4			# $
+keyseq $PERCENT_SIGN		=  S-*_5			# %
+keyseq $AMPERSAND		=  S-*_7			# &
+keyseq $APOSTROPHE		= ~S-*Apostrophe		# '
+keyseq $LEFT_PARENTHESIS	=  S-*_9			# (
+keyseq $RIGHT_PARENTHESIS	=  S-*_0			# )
+keyseq $ASTERISK		=  S-*_8			# *
+keyseq $PLUS_SIGN		=  S-*EqualsSign		# +
+keyseq $COMMA			= ~S-*Comma			# ,
+keyseq $HYPHEN-MINUS		= ~S-*HyphenMinus		# -
+keyseq $FULL_STOP		= ~S-*FullStop			# .
+keyseq $SOLIDUS			= ~S-*Solidus			# /
+keyseq $DIGIT_ZERO		= ~S-*_0			# 0
+keyseq $DIGIT_ONE		= ~S-*_1			# 1
+keyseq $DIGIT_TWO		= ~S-*_2			# 2
+keyseq $DIGIT_THREE		= ~S-*_3			# 3
+keyseq $DIGIT_FOUR		= ~S-*_4			# 4
+keyseq $DIGIT_FIVE		= ~S-*_5			# 5
+keyseq $DIGIT_SIX		= ~S-*_6			# 6
+keyseq $DIGIT_SEVEN		= ~S-*_7			# 7
+keyseq $DIGIT_EIGHT		= ~S-*_8			# 8
+keyseq $DIGIT_NINE		= ~S-*_9			# 9
+keyseq $COLON			=  S-*Semicolon			# :
+keyseq $SEMICOLON		= ~S-*Semicolon			# ;
+keyseq $LESS-THAN_SIGN		=  S-*Comma			# <
+keyseq $EQUALS_SIGN		= ~S-*EqualsSign		# =
+keyseq $GREATER-THAN_SIGN	=  S-*FullStop			# >
+keyseq $QUESTION_MARK		=  S-*Solidus			# ?
+keyseq $COMMERCIAL_AT		=  S-*_2			# @
+keyseq $LATIN_CAPITAL_LETTER_A	=  S-*A				# A
+keyseq $LATIN_CAPITAL_LETTER_B	=  S-*B				# B
+keyseq $LATIN_CAPITAL_LETTER_C	=  S-*C				# C
+keyseq $LATIN_CAPITAL_LETTER_D	=  S-*D				# D
+keyseq $LATIN_CAPITAL_LETTER_E	=  S-*E				# E
+keyseq $LATIN_CAPITAL_LETTER_F	=  S-*F				# F
+keyseq $LATIN_CAPITAL_LETTER_G	=  S-*G				# G
+keyseq $LATIN_CAPITAL_LETTER_H	=  S-*H				# H
+keyseq $LATIN_CAPITAL_LETTER_I	=  S-*I				# I
+keyseq $LATIN_CAPITAL_LETTER_J	=  S-*J				# J
+keyseq $LATIN_CAPITAL_LETTER_K	=  S-*K				# K
+keyseq $LATIN_CAPITAL_LETTER_L	=  S-*L				# L
+keyseq $LATIN_CAPITAL_LETTER_M	=  S-*M				# M
+keyseq $LATIN_CAPITAL_LETTER_N	=  S-*N				# N
+keyseq $LATIN_CAPITAL_LETTER_O	=  S-*O				# O
+keyseq $LATIN_CAPITAL_LETTER_P	=  S-*P				# P
+keyseq $LATIN_CAPITAL_LETTER_Q	=  S-*Q				# Q
+keyseq $LATIN_CAPITAL_LETTER_R	=  S-*R				# R
+keyseq $LATIN_CAPITAL_LETTER_S	=  S-*S				# S
+keyseq $LATIN_CAPITAL_LETTER_T	=  S-*T				# T
+keyseq $LATIN_CAPITAL_LETTER_U	=  S-*U				# U
+keyseq $LATIN_CAPITAL_LETTER_V	=  S-*V				# V
+keyseq $LATIN_CAPITAL_LETTER_W	=  S-*W				# W
+keyseq $LATIN_CAPITAL_LETTER_X	=  S-*X				# X
+keyseq $LATIN_CAPITAL_LETTER_Y	=  S-*Y				# Y
+keyseq $LATIN_CAPITAL_LETTER_Z	=  S-*Z				# Z
+keyseq $LEFT_SQUARE_BRACKET	= ~S-*LeftSquareBracket		# [
+keyseq $REVERSE_SOLIDUS		= ~S-*ReverseSolidus		# \
+keyseq $RIGHT_SQUARE_BRACKET	= ~S-*RightSquareBracket	# ]
+keyseq $CIRCUMFLEX_ACCENT	=  S-*_6			# ^
+keyseq $LOW_LINE		=  S-*HyphenMinus		# _
+keyseq $GRAVE_ACCENT		= ~S-*GraveAccent		# `
+keyseq $LATIN_SMALL_LETTER_A	= ~S-*A				# a
+keyseq $LATIN_SMALL_LETTER_B	= ~S-*B				# b
+keyseq $LATIN_SMALL_LETTER_C	= ~S-*C				# c
+keyseq $LATIN_SMALL_LETTER_D	= ~S-*D				# d
+keyseq $LATIN_SMALL_LETTER_E	= ~S-*E				# e
+keyseq $LATIN_SMALL_LETTER_F	= ~S-*F				# f
+keyseq $LATIN_SMALL_LETTER_G	= ~S-*G				# g
+keyseq $LATIN_SMALL_LETTER_H	= ~S-*H				# h
+keyseq $LATIN_SMALL_LETTER_I	= ~S-*I				# i
+keyseq $LATIN_SMALL_LETTER_J	= ~S-*J				# j
+keyseq $LATIN_SMALL_LETTER_K	= ~S-*K				# k
+keyseq $LATIN_SMALL_LETTER_L	= ~S-*L				# l
+keyseq $LATIN_SMALL_LETTER_M	= ~S-*M				# m
+keyseq $LATIN_SMALL_LETTER_N	= ~S-*N				# n
+keyseq $LATIN_SMALL_LETTER_O	= ~S-*O				# o
+keyseq $LATIN_SMALL_LETTER_P	= ~S-*P				# p
+keyseq $LATIN_SMALL_LETTER_Q	= ~S-*Q				# q
+keyseq $LATIN_SMALL_LETTER_R	= ~S-*R				# r
+keyseq $LATIN_SMALL_LETTER_S	= ~S-*S				# s
+keyseq $LATIN_SMALL_LETTER_T	= ~S-*T				# t
+keyseq $LATIN_SMALL_LETTER_U	= ~S-*U				# u
+keyseq $LATIN_SMALL_LETTER_V	= ~S-*V				# v
+keyseq $LATIN_SMALL_LETTER_W	= ~S-*W				# w
+keyseq $LATIN_SMALL_LETTER_X	= ~S-*X				# x
+keyseq $LATIN_SMALL_LETTER_Y	= ~S-*Y				# y
+keyseq $LATIN_SMALL_LETTER_Z	= ~S-*Z				# z
+keyseq $LEFT_CURLY_BRACKET	=  S-*LeftSquareBracket		# {
+keyseq $VERTICAL_LINE		=  S-*ReverseSolidus		# |
+keyseq $RIGHT_CURLY_BRACKET	=  S-*RightSquareBracket	# }
+keyseq $TILDE			=  S-*GraveAccent		# ~

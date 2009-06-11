@@ -1,0 +1,79 @@
+#
+# DVORAKon109.mayu - dvorak layout on 109 layout for 窓使いの憂鬱
+#
+#
+# dvorakキー配列を109キー上に実現する。
+# キー配列は、以下のようになる。空白の部分は変更しない。
+# S-0 が ~ になることと、S-^ が _ になることを除けば、キー位置を交換し、
+# ]} であった位置に Contol を置いただけ。(\_ は不要になるため。)
+#
+# ----------------------------------------------------------------------------
+# |    |  ! |  " |  # |  $ |  % |  & |  ' |  ( |  ) |  ~ |  { |  } |  ` |    |
+# |    | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 0  | [  | ]  | @  |    |
+# ----------------------------------------------------------------------------
+# |       |  * |  < |  > |  P |  Y |  F |  G |  C |  R |  L |  ? |  _ |      |
+# |       | :  | ,  | .  |    |    |    |    |    |    |    | /  | ^  |      |
+# ----------------------------------------------------------------------     |
+# |        |  A |  O |  E |  U |  I |  D |  H |  T |  N |  S |  = |    |     |
+# |        |    |    |    |    |    |    |    |    |    |    | -  |Ctrl|     |
+# ----------------------------------------------------------------------------
+# |          |  + |  Q |  J |  K |  X |  B |  M |  W |  V |  Z |  | |        |
+# |          | ;  |    |    |    |    |    |    |    |    |    | \  |        |
+# ----------------------------------------------------------------------------
+#
+
+define KBDDVORAKon109
+
+
+# 一段目
+def subst S-*_0				= $TILDE
+def subst *Minus			= *LeftSquareBracket
+def subst *CircumflexAccent		= *RightSquareBracket
+def subst *YenSign			= *Atmark
+
+# 二段目
+def subst *Q				= *Colon
+def subst *W				= *Comma
+def subst *E				= *Period
+def subst *R				= *P
+def subst *T				= *Y
+def subst *Y				= *F
+def subst *U				= *G
+def subst *I				= *C
+def subst *O				= *R
+def subst *P				= *L
+def subst *Atmark			= *Slash
+def subst ~S-*LeftSquareBracket		= $CIRCUMFLEX_ACCENT
+def subst  S-*LeftSquareBracket 	= $LOW_LINE
+
+# 三段目
+def subst *A				= *A
+def subst *S				= *O
+def subst *D				= *E
+def subst *F				= *U
+def subst *G				= *I
+def subst *H				= *D
+def subst *J				= *H
+def subst *K				= *T
+def subst *L				= *N
+def subst *Semicolon			= *S
+def subst *Colon			= *Minus
+def subst *RightSquareBracket		= ~S-*ReverseSolidus	# temporary
+
+# 四段目
+def subst *Z				= *Semicolon
+def subst *X				= *Q
+def subst *C				= *J
+def subst *V				= *K
+def subst *B				= *X
+def subst *N				= *B
+def subst *M				= *M
+def subst *Comma			= *W
+def subst *Period			= *V
+def subst *Slash			= *Z
+def subst *BackSlash			= *YenSign
+
+
+keymap Global
+ mod control += RightSquareBracket
+ key ~S-*ReverseSolidus			= *RControl

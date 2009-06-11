@@ -1,0 +1,7 @@
+*.log
+*.err
+obj
+objfre
+objchk
+objfre_wxp_x86
+objchk_wxp_x86

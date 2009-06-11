@@ -1,0 +1,36 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ëãégÇ¢ÇÃóJüT - 104on109.mayu
+# Copyright (C) 1999-2005, TAGA Nayuta <nayuta@users.sourceforge.net>
+#
+
+define KBD104on109
+
+def subst ~S-*îºäp/ëSäp		= $GRAVE_ACCENT
+def subst  S-*îºäp/ëSäp		= $TILDE
+def subst  A-îºäp/ëSäp		= $ToggleIME
+def subst  S-*_2		= $COMMERCIAL_AT
+def subst  S-*_6		= $CIRCUMFLEX_ACCENT
+def subst  S-*_7		= $AMPERSAND
+def subst  S-*_8		= $ASTERISK
+def subst  S-*_9		= $LEFT_PARENTHESIS
+def subst  S-*_0		= $RIGHT_PARENTHESIS
+def subst  S-*Hyphen		= $LOW_LINE
+def subst ~S-*Caret		= $EQUALS_SIGN
+def subst  S-*Caret		= $PLUS_SIGN
+def subst ~S-*Atmark		= $LEFT_SQUARE_BRACKET
+def subst  S-*Atmark		= $LEFT_CURLY_BRACKET
+def subst ~S-*OpenBracket	= $RIGHT_SQUARE_BRACKET
+def subst  S-*OpenBracket	= $RIGHT_CURLY_BRACKET
+def subst ~S-*CloseBracket	= $REVERSE_SOLIDUS
+def subst  S-*CloseBracket	= $VERTICAL_LINE
+def subst  S-*Semicolon		= $COLON
+def subst ~S-*Colon		= $APOSTROPHE
+def subst  S-*Colon		= $QUOTATION_MARK
+def subst    *ñ≥ïœä∑		= *Space
+def subst    *ïœä∑		= *Space
+def subst    *Ç–ÇÁÇ™Ç»		= *Space
+def subst    *âpêî		= S-*âpêî
+def subst *ReverseSolidus	= *RightShift
+
+keymap Global
+ mod shift += ReverseSolidus

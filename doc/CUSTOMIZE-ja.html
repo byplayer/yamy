@@ -1,0 +1,1694 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-2022-jp">
+<link rel="stylesheet" type="text/css" href="README.css">
+<link rel="prev" href="MANUAL-ja.html">
+<link rel="next" href="CONTENTS-ja.html">
+<title>mayu - MANUAL - CUSTOMIZE</title>
+</head>
+
+<body class="manual">
+
+<div class="main">
+  <dl>
+    <dt class="h1"><a name="CUSTOMIZE" href="MANUAL-ja.html#CUSTOMIZE">7. customize</a>
+	
+    <dd class="d1">
+	<div>
+	  <p>付属の <code>.mayu</code> (<a href="../dot.mayu"><code>dot.mayu</code></a>) を利用すれば、エディットコントロールで Emacs 風の操作ができるようになりますが、<code>.mayu</code> をカスタマイズすることによって、Windows を自分の好きなキーバインディングで利用することができるようになります。</p>
+	  
+	  <p><code>.mayu</code> は<a href="#HOME">ホームディレクトリ</a>から検索されます。</p>
+
+	  <p><code>.mayu</code> は上から下へ読まれていき、重複する記述があれば、より下に書かれているものが有効になります。コメントは <code>#</code> ではじめます。アルファベットの大文字と小文字は区別されません。詳しい文法は <a href="syntax.txt"><code>syntax.txt</code></a> を参照してください。</p>
+
+	  <p>この章を読む前に、<a href="../contrib/mayu-settings.txt"><code>contrib/mayu-settings.txt</code></a> を読んで付属の設定ファイルについて理解を深めておくことをお勧めします。</p>
+	  
+	  <dl>
+	    <dt class="h2"><a name="key">i. キー割り当ての変更</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p>キー割り当てを変更するには、以下のように記述をします。</p>
+		  
+		  <p class="sample">
+		  &nbsp;key <em>KEY</em> = <em>KEY</em> や <em>FUNCTION</em> …
+		  </p>
+		  
+		  <p><code>=</code> より左の <code><em>KEY</em></code> をキーボードで押すと、Windows へは <code>=</code> より右の <code><em>KEY</em></code> が順番に入力されます。また、右に <code><em>FUNCTION</em></code> が書かれている場合はウィンドウの最大化や移動などの機能が実行されます。</p>
+		  
+		  <p><code><em>KEY</em></code> は<a href="#keyboard">キーボード定義</a>で定義されるもので、デフォルトでは <a href="../109.mayu"><code>109.mayu</code></a> 又は <a href="../104.mayu"><code>104.mayu</code></a> で定義されている <code><em>KEY</em></code> が使用できます。</p>
+		  
+		  <dl>
+		    <dt class="h3"><a name="modifier">モディファイヤの指定</a>
+		    <dd class="d3">
+			<div>
+			  <p><code><em>KEY</em></code> の前に以下のような記号を付けることによって、コントロールキーなどの状態を表現できます。また、これらをモディファイヤと呼ぶことにします。</p>
+			  
+			  <ul>
+			    <li><code>C-</code> は、<kbd>Control</kbd> が押されていることを表します。
+			    <li><code>M-</code> か <code>A-</code> は、<kbd>Alt</kbd> が押されていることを表します。
+			    <li><code>S-</code> は、<kbd>Shift</kbd> が押されていることを表します。
+			    <li><code>NL-</code> は、<kbd>NumLock</kbd> がロック状態であることを表します。
+			    <li><code>CL-</code> は、<kbd>CapsLock</kbd> がロック状態であることを表します。
+			    <li><code>SL-</code> は、<kbd>ScrollLock</kbd> がロック状態であることを表します。
+			    <li><code>KL-</code> は、<kbd>カナ</kbd> がロック状態であることを表します。<br>
+				(<a href="CUSTOMIZE-ja.html#def_option_KL" target="MANUAL">オプション (<code>KL-</code>)</a>をよく読んでください)<br>
+				109 キーボードなら、<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>ひらがな</kbd>。<br>
+				104 キーボードなら、<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>CapsLock</kbd>。
+			    <li><code>IL-</code> は、IME が on になっていることを表します
+			    <li><code>IC-</code> は、IME で変換中であることを表します
+			    <li><code>MAX-</code> は、ウィンドウが最大化されていることを表します。
+			    <li><code>MIN-</code> は、ウィンドウが最小化されていることを表します。
+			    <li><code>MMAX-</code> は、MDI 子ウィンドウが最大化されていることを表します。
+			    <li><code>MMIN-</code> は、MDI 子ウィンドウが最小化されていることを表します。
+			    <li><code>T-</code> は、タッチパッドに指が触れていることを表します。有効にするためには<a href="#def_option_ts4mayu" target="MANUAL">オプション</a>を設定する必要があります。
+			    <li><code>TS-</code> は、全てのキーが離されるまでオフにならないことを除けば <code>T-</code> と同じです。
+			  </ul>
+			  
+			  <p>以下のように記述すると、<kbd>Control</kbd> + <kbd>A</kbd> を押した時に、Windows へは <kbd>HOME</kbd> キーが入力されます。</p>
+			  
+			  <p class="sample">
+			  &nbsp;key C-A = HOME
+			  </p>
+			</div>
+			
+		    <dt class="h3"><a name="ignoreModifier">モディファイヤキーの無視</a>
+		    <dd class="d3">
+			<div>
+			  <p>上記の例では左側に <code>C-A</code> と記述していますが、この記述では、ロックキーなどは押されていても押されてなくても良いと記述していることになります。たとえば、<kbd>CapsLock</kbd> を押したあとで <kbd>Control</kbd> + <kbd>A</kbd> を押しても、押さずに <kbd>Control</kbd> + <kbd>A</kbd> を押しても、Windows へは <kbd>Home</kbd> が入力されます。</p>
+			  
+			  <p>特定のモディファイヤの状態を無視したい場合は、モディファイヤに "<code>*</code>" をつけます。逆にモディファイヤが必ず押されていなければならない場合は付けません。またモディファイヤが必ず離されていなければならない場合は "<code>~</code>" を付けます。たとえば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key *S-F9 = &amp;WindowMinimize
+			  </p>
+			  
+			  <p class="continue">このように記述すると、<kbd>F9</kbd> 又は <kbd>Shift</kbd> + <kbd>F9</kbd> でウィンドウを最小化することができますが、例えば、<kbd>Control</kbd> + <kbd>F9</kbd> ではできません。</p>
+			  
+			  <p>デフォルトでは、暗黙に <code>~C-~M-~S-*NL-*CL-*SL-*KL-*IL-~IC-*MAX-*MIN-*MMAX-*MMIN-*T-*TS-</code> が指定されていることになっていますが、<a href="#defaultModifier">変更</a>できます。</p>
+			  
+			  <p>また、<kbd>Shift</kbd> は必ず押されていてほしいがほかのモディファイヤはどうでもいいという場合は、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key S-*F9 = &amp;WindowMinimize
+			  </p>
+
+			  <p class="continue">というように "<code>*</code>" をキーの直前に記述します。"<code>~</code>" についても同様です。</p>
+			</div>
+
+		    <dt class="h3"><a name="inputModifier">入力されたキーと同じモディファイヤの指定</a>
+		    <dd class="d3">
+			<div>
+			  <p><code>=</code> より右側でのモディファイヤの指定の方法です。</p>
+
+			  <p class="sample">
+			  &nbsp;key *S-A = C-*S-B
+			  </p>
+			  
+			  <p>例えばこのように記述した場合、<kbd>Shift</kbd> + <kbd>A</kbd> を押すと、Windows へは <kbd>Shift</kbd> + <kbd>Control</kbd> + <kbd>B</kbd> が入力されます。<kbd>A</kbd> を押すと、Windows へは <kbd>Control</kbd> + <kbd>B</kbd> が入力されます。</p>
+			  
+			  <p>つまり、<code>=</code> の右側で <code>*</code> で指定されたモディファイヤは、キーボードで実際に入力したモディファイヤと同じになるように設定されます。</p>
+			  
+			  <p>したがって、<kbd>A</kbd> を <kbd>B</kbd> と入れ替えたい場合は、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key *A = *B<br>
+			  &nbsp;key *B = *A
+			  </p>
+
+			  <p class="continue">となります。</p>
+			</div>
+
+		    <dt class="h3"><a name="keyUpDown">キーを押す/離す</a>
+		    <dd class="d3">
+			<div>
+			  <p><code><em>KEY</em></code> の前にモディファイヤと同じように <code>D-</code> と <code>U-</code> を付けることができます。これは、それぞれキーの押すことと離すことに対応しています。デフォルトでは <code>*D-*U-</code> が指定されています。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key A = B C
+			  </p>
+			  
+			  <p class="continue">という記述は、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key *U-*D-A = D-B U-B D-C U-C
+			  </p>
+
+			  <p class="continue">と同じであり、さらに次のものとも同じになります。キーリピートが起こった場合は、<code>~U-D-A</code> が何度も実行され、キーを離したときに <code>U-~D-A</code> が実行されます。</p>
+			  
+			  <p class="sample">
+			  &nbsp;key ~U-D-A = D-B U-B D-C<br>
+			  &nbsp;key U-~D-A = U-C
+			  </p>
+			</div>
+
+		    <dt class="h3"><a name="keyRepeat">キーリピートした</a>
+		    <dd class="d3">
+			<div>
+			  <p><code>=</code> より左の <code><em>KEY</em></code> の前にモディファイヤと同じように <code>R-</code> を付けることができます。これは、キーリピートが発生したことを表します。デフォルトでは <code>*R-</code> が指定されています。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key A = B<br>
+			  &nbsp;key R-A = C
+			  </p>
+			  
+			  <p class="continue">という記述をすると、<kbd>A</kbd> を押しつづけると、</p>
+			  
+			  <p class="sample">
+			  BCCCCCCCCCCCCCCCCCCCCC
+			  </p>
+
+			  と入力されます。とてもややこしいのであまり使わないようにしましょう。
+			</div>
+			
+		    <dt class="h3"><a name="defaultModifier">デフォルトモディファイヤの変更</a>
+		    <dd class="d3">
+			<div>
+			  <p>デフォルトでは、左側のキーには <code>~C-~M-~S-*NL-*CL-*SL-*KL-*IL-~IC-*MAX-*MIN-*MMAX-*MMIN-*T-*TS-</code> が指定されていますが、これを変更することができます。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key *IC- =
+			  </p>
+			  
+			  <p class="continue">と記述すると、この文以降のデフォルトモディファイヤは <code>~C-~M-~S-*NL-*CL-*SL-*KL-*IL-*IC-*MAX-*MIN-*MMAX-*MMIN-*T-*TS-</code> となります。</p>
+			  
+			  <p>デフォルトモディファイヤの変更を複数行うときには、例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key L0-*IC-~C- =
+			  </p>
+			  
+			  <p class="continue">のようにしなければなりません。以下のように指定するのは間違いです。最後のものしか有効になりません。</p>
+			  
+			  <p class="sample">
+			  &nbsp;key L0- =<br>
+			  &nbsp;key *IC- =<br>
+			  &nbsp;key ~C- = # この行しか有効にならない<br>
+			  </p>
+			</div>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="keymap">ii. キーマップ定義</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p>「窓使いの憂鬱」には、キーマップという概念があります。キーマップにカスタマイズしたいキー情報を書き込んでゆき、ウィンドウごとにキーマップを使い分けます。キーマップを定義するには、以下のどれかの文を書いてからキーを設定します。</p>
+		  
+		  <p class="sample">
+		  keymap <em>キーマップ名</em><br>
+		  keymap2 <em>キーマップ名</em><br>
+		  window <em>キーマップ名</em> <em>ウィンドウクラス名</em><br>
+		  window <em>キーマップ名</em> ( <em>ウィンドウクラス名</em> &amp;&amp; <em>ウィンドウタイトル名</em> )<br>
+		  window <em>キーマップ名</em> ( <em>ウィンドウクラス名</em> || <em>ウィンドウタイトル名</em> )<br>
+		  </p>
+		  
+		  <p>例えば、メモ帳で <kbd>Control</kbd> + <kbd>Z</kbd> を押すと最小化されるが、メモ帳以外のエディットコントロールで <kbd>Control</kbd> + <kbd>Z</kbd> を押すと単なる <kbd>Z</kbd> キーと同じになるという指定がしたい場合は、</p>
+		  
+		  <p class="sample">
+		  window EditControl /:Edit$/ : Global<br>
+		  &nbsp;key C-Z = Z<br>
+		  window Notpad /Notepad:Edit$/ : Global<br>
+		  &nbsp;key C-Z = &amp;WindowMinimize
+		  </p>
+		  
+		  <p class="continue">と記述します。ここで <code>/Notepad:Edit$/</code> はメモ帳の上にあるエディットコントロールの<code><em>ウィンドウクラス名</em></code>を表しています。<code><em>ウィンドウクラス名</em></code>は正規表現で記述します。<code>: Global</code> は<code><em>親キーマップ</em></code>を指定しています。</p>
+		  
+		  <dl>
+		    <dt class="h3"><a name="windowClass">ウィンドウクラス/タイトル名</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>Windows の全てのウィンドウは、何らかのウィンドウクラスに属しています。例えば、メモ帳のウィンドウクラス名は <code>Notepad</code> で、エディットコントロールのウィンドウクラス名は <code>Edit</code> です。</p>
+			  
+			  <p>「窓使いの憂鬱」は、どのウィンドウでどのキーを押したらどんな動作をするか、ということを区別するために<code><em>ウィンドウクラス名</em></code>と<code><em>ウィンドウタイトル名</em></code>を用いています。そのために、「窓使いの憂鬱」ではウィンドウの重なりの状態を "<code>:</code>" で繋げて表現します。例えば、メモ帳の上のエディットコントロールの<code><em>ウィンドウクラス名</em></code>ならば、</p>
+			  
+			  <p class="sample">
+			  C:\WINDOWS\system32\notepad.exe:Notepad:Edit
+			  </p>
+			  
+			  <p class="continue">と表現します。ただし、<code><em>ウィンドウクラス名</em></code>の一番最初にはそのアプリケーションのパス名を付けています。</p>
+			  
+			  <p><code>window</code> 文には、この<code><em>ウィンドウクラス名</em></code>と<code><em>ウィンドウタイトル名</em></code>を記述することができますが、<code><em>ウィンドウクラス名</em></code>全てを書く必要はなく、正規表現で省略することができます。</p>
+			  
+			  <p>例えば、<code>/:Edit$/</code> は全てのエディットコントロールの<code><em>ウィンドウクラス名</em></code>を表しますし、<code>/:#32770.*:Edit$/</code> ならば、ダイアログボックス上にある全てのエディットコントロールの<code><em>ウィンドウクラス名</em></code>を表します (<code>#32770</code> はダイアログボックスのウィンドウクラス名)。</p>
+			  
+			  <p>個々のウィンドウの<code><em>ウィンドウクラス名</em></code>と<code><em>ウィンドウタイトル名</em></code>を調べるには、タスクトレイメニュー<a href="MANUAL-ja.html#menu-i" class="menu-item">調査(I)...</a>の「ウィンドウの調査」、または<code><em>FUNCTION</em></code> <a href="#function_WindowIdentify"><code>&amp;WindowIdentify</code></a> を利用してください。</p>
+			  
+			  <p><code><em>ウィンドウクラス名</em></code>と<code><em>ウィンドウタイトル名</em></code>の両方を記述する場合は、括弧で囲みその間を <code>&amp;&amp;</code> か <code>||</code> で区切ります。<code>&amp;&amp;</code> の場合は、両方にマッチするようなウィンドウを表し、<code>||</code> の場合はどちらか一方にマッチするようなウィンドウを表します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="regexp">正規表現について</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code><em>ウィンドウクラス名</em></code>と<code><em>ウィンドウタイトル名</em></code>には正規表現が使用できます。正規表現は <code>/.../</code> で囲むか、<code>\m@...@</code>で囲みます (ただし<code>@</code>はどんな文字でも良いです)。</p>
+			  
+			  <p>正規表現エンジンには <a href="http://www.boost.org/libs/regex/doc/index.html" target="_top">Boost.Regex</a> を使用しています。このエンジンでは <a href="http://www.kt.rim.or.jp/~kbk/perl5.005/perlre.html" target="_top">Perl で使用できる正規表現</a>がほぼカバーされています。よく使いそうなものを挙げておきます。</p>
+			  
+			  <ul>
+			    <li>"<code>|</code>" Alternation
+			    <li>"<code>*</code>" Match 0 or more times
+			    <li>"<code>+</code>" Match 1 or more times
+			    <li>"<code>?</code>" Match 1 or 0 times
+			    <li>"<code>.</code>" Match any character
+			    <li>"<code>^</code>" Match the beginning of the string
+			    <li>"<code>$</code>" Match the end of the string
+			    <li>"<code>\b</code>" Match a word boundary
+			    <li>"<code>\B</code>" Match a non word boundary
+			    <li>"<code>\w</code>" Match a word character (<code>[0-9a-z_]</code>)
+			    <li>"<code>\W</code>" Match a non word character
+			    <li>"<code>\s</code>" Match a whitespace character
+			    <li>"<code>\S</code>" Match a non-whitespace character
+			    <li>"<code>\d</code>" Match a digit character
+			    <li>"<code>\D</code>" Match a non-digit character
+			    <li>"<code>(</code>" "<code>)</code>" Grouping
+			    <li>"<code>[</code>" "<code>]</code>" Character class
+			    <li>より詳しくは <a href="http://www.boost.org/libs/regex/doc/syntax.html" target="_top">Boost.Regex: Regular Expression Syntax</a>を見てください。
+			  </ul>
+			</div>
+			
+		    <dt class="h3"><a name="parentKeymap">親キーマップ</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>親キーマップとは、現在のキーマップに適切なキー割り当てが定義されていない場合に、キーを捜しに行くキーマップです。"<code>:</code>" の後ろに<em>親キーマップ名</em>を書きます。例えば、</p>
+			  
+			  <p class="sample">
+			  keymap sub : Global<br>
+			  &nbsp;key	C-A = &amp;WindowMinimize<br>
+			  window EditControl /:Edit$/ : sub<br>
+			  &nbsp;key	C-A = &amp;KeymapParent
+			  </p>
+			  
+			  <p class="continue">と記述した場合、エディットコントロールで <kbd>Control</kbd> + <kbd>A</kbd> を入力すると、ウィンドウは最小化されます。つまり、<a href="#function_KeymapParent"><code>&amp;KeymapParent</code></a> を記述することで親キーマップで定義されたキーを利用することができるのです。もし、<em>親キーマップ名</em>が指定されていなければ <a href="#function_Default"><code>&amp;Default</code></a> 扱いとなり、ウィンドウへキーがそのまま入力されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="defaultKey">デフォルトキー</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code>keymap</code>、<code>window</code>、<code>keymap2</code> には、最後にキーを羅列することによってデフォルトキーを定義することができます。例えば、</p>
+			  
+			  <p class="sample">
+			  window EditControl /:Edit$/ : Global = A<br>
+			  &nbsp;key *B = *C
+			  </p>
+			  
+			  <p class="continue">と記述すると、<kbd>B</kbd> を入力すると <kbd>C</kbd> を入力したことになるが、<kbd>B</kbd> 以外のキーを入力すると、<kbd>A</kbd> を入力したことになります。また、デフォルトキーを指定しなかった場合のデフォルトキーは、<code>keymap</code> と <code>window</code> の場合は <a href="#function_KeymapParent"><code>&amp;KeymapParent</code></a> で、<code>keymap2</code> の場合は <a href="#function_Undefined"><code>&amp;Undefined</code></a> になります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="keymap2">二段階キーマップ</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code>keymap2</code> はデフォルトキーが <a href="#function_Undefined"><code>&amp;Undefined</code></a> になってるようなキーマップで、主に <a href="#function_Prefix"><code>&amp;Prefix</code></a> を利用して 2 ストロークキーを記述する時に使用します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="initialKeymap">初期キーマップ</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code>.mayu</code> の一番最初の行には、</p>
+			  
+			  <p class="sample">
+			  window Global ( // || // ) = &amp;OtherWindowClass
+			  </p>
+			  
+			  <p class="continue">という行が隠れていると考えて下さい。つまり、<code>.mayu</code> で何もキーマップを指定せずに書き始めると、<em>キーマップ名</em> <code>Global</code> のキーマップに対するキー定義になるということです。そして、<code>Global</code> キーマップのデフォルトキーは <a href="#function_OtherWindowClass"><code>&amp;OtherWindowClass</code></a> が設定されています。</p>
+			</div>
+			
+		    <dt class="h3"><a name="conflictKeymap">矛盾したキーマップの指定</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>同じキーマップに対する <code>keymap</code> や <code>window</code> や <code>keymap2</code> は何度でも指定できますが、矛盾する指定をしてはいけません。例えば、</p>
+			  
+			  <p class="sample">
+			  keymap Amap : Global<br>
+			  ...<br>
+			  keymap Bmap : Amap<br>
+			  ...<br>
+			  keymap Amap : Global<br>
+			  ...
+			  </p>
+			  
+			  という指定は問題ありませんが、
+			  
+			  <p class="sample">
+			  keymap Amap : Global<br>
+			  ...<br>
+			  keymap Bmap : Amap<br>
+			  ...<br>
+			  keymap Amap : Bmap	# 矛盾<br>
+			  ...
+			  </p>
+			  
+			  <p class="continue">という指定はしてはいけません。この場合、<code>keymap Amap : Bmap</code> のかわりに <code>keymap Amap : Global</code> が指定されたものとみなされます。エラーは出ません。</p>
+			</div>
+			
+		    <dt class="h3"><a name="matchManyClasses"><code>window</code> に複数該当する場合</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>例えば、</p>
+			  
+			  <p class="sample">
+			  window EditControl /:Edit$/ : Global<br>
+			  &nbsp;key A = A space E D I T enter<br>
+			  &nbsp;key B = B space E D I T enter<br>
+			  window Notepad /:Notepad/ : Global<br>
+			  &nbsp;key A = A space N O T E P A D enter<br>
+			  &nbsp;key C = C space N O T E P A D enter
+			  </p>
+			  
+			  <p class="continue">という記述をしたとします。ここで、「メモ帳」を立ち上げると、メモ帳の<code><em>ウィンドウクラス名</em></code>は</p>
+			  
+			  <p class="sample">
+			  C:\WINDOWS\system32\notepad.exe:Notepad:Edit
+			  </p>
+			  
+			  <p class="continue">となっているので、<code>/:Edit$/</code> と <code>/:Notepad/</code> は両方共もメモ帳の<code><em>ウィンドウクラス名</em></code>に該当します。この時、<kbd>A</kbd> を入力すると、メモ帳には「<code>a notepad</code>」と表示されます。これは、重複する記述があれば、より下に書かれているものが有効になるからです。しかし、<kbd>B</kbd> を入力した場合は、重複していないので、メモ帳には「<code>b edit</code>」と表示されることになります。</p>
+			  
+			  <p><kbd>B</kbd> を入力した場合に、内部で行われる処理は以下のようになります。</p>
+			  
+			  <ol>
+			    <li>まず<code><em>ウィンドウクラス名</em></code>は <code>/:Notepad/</code> に該当しますが、キー割り当てがないので、<code>window</code> のデフォルトキーである <code>&amp;KeymapParent</code> が採用されます。
+			    <li><code>&amp;KeymapParent</code> は<em>親キーマップ</em>の参照なので、<code>Global</code> キーマップを参照します。
+			    <li>そうすると、<code>Global</code> キーマップでも <kbd>B</kbd> の割り当てがないので、<code>Global</code> キーマップのデフォルトキーである、<code>&amp;OtherWindowClass</code> が採用されます。
+			    <li><code>&amp;OtherWindowClass</code> が採用されると、まず、他に該当する<code><em>ウィンドウクラス名</em></code>がないかどうか探します。もしなければ、<code>&amp;Default</code> 扱いとなります。この場合は <code>/:Edit$/</code> に該当します。
+			    <li><code>/:Edit$/</code> に該当したので、<code>/:Edit$/</code> の <kbd>B</kbd> が採用されます。したがって、「b edit」と表示されることとなります。
+			  </ol>
+			</div>
+			
+		    <dt class="h3"><a name="perKeymapDefinition">キーマップが影響する定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  以下の単語で始まる定義は、キーマップ毎に定義できます。
+			  <ul>
+			    <li><code>key ...</code> <a href="#key">キー割り当ての変更</a>
+			    <li><code>event ...</code> <a href="#event">イベント定義</a>
+			    <li><code>mod ...</code> <a href="#mod">モディファイヤキー割り当ての変更</a>
+			  </ul>
+			  以下の単語で始まる定義は、キーマップ毎に定義することはできません。
+			  <ul>
+			    <li><code>def ...</code> <a href="#keyboard">キーボード定義</a>
+			    <li><code>keyseq ...</code> <a href="#keyseq">キーシーケンス定義</a>
+			  </ul>
+			</div>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="mod">iii. モディファイヤキー割り当ての変更</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p class="sample">
+		  &nbsp;mod <em>モディファイヤキー名</em> = <em>キー名</em> …<br>
+		  &nbsp;mod <em>モディファイヤキー名</em> += <em>キー名</em> …<br>
+		  &nbsp;mod <em>モディファイヤキー名</em> -= <em>キー名</em> …<br>
+		  </p>
+		  
+		  <p>最初の 3 つは、<em>キー名</em>で指定したキーをモディファイヤキーにしたり (<code>=</code>) 追加したり (<code>+=</code>) 削除したり (<code>-=</code>) します。各キーマップ毎に割り当てます。明示的に割り当てない場合は、親キーマップから引き継がれます。例えば、</p>
+		  
+		  <p class="sample">
+		  &nbsp;mod shift += 無変換
+		  </p>
+		  
+		  <p class="continue">は、<kbd>無変換</kbd> キーを shift モディファイヤキーにします。従って、</p>
+		  
+		  <p class="sample">
+		  &nbsp;key S-A = X
+		  </p>
+		  
+		  <p class="continue">という記述があった場合に、<kbd>無変換</kbd> + <kbd>A</kbd> を押すと <kbd>X</kbd> を入力したことになります。正確には、<kbd>無変換押す</kbd> <kbd>X押す</kbd> <kbd>X離す</kbd> <kbd>無変換離す</kbd> というキーが Windows へ入力されます。これでは都合が悪いということは多いと思われるので、</p>
+		  
+		  <p class="sample">
+		  &nbsp;key *無変換 = *LShift
+		  </p>
+		  
+		  <p class="continue">として <kbd>無変換</kbd> キーを押すと <kbd>LShift</kbd> が入力されるように割り当てます。そうすれば、Windows へは <kbd>LShift押す</kbd> <kbd>LShift離す</kbd> <kbd>X押す</kbd> <kbd>X離す</kbd> というキーが入力されます。</p>
+		  
+		  <p><em>モディファイヤキー名</em>には、<code>shift</code>, <code>alt</code> (<code>meta</code>, <code>menu</code>), <code>control</code> (<code>ctrl</code>), <code>windows</code> (<code>win</code>), <code>mod0</code>〜<code>mod9</code> が記述できます。括弧の中の名前も使用できます。</p>
+		  
+		  <p><code>mod0</code>〜<code>mod9</code> は「窓使いの憂鬱」の中でのみ有効なモディファイヤで、例えば以下のように使用します。</p>
+		  
+		  <p class="sample">
+		  &nbsp;mod mod0 = Up<br>
+		  &nbsp;key M0-Left = Left Up
+		  </p>
+		  
+		  <p class="continue">このように割り当てると、<kbd>↑</kbd> を押しながら <kbd>←</kbd> を押すとカーソルが左斜め上へ移動することになります。</p>
+		  
+		  <dl>
+		    <dt class="h3"><a name="trueModifier">真のモディファイヤ</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>モディファイヤにしたいキーの前に "<code>!</code>" を付けると、<em>真のモディファイヤ</em>になります。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod shift += !無変換<br>
+			  &nbsp;key 無変換 = Y<br>
+			  &nbsp;key S-A = X
+			  </p>
+			  
+			  <p class="continue">と記述した場合、<kbd>無変換</kbd> + <kbd>A</kbd> を押すと <kbd>X押す</kbd> <kbd>X離す</kbd> というキーが Windows へ入力されます。Windows からは、<kbd>無変換</kbd> キーが押されたということは分かりませんし、<kbd>Y</kbd> も Windows へ入力されることはありません。つまり、真のモディファイヤに定義されているキーや <code><em>FUNCTION</em></code> などは実行されません。</p>
+			  
+			  <p>以下のような行を記述すると、</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod !<em>モディファイヤキー名</em>
+			  </p>
+			  
+			  <p class="continue">その<em>モディファイヤキー名</em>に割り当てられているモディファイヤを全て<em>真のモディファイヤ</em>に変更します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="oneShotModifier">One Shot モディファイヤ (SandS)</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>(一般的には SandS と呼ばれている機能です。Space and Shift の略です。)</p>
+			  
+			  <p>モディファイヤにしたいキーの前に "<code>!!</code>" を付けると、<em>One Shot モディファイヤ</em>になります。たとえば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod shift = !!LShift<br>
+			  &nbsp;key S-A = X<br>
+			  &nbsp;key S-LShift = Y
+			  </p>
+			  
+			  <p class="continue">と記述した場合、<kbd>LShift</kbd> を押してすぐ離した場合は、Windows へは、<kbd>Y</kbd> が入力されますが、<kbd>LShift</kbd> + <kbd>A</kbd> を入力した場合は、<kbd>X</kbd> のみが Windows へ入力されます。</p>
+			  
+			  <p>以下のような行を記述すると、</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod !!<em>モディファイヤキー名</em>
+			  </p>
+			  
+			  <p class="continue">その<em>モディファイヤキー名</em>に割り当てられているモディファイヤを全て<em>One Shot モディファイヤ</em>に変更します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="oneShotRepeatableModifier">One Shot (キーリピート有)</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><em>One Shot モディファイヤ</em>は通常キーリピートしませんが、"<code>!!!</code>" を付けると、キーリピートをするようになります。たとえば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod shift = !!!Up<br>
+			  </p>
+			  
+			  <p>とすると、<kbd>↑</kbd> を押しながら何か別のキー (例えば <kbd>A</kbd>) を押すと <kbd>Shift</kbd> + <kbd>A</kbd> と同じことになりますが、<kbd>↑</kbd> を押しっぱなしにすると <kbd>↑</kbd> がキーリピートして、カーソルが上へ動くということになります。</p>
+
+			  <p>キーリピートが開始するまでの時間を<a href="#def_option_delay_of_oneShotRepeatableModifier">オプション (<code>delay-of !!!</code>)</a> で設定できます。</p>
+			  
+			</div>
+			
+		    <dt class="h3"><a name="lock">ロックキー</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>「窓使いの憂鬱」には、「窓使いの憂鬱」の中でのみ有効なロックキーが存在します。これらはキーのモディファイヤとして <code>L0-</code>〜<code>L9-</code> を書くことができ、<a href="#function_Toggle"><code>&amp;Toggle</code></a> を使うことによりトグルさせることができます。例えば、
+			  
+			  <p class="sample">
+			  &nbsp;key ひらがな = &amp;Toggle(Lock0)<br>
+			  &nbsp;key L0-A = B
+			  </p>
+			  
+			  <p class="continue">と記述すると、<kbd>ひらがな</kbd> キーがトグル状態になっているときに <kbd>A</kbd> を押すと Windows へは <kbd>B</kbd> が入力されます。</p>
+			</div>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="keyseq" class="a2">iv. キーシーケンス定義</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p class="sample">
+		  keyseq $<em>キーシーケンス名</em> = <em>KEY</em> や <em>FUNCTION</em> …
+		  </p>
+		  
+		  <p><code>keyseq</code> を使うことで、一連のキー入力に対して名前を付けることができます。例えば、</p>
+		  
+		  <p class="sample">
+		  keyseq $Right2Times = Right Right<br>
+		  &nbsp;key C-F = $Right2Times
+		  </p>
+		  
+		  <p class="continue">とすると、<kbd>Control</kbd> + <kbd>F</kbd> で右に二つカーソルを進めることができます。又、</p>
+		  
+		  <p class="sample">
+		  &nbsp;key C-F = Right Right
+		  </p>
+		  
+		  <p class="continue">は、<code>$Right2Times</code> という名前が定義されないこと以外は、先の例と同じになります。</p>
+		</div>
+		
+	    <dt class="h2"><a name="event" class="a2">v. イベント定義</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p class="sample">
+		  &nbsp;event <em>EVENT</em> = <em>KEY</em> や <em>FUNCTION</em> …
+		  </p>
+		  
+		  <p>あるイベントが起こったときに <code><em>KEY</em></code> や <code><em>FUNCTION</em></code> を実行します。イベントはキーマップ毎に定義され、親キーマップにイベントが定義されていてもそれは無視されます。</p>
+		  
+		  <p><code><em>EVENT</em></code> には以下のものが指定できます。</p>
+		  
+		  <ul>
+		    <li><code>prefixed</code>: <a href="#function_Prefix"><code>&amp;Prefix</code></a> によってキーマップが指定された時。
+		    <li><code>before-key-down</code>: キーが押さた時。
+		    <li><code>after-key-up</code>: キーが離された後。
+		  </ul>
+		</div>
+		
+	    <dt class="h2"><a name="keyboard">vi. キーボード定義</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p>デフォルトのキーボード定義は <a href="../109.mayu"><code>109.mayu</code></a> 又は <a href="../104.mayu"><code>104.mayu</code></a> に書かれています。</p>
+		  
+		  <dl>
+		    <dt class="h3"><a name="def_key">キー定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>キーボードの物理的なキーを定義します。</p>
+			  
+			  <p class="sample">
+			  def key <em>キー名</em>… = <em>スキャンコード</em>…
+			  </p>
+			  
+			  <p>キーが発生する<code><em>スキャンコード</em></code>を記述していきます。<code><em>スキャンコード</em></code>は数字で書き、<code>E0-</code> や <code>E1-</code> という拡張キーフラグをつけることができます。又、</p>
+			  
+			  <p class="sample">
+			  def key Pause = E1-0x1d 0x45
+			  </p>
+			  
+			  <p>このように一連の<em>スキャンコード</em>を発生させるキーにはスキャンコードを書き並べます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="def_mod">モディファイヤ定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>キーボードの物理的なモディファイヤキーを定義します。</p>
+			  
+			  <p class="sample">
+			  def mod <em>モディファイヤ名</em> = <em>キー名</em>…
+			  </p>
+			  
+			  <p><code><em>モディファイヤ名</em></code>には、<code>shift</code>, <code>alt</code> (<code>meta</code>, <code>menu</code>), <code>control</code> (<code>ctrl</code>), <code>windows</code> (<code>win</code>) が記述できます。括弧の中の名前も使用できます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="def_sync">同期定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code>&amp;Sync</code> に使用する<code><em>スキャンコード</em></code>を定義します。</p>
+			  
+			  <p class="sample">
+			  def sync = <em>スキャンコード</em>…
+			  </p>
+			  
+			  <p><code>&amp;Sync</code> が実行されるとき、「窓使いの憂鬱」はこの<code><em>スキャンコード</em></code>を Windows に送ります。そして、各ウィンドウがこのキーが入力されたことを「窓使いの憂鬱」へ連絡してくるまで処理を中断します。このようにして同期をとるので、この<code><em>スキャンコード</em></code>が不正に設定されていると、同期がとれず「窓使いの憂鬱」が 5 秒ほど固まります (つまり 5 秒ほど何も入力できなくなります)。</p>
+			</div>
+			
+		    <dt class="h3"><a name="def_alias">別名定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>キーの別名を定義します。</p>
+			  
+			  <p class="sample">
+			  def alias <em>別名</em> = <em>キー名</em>
+			  </p>
+			  
+			  <p>別名が既存のキー名と同じだった場合は、別名のほうが優先されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="def_subst">代用定義</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>あるキーを別のキーとして代用します。</p>
+			  
+			  <p class="sample">
+			  def subst <em>KEY</em> = <em>KEY</em> や <em>キーシーケンス</em> …
+			  </p>
+			  
+			  <p>キーが入力されると、まずこの代用定義によって入力されたキーが置き換えられます。その後、<a href="#key">キー割り当ての変更</a>に従って変換されます。</p>
+			  
+			  <p class="sample">
+			  def subst A = B<br>
+			  &nbsp;key B = C<br>
+			  </p>
+			  
+			  <p>上記の例では、<kbd>A</kbd> を入力すると、まず代用定義で <kbd>B</kbd> が押されたことになって、<kbd>B</kbd> が入力された場合は <kbd>C</kbd> が最終的に Windows へ入力されるので、結局 <kbd>A</kbd> を押すと <kbd>C</kbd> が押されたことになります。</p>
+			  
+			  <p>代用定義は、キーマップでキーが変更されるより前に実行されます。例えば、109 キーボード上で 104 キーボードや Dvorak のエミュレートをしたいときに使用します。</p>
+			  
+			  <p><code>=</code> の左右は<a href="#key">キー割り当ての変更</a>のものと同じものが指定でき意味も同じになりますが、右側は先頭が <code><em>FUNCTION</em></code> ではなく <code><em>KEY</em></code> でなければならず、先頭の <code><em>KEY</em></code> しか意味を持ちません。</p>
+			  
+			  <p>以下色々な例。</p>
+			  
+			  <p class="sample">
+			  def subst A = C-B<br>
+			  &nbsp;key *B = S-*C<br>
+			  </p>
+			  
+			  <p>上記の例では <kbd>A</kbd> を入力すると、最終的に <kbd>Shift</kbd> + <kbd>C</kbd> が Windows へ出力されます。</p>
+			  
+			  <p class="sample">
+			  def subst A = B C D $Hoge &amp;Toggle(Lock0)<br>
+			  </p>
+			  
+			  <p>上記の例では <kbd>A</kbd> を入力すると、<kbd>B</kbd> が Windows へ出力されます。<code>C D $Hoge &amp;Toggle(Lock0)</code> は無視されます。</p>
+			  
+			  <p class="sample">
+			  keyseq $COLON = ~S-*Colon<br>
+			  def subst S-*Semicolon = $COLON<br>
+			  </p>
+			  
+			  <p>上記の例では <kbd>Shift</kbd> + <kbd>;</kbd> を入力すると、<kbd>:</kbd> になり、<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>;</kbd> を入力すると、<kbd>Control</kbd> + <kbd>:</kbd> になります。</p>
+			</div>
+
+		    <dt class="h3"><a name="def_option_KL">オプション (<code>KL-</code>)</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>カナロック <code>KL-</code> を正しく設定するようにします。</p>
+			  
+			  <p class="sample">
+			  def option KL- = enable
+			  </p>
+
+			  <p>このオプションを設定しない場合、特定の場合にカナロックの状態が正しく取得できません。</p>
+
+			  <p>このオプションを設定すれば、カナロックの状態は正しく取得できますが、IME で文字列を入力中未確定のまま別のウィンドウへフォーカスを切り替え、元のウィンドウへフォーカスを戻した時に、IME に入力中だった文字列は失われます。</p>
+
+			  <p>109 キーボードで <kbd>Alt</kbd> + <kbd>ひらがな</kbd> を使用するカナロックにはうまく対応できませんでした。普段 <kbd>Alt</kbd> + <kbd>ひらがな</kbd> を使用している人は、</p>
+			  
+			  <p class="sample">
+			  keymap Global<br>
+			  &nbsp;key *IC-*IL-A-ひらがな = C-S-ひらがな<br>
+			  </p>
+
+			  <p class="continue">という設定をして代わりに<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>ひらがな</kbd> が使用されるようにしてください。</p>
+
+			  <p>また、IME の機能の「日本語入力と連動してカナロックをon/offする」という設定にしている場合もカナロックの状態を正しく取得という報告があります。その場合は IME を on/off にするキーに、同時にカナロックもしてくれるように設定すると良いでしょう。</p>
+
+			  <p>参考: <a href="http://support.microsoft.com/default.aspx?scid=kb;ja;415068" target="_top">IME2000:かな/ローマ字入力を切り替える方法</a></p>
+
+			  <blockquote>
+			  <ol>
+			    <li><a href="MANUAL-ja.html#menu-l">ログウインドウ</a>を表示して、「□詳細(<u>D</u>)」をチェックしておきます。
+			    <li>「メモ帳」を 2 つ起動し左右に並べます。
+			    <li>左のメモ帳でカナをロックして何文字か入力してください。<br>
+				109 キーボードなら、<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>ひらがな</kbd>。<br>
+				104 キーボードなら、<kbd>Control</kbd> + <kbd>Shift</kbd> + <kbd>CapsLock</kbd>。<br>
+				(左のメモ帳には半角カタカナが表示されます)
+			    <li>右のメモ帳に何文字が入力してください。<br>
+				(右のメモ帳には半角カタカナが表示されます)
+			    <li>IME をオンにしてローマ字入力にして右のメモ帳に何文字か入力してください。
+			    <li>左のメモ帳に何文字か入力してください。<br>
+				(左のメモ帳には半角カタカナが表示されます)
+			    <li>ここで、<a href="MANUAL-ja.html#menu-l">ログウインドウ</a>を見ると <code>KL-</code> が付いていません。
+			  </ol>
+			  <p>カナロックの状態は、IME がオンの時とオフの時で、べつべつに記憶されているようです。</p>
+			  <p>しかし、IME がオンのウィンドウから IME がオフのウィンドウへフォーカスが移ったときに、カナロックの状態は正しく反映されないようです。</p>
+			  <p>その後 IME をオンオフするタイミングで、カナロックの状態が正しく反映されます。</p>
+			  <p>そこで、このオプションを設定すると、フォーカスが変化した時に IME オンオフを自動的に行い、カナロック状態を反映します。</p>
+			  </blockquote>
+			  
+			</div>
+		    </dd>
+
+		    <dt class="h3"><a name="def_option_delay_of_oneShotRepeatableModifier">オプション (<code>delay-of !!!</code>)</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><a href="#oneShotRepeatableModifier">キーリピート有 One Shot (<code>!!!</code>)</a> のキーリピートが始まるまでの時間を指定します。</p>
+			  
+			  <p class="sample">
+			  def option delay-of !!! = <em>DELAY</em>
+			  </p>
+
+			  <p>最初の <code><em>DELAY</em></code> 回のキーリピートを無視するようにします。</p>
+
+			  <p>デフォルトでは <code><em>DELAY</em></code> は 0 です。</p>
+			</div>
+		    </dd>
+
+		    <dt class="h3"><a name="def_option_ts4mayu">オプション (<code>sts4mayu, cts4mayu</code>)</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>モディファイヤ <code>T-, TS-</code> のサポートを有効にします。別途 DLL(<code>sts4mayu.dll</code> または <code>cts4mayu.dll</code>)が必要です。インストールパッケージには同梱しておりませんので、<a href="http://mayu.sourceforge.net/test/ts4mayu/">ここ</a>から取得し、<code>mayu.exe</code> と同じディレクトリに置いて下さい。</p>
+			  
+			  <p>Synaptics のタッチパッドを使用する。 <code>sts4mayu.dll</code> が必要です。</p>
+			  <p class="sample">
+			  def option sts4mayu = enable
+			  </p>
+			  
+			  <p>Cirque GlidePoint のタッチパッドを使用する。 <code>cts4mayu.dll </code>が必要です。</p>
+			  <p class="sample">
+			  def option cts4mayu = enable
+			  </p>
+			</div>
+		    </dd>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="include">vii. ファイル読み込み</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p class="sample">
+		  include <em>ファイル名</em>
+		  </p>
+		  
+		  <p>と書くことによって、その行に<em>ファイル名</em> <a href="#string">文字列</a>で示されるファイルを挿入することができます。<em>ファイル名</em>は<a href="#HOME">ホームディレクトリ</a>から検索されます。</p>
+		  
+		  <dl>
+		    <dt class="h3"><a name="HOME">ホームディレクトリ</a>
+		    <dd class="d3">
+			<div>
+			  <p>ホームディレクトリは、</p>
+			  
+			  <ul>
+			    <li>設定(S)... で指定したファイルのあるディレクトリ
+			    <li><code>%HOME%</code>
+			    <li><code>%HOMEDRIVE%%HOMEPATH%</code>
+			    <li><code>%USERPROFILE%</code>
+			    <li><code>mayu.exe</code> のカレントディレクトリ
+			    <li><code>mayu.exe</code> のある場所
+			  </ul>
+			  
+			  <p class="continue">のどれかになります。上から順番に検索されます。</p>
+			</div>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="cond">viii. 条件分岐</a>
+		
+	    <dd class="d2">
+		<div>
+		  <p>シンボルを定義して、そのシンボルによって条件分岐させることができます。</p>
+		  
+		  <p class="sample">
+		  define <em>シンボル</em><br>
+		  if ( <em>シンボル</em> )<br>
+		  〜<br>
+		  else<br>
+		  〜<br>
+		  endif
+		  </p>
+		  
+		  例えば次のように記述すると、
+		  
+		  <p class="sample">
+		  if ( SwapAB )<br>
+		  &nbsp;key *A = *B<br>
+		  &nbsp;key *B = *A<br>
+		  endif
+		  </p>
+		  
+		  <p class="continue"><code>SwapAB</code> というシンボルが <code>define</code> されている場合に、<kbd>A</kbd> と <kbd>B</kbd> を入れ替えます。</p>
+		  
+		  <p>「<a href="MANUAL-ja.html#menu-s">設定(<u>S</u>)...</a>」で <code>-Dシンボル名</code> を書くことでシンボルを定義することができます。</p>
+		</div>
+		
+	    <dt class="h2"><a name="function">ix. <code><em>FUNCTION</em></code> リファレンス</a>
+		
+	    <dd class="d2">
+		<div>
+		  <dl class="function">
+		    <dt class="h3"><a name="function_ClipboardCopy"><code>&amp;ClipboardCopy(<em>text</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code><em>text</em></code> <a href="#string">文字列</a>をクリップボードへコピーします。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_ClipboardUpcaseDowncaseWord"><code>&amp;ClipboardUpcaseWord</code>, <code>&amp;ClipboardDowncaseWord</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>それぞれ、クリップボードの中身の文字を大文字化又は小文字化します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Default"><code>&amp;Default</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>入力されたキーをそのまま Windows へ入力します。そのため、「窓使いの憂鬱」を起動してない時と同じ動作が期待できます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_DescribeBindings"><code>&amp;DescribeBindings</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code>&amp;DescribeBindings</code> は、現在のキーマップでどのようなキー操作をするとどのような動作が起こるかを表示します。が、表示形式がいまいち分かりにくいのでどうしようか思案中。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_DirectSSTP"><code>&amp;DirectSSTP(/<em>name</em>/, <em>protocol</em> <em>[</em>, <em>header ...]</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><a href="http://sakura.mikage.to/directsstp.html" target="_top">Direct</a> <a href="http://sakura.mikage.to/sstp.html" target="_top">SSTP</a> プロトコルをしゃべります。</p>
+			  
+			  <p><code><em>/name/</em></code> にマッチする名前のゴーストへリクエストを Direct SSTP を使用して送ります。</p>
+			  
+			  <p><code><em>protocol</em></code> <a href="#string">文字列</a> を省略すると <code>NOTIFY SSTP/1.1</code> になります。</p>
+			  
+			  <p><code><em>header</em></code> <a href="#string">文字列</a> にカンマで区切ってヘッダを書き並べます。<code>Sender</code> ヘッダを省略すると「窓使いの憂鬱」の名前が挿入されます。<code>HWnd</code> ヘッダと <code>Charset</code> ヘッダは「窓使いの憂鬱」が適切に指定するので引数として指定してはいけません。</p>
+			  
+			  <p>選択肢などを表示しても答えを受け取ることはできませんが、「窓使いの憂鬱」はゴーストから返事を 5 秒間待ちます。</p>
+			  
+			  <p>例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key F12 = \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&amp;DirectSSTP(/カレン/, \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"SEND SSTP/1.2", \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Script: " \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\1こんにちわ" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\_w[1000]\\0\\s3カレンのこと呼んだ？" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\_w[1000]\\1＞みんな" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\_w[1000]\\0\\s4\\n\\n……。" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\e" ) \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&amp;DirectSSTP(/双葉/, \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"SEND SSTP/1.2", \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Sender: まゆ", \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"Script: " \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\_w[1000]\\0よばれてますよただきちさん。" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\_w[1000]\\1きにするな。" \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"\\e" )<br>
+			  </p>
+			</div>
+			
+		    <dt class="h3"><a name="function_EditNextModifier"><code>&amp;EditNextModifier(<em>モディファイヤ</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>次にユーザーがキーを入力した時に、<code><em>モディファイヤ</em></code> が押されていることにします。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key ESC = &amp;EditNextModifier(M-)
+			  </p>
+			</div>
+			
+			<p class="continue">とすると、<kbd>Alt</kbd> + <kbd>X</kbd> などを <kbd>ESCAPE</kbd> <kbd>X</kbd> などで代用することが可能になります。</p>
+			
+		    <dt class="h3"><a name="function_EmacsEditKillLine"><code>&amp;EmacsEditKillLinePred</code>, <code>&amp;EmacsEditKillLineFunc</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>エディットコントロールで emacs の kill-line のような機能を実現します。使い方は <a href="../emacsedit.mayu"><code>emacsedit.mayu</code></a> を参照のこと。</p>
+			  <p>kill-line は非常にややこしい処理をしています。</p>
+			  
+			  <p>まず、<code>C-k</code> の期待される動作は、</p>
+			  
+			  <p><strong>(C-k-1)</strong> カーソルが行末にある場合、クリップボードに改行を追加してテキストからは改行を削除する。</p>
+			  
+			  <p><strong>(C-k-2)</strong> カーソルが行末以外の場合、行末までをクリップボードに追加して行末までのテキストを削除。</p>
+			  
+			  <p>です。「窓使いの憂鬱」での定義は、<a href="../emacsedit.mayu"><code>emacsedit.mayu</code></a> では、</p>
+			  
+			  <p class="sample">
+			  keyseq $EmacsEdit/kill-line = \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&amp;EmacsEditKillLineFunc S-End C-X &amp;Sync \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&amp;EmacsEditKillLinePred((Delete), (Return Left))
+			  </p>
+			  
+			  <p>こうなってるはずです。<p>
+			  
+			  <p><a href="#function_EmacsEditKillLine"><code>&amp;EmacsEditKillLineFunc</code></a> は初回だけ、クリップボードの中身をクリアします。初回でない場合は、クリップボードの中身を「窓使いの憂鬱」内部に保存 <strong>(※)</strong> します。</p>
+			  
+			  <p>その後 <code>S-End C-X</code> で行末までを選択し「切り取り」ます。ここで、クリップボードに行末までがコピーされたわけですが、クリップボードの中身には幾つか可能性があります。</p>
+			  
+			  <p>EDIT コントロールの場合</p>
+			  
+			  <p><strong>(EDIT-1)</strong> カーソルが行末にあると、「」(からっぽ)</p>
+			  <p><strong>(EDIT-2)</strong> カーソルが行末以外だと、「行末までの文字列」</p>
+			  
+			  <p>です。IE の中のエディットボックスの場合、</p>
+			  
+			  <p><strong>(IE-1)</strong> カーソルが行末にあると、「改行」</p>
+			  <p><strong>(IE-2)</strong> カーソルが行末以外だと、「行末までの文字列＋改行」</p>
+			  
+			  <p>です。</p>
+			  
+			  <p><a href="#function_EmacsEditKillLine"><code>&amp;EmacsEditKillLinePred</code></a> は、クリップボードの中身を調べて、</p>
+			  
+			  <p><strong>(EDIT-1)</strong> の場合は、<strong>※</strong>で保存したデータに「改行」を追加してクリップボードへ書き戻します。その後、第一引数、つまり <code>Delete</code> を実行します。</p>
+			  
+			  <p><strong>(EDIT-2)</strong> の場合は、<strong>※</strong>で保存したデータに「行末までの文字列」を追加してクリップボードへ書き戻します。</p>
+			  
+			  <p><strong>(IE-1)</strong> の場合は、<strong>※</strong>で保存したデータに「改行」を追加してクリップボードへ書き戻します。</p>
+			  
+			  <p><strong>(IE-2)</strong> の場合は、<strong>※</strong>で保存したデータに「行末までの文字列(改行は除く)」を追加してクリップボードへ書き戻します。その後、第二引数、つまり <code>Return Left</code> を実行します。</p>
+			  
+			  <p>このように動作することで <strong>(EDIT-1)</strong> と <strong>(IE-1)</strong> は <strong>(C-k-1)</strong> 相当、<strong>(EDIT-2)</strong>  と <strong>(IE-2)</strong> は <strong>(C-k-2)</strong> 相当になります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_HelpMessage"><code>&amp;HelpMessage(<em>title</em>, <em>message</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>IE5.0 以降が入っていれば、タスクトレイ付近にメッセージを表示します。<code><em>title</em></code> <a href="#string">文字列</a> と <code><em>message</em></code> <a href="#string">文字列</a> を省略すると、表示されているメッセージを消します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_HelpVariable"><code>&amp;HelpVariable(<em>title</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>IE5.0 が入っていれば、タスクトレイ付近に <a href="#function_Variable"><code>&amp;Variable</code></a> で設定された値が <code><em>title</em></code> <a href="#string">文字列</a> と共にを表示されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Ignore"><code>&amp;Ignore</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>なにも起こりません。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_InvestigateCommand"><code>&amp;InvestigateCommand</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウへ送られてくる <code>WM_COMMAND</code> と <code>WM_SYSCOMMAND</code> を調べログに出力します。トグルになっていますので、調査が終わったらもう一度この <code><em>FUNCTION</em></code> を実行してください。さもないとアプリケーションの実行速度が遅くなる可能性があります。ログの出力は <a href="#function_PostMessage"><code>&amp;PostMessage</code></a> で使用することが出来ます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Keymap"><code>&amp;Keymap(<em>キーマップ名</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>別のキーマップのキーを指定します。例えば、</p>
+			  
+			  <p class="sample">
+			  keymap sub : Global<br>
+			  &nbsp;key	C-A = &amp;WindowMinimize<br>
+			  window EditControl /:Edit$/ : Global<br>
+			  &nbsp;key	C-A = &amp;Keymap(sub)
+			  </p>
+			  
+			  <p class="continue">というように利用します。この場合、エディットコントロールで <kbd>Control</kbd> + <kbd>A</kbd> を入力すると、最小化されます。あまり実用的な機能はないかもしれません。ループしないように気をつけて利用してください。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_KeymapParent"><code>&amp;KeymapParent</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><a href="#parentKeymap">親キーマップ</a>参照。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_KeymapPrevPrefix"><code>&amp;KeymapPrevPrefix</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>現在のキーマップ (仮に <code>CURRENT</code> という名前とする) が二段階キーマップの場合、<a href="#function_Prefix"><code>&amp;Prefix</code></a><code>(CURRENT)</code> を実行したキーマップで定義されているキーを指定します。引数が無いと 1 段階前のキーマップになりますが、引数に数字を書くとその段階数前のキーマップになります。たとえば、</p>
+			  
+			  <p class="sample">
+			  keymap E<br>
+			  &nbsp;key A = &amp;KeymapPrevPrefix(2)<br>
+			  keymap D<br>
+			  &nbsp;key X = &amp;Prefix(E)<br>
+			  &nbsp;key A = D<br>
+			  keymap C<br>
+			  &nbsp;key X = &amp;Prefix(D)<br>
+			  &nbsp;key A = C<br>
+			  &nbsp;key Y = &amp;Prefix(E)<br>
+			  keymap B<br>
+			  &nbsp;key X = &amp;Prefix(C)<br>
+			  &nbsp;key A = B<br>
+			  keymap Global<br>
+			  &nbsp;key X = &amp;Prefix(B)<br>
+			  &nbsp;key A = A
+			  </p>
+			  
+			  <p>ここで <kbd>X</kbd> <kbd>X</kbd> <kbd>X</kbd> <kbd>X</kbd> <kbd>A</kbd> と入力すると <kbd>C</kbd> が、<kbd>X</kbd> <kbd>X</kbd> <kbd>Y</kbd> <kbd>A</kbd> と入力すると <kbd>B</kbd> が入力されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_KeymapWindow"><code>&amp;KeymapWindow</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>現在のウィンドウに定義されたキーマップのキーを入力します。プレフィックスキーの入力中に使用すると便利です。例えば</p>
+			  
+			  <p class="sample">
+			  keymap2 NotepadC-X<br>
+			  &nbsp;key	A = &amp;KeymapWindow<br>
+			  window Notepad /:Notepad:Edit$/ : Global<br>
+			  &nbsp;key	C-X = &amp;Prefix(NotepadC-X)<br>
+			  &nbsp;key	A = T E S T
+			  </p>
+			  
+			  <p class="continue">この場合、メモ帳で <kbd>Control</kbd> + <kbd>X</kbd> を押した後に <kbd>A</kbd> を入力すると、<code>&amp;KeymapWindow</code> は <code>Nodepad</code> キーマップに定義されているキーを入力しようとします。従って、<code>TEST</code> が入力されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_LoadSetting"><code>&amp;LoadSetting(<em>設定名</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>設定ファイルを再読み込みします。<code><em>設定名</em></code> <a href="#string">文字列</a> は「設定(I)...」で設定した「名前」で、再読み込みする設定を指定します。<code><em>設定名</em></code>を省略すると現在の設定を再読み込みします。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_MayuDialog"><code>&amp;MayuDialog(<em>dialog</em>, <em>show_command</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>「窓使いの憂鬱」のダイアログボックスを表示したり隠したりします。<code><em>dialog</em></code> には <code>Investigate</code> と <code>Log</code> が指定できます。それぞれ「調査」ダイアログと「ログ」ダイアログです。<code><em>show_command</em></code> には、<code>HIDE</code>, <code>SHOW</code>, <code>SHOWNA</code> などが指定できます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_MouseHook"><code>&amp;MouseHook(<em>type</em>, <em>parameter</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>マウスイベントをフックし <code><em>type</em></code> で指定されるアクションに変換します。 <code><em>parameter</em></code> は整数値で <code><em>type</em></code> 毎に意味が異なります。指定できる <code><em>type</em></code> は以下の通りです。</p>
+			  <ul>
+			    <li><code>None</code> [初期値]変換しません。 <code><em>parameter</em></code> は無視されます。他の <code><em>type</em></code> から元に戻す場合にはこの値を指定します。
+			    <li><code>Wheel</code> マウスの垂直方向の移動をホイールの回転に変換します。この間マウスカーソルは動きません。 <code><em>parameter</em></code> は変換の際の倍率で、正と負では逆回転となります。
+			    <li><code>WindowMove</code> マウスの移動をウィンドウの移動に変換します。この間マウスカーソルは動きます。 <code><em>parameter</em></code> は移動するウィンドウの指定で、 <code>1</code> はアクティブウィンドウ、 <code>2</code> はマウスカーソル位置のウィンドウを意味します。また符号を負にすると対応する MDI 子ウィンドウを移動します。
+			  </ul>
+			</div>
+			
+		    <dt class="h3"><a name="function_MouseMove"><code>&amp;MouseMove(<em>dx</em>, <em>dy</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>マウスカーソルを水平に <code><em>dx</em></code>、垂直に <code><em>dy</em></code> 移動します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_MouseWheel"><code>&amp;MouseWheel(<em>delta</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ホイールを回します。<code><em>delta</em></code> を <code>-120</code> にするとホイールを手前に 1 単位まわしたことになります。逆に <code>120</code> にするとホイールを奥へ 1 単位まわしたことになります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_OtherWindowClass"><code>&amp;OtherWindowClass</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><a href="#matchManyClasses"><code>window</code> に複数該当する場合</a>参照。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_PlugIn"><code>&amp;PlugIn(<em>DLLNAME</em>, <em>FUNCNAME</em>, <em>FUNCPARAM</em>, <em>runAsThread</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>プラグインを実行します。<code>mayu.exe</code> のあるディレクトリの中の <code>Plugins</code> というディレクトリにプラグイン DLL を置いておくとそのプラグインの中の関数を「窓使いの憂鬱」から直接呼ぶことが出来ます。</p>
+
+			  <p><code><em>DLLNAME</em></code> はプラグイン DLL 名です。<code>Plugins\<em>DLLNAME</em>.dll</code> が使用されます。</p>
+
+			  <p><code><em>FUNCNAME</em></code> は DLL 中の関数名です。DLL は、以下の関数のうちのどれか実装していなければなりません。この引数は省略することができます。省略すると空文字列になります。</p>
+
+			  <p class="sample">
+			  void WINAPI mayu<em>FUNCNAME</em>W(const wchar_t *<em>FUNCPARAM</em>);<br>
+			  void WINAPI mayu<em>FUNCNAME</em>A(const char *<em>FUNCPARAM</em>);<br>
+			  void WINAPI mayu<em>FUNCNAME</em>(const char *<em>FUNCPARAM</em>);<br>
+			  void WINAPI <em>FUNCNAME</em>(const char *<em>FUNCPARAM</em>);
+			  </p>
+
+			  <p><code><em>FUNCPARAM</em></code> は DLL の関数を呼び出すときに渡される引数です。省略すると空文字列 (<code>NULL</code> ではない) になります。</p>
+
+			  <p><code><em>runAsThread</em></code> に <code>true</code> を指定すると指定の関数をスレッドの中で実行します。省略すると <code>false</code> が指定されたことになります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_PostMessage"><code>&amp;PostMessage(<em>window</em>, <em>message</em>, <em>wParam</em>, <em>lParam</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウへメッセージを送ることができます。高度な機能なので完全に理解してから利用してください。</p>
+			  
+			  <p class="sample">
+			  keyseq $WM_CUT = &amp;PostMessage(ToItself, 0x0300, 0, 0)<br>
+			  window EditControl /:Edit$/ : Global<br>
+			  &nbsp;key C-W = $WM_CUT
+			  </p>
+			  
+			  <p class="continue">と書くと、一部のウィンドウで <kbd>Control</kbd> + <kbd>W</kbd> でカットできるようになります。</p>
+			  
+			  <p><code><em>window</em></code> には、メッセージを送る先のウィンドウを指定します。以下の種類があります。</p>
+			  
+			  <ul>
+			    <li><code>ToItself</code> はそのウィンドウ自身へ。
+			    <li><code>ToMainWindow</code> は最も親のウィンドウへ。
+			    <li><code>ToOverlappedWindow</code> は子でない最初のウィンドウへ。
+			    <li><code>ToParentWindow</code> は親ウィンドウへ。
+			    <li><code><em>正の数</em></code> は <code>1</code>:親ウィンドウ、<code>2</code>:親の親、<code>3</code>:親の親の親…
+			  </ul>
+			  
+			  <p>どのようなメッセージを送ればよいかは Spy++ などで調べられますが、<code>WM_COMMAND</code> と <code>WM_SYSCOMMAND</code> については <a href="#function_InvestigateCommand"><code>&amp;InvestigateCommand</code></a> で調べることもできます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Prefix"><code>&amp;Prefix(<em>キーマップ名</em>, <em>ignore_modifiers</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>プレフィックスキーを指定します。例えば、</p>
+			  
+			  <p class="sample">
+			  keymap2 NotepadC-X<br>
+			  &nbsp;key	C-C = &amp;WindowClose<br>
+			  window Notepad /:Notepad:Edit$/ : Global<br>
+			  &nbsp;key	C-X = &amp;Prefix(NotepadC-X)
+			  </p>
+			  
+			  <p class="continue">というように記述しておくと、メモ帳で <kbd>Control</kbd> + <kbd>X</kbd> <kbd>Control</kbd> + <kbd>C</kbd> と続けて入力するとメモ帳を終了することができます。</p>
+			  
+			  <p><code><em>ignore_modifiers</em></code> は省略可能な引数で <code>true</code> か <code>false</code> を指定します。省略すると <code>true</code> が指定されたとみなされます。<code>true</code> が指定された場合、<code><em>キーマップ名</em></code> で指示されるキーマップは</p>
+			  
+			  <p class="sample">
+			  &nbsp;mod !shift !alt !control !windows \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!mod0 !mod1 !mod2 !mod3 !mod4 \<br>
+			  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;!mod5 !mod6 !mod7 !mod8 !mod9
+			  </p>
+			  
+			  <p class="continue">が指定されたものとして扱われます。つまり、全てのモディファイヤが<a href="#trueModifier">真のモディファイヤ</a>として扱われるようになります。</p>
+
+			  <p><a href="#keymap2"><code>keymap2</code></a> を利用しているときには、デフォルトキーが <a href="#function_Undefined"><code>&amp;Undefined</code></a> になっているので、モディファイヤを入力した時にもベルが鳴るはずですが、このように <code>true</code> を指定しておけば鳴らなくなります。(<a href="#mod"><code>mod</code></a> を参照)</p>
+
+			  <p><code>false</code> を指定すれば、2 ストローク目にモディファイヤキーそのものを使用することができる可能性がありますが、通常はそのような使用方法はしないと思われます。また、さまざまな問題により <code>false</code> の指定にはバグがありますので使用はオススメしません。</p>
+			  
+			  <blockquote>
+			  <ol>
+			    <li>キーの押す・離す、が順番に来ない場合
+				<div>
+				  <p>例えば <kbd>Control</kbd> + <kbd>X</kbd> <kbd>Control</kbd> + <kbd>L</kbd> という入力をユーザーがした場合、<code>D-C-X U-C-X D-C-L U-C-L</code> という順序で入力されるのが正しいのですが、<kbd>X</kbd> は左手、<kbd>L</kbd> は右手で入力するため、 <code>D-C-X D-C-L U-C-X U-C-L</code> という順序で入力されてしまうことがしばしばあります。</p>
+				  
+				  <p>ですから、現在の実装では <a href="#function_Prefix"><code>&amp;Prefix</code></a> はキーダウン (<code>D-</code>) 部分でしか正しく動作しないようになっています。入力されるキーの順序が入れ替わるため、<code>U-</code> 部分で <a href="#function_Prefix"><code>&amp;Prefix</code></a> が動作してしまうとおかしなことになるからです。(現在は中途半端に動作しているので、バグかもしれません。要調査)</p>
+				</div>
+
+			    <li>キーリピート
+				<div>
+				  <p>キーリピートは、キーダウン (<code>D-</code>) がたくさん入力されたあとに、キーアップ (<code>U-</code>) が一度だけ入力されます。この場合に <a href="#function_Prefix"><code>&amp;Prefix</code></a> がどのように動作すべきかは自明ではありません。</p>
+				</div>
+				
+			    <li>モディファイヤキーのキーマップ
+				<div>
+				  <p><code>false</code> を指定した時に <kbd>Control</kbd> + <kbd>X</kbd> <kbd>F</kbd> と入力したとします。<code>D-C-Control D-C-X U-C-X U-Control D-F U-F</code> このような順序でキーが入力されますが、<code>U-Control</code> はどのキーマップで解釈されるべきでしょうか？</p>
+
+				  <p>現在は、<a href="#function_Prefix"><code>&amp;Prefix</code></a> 先のキーマップで解釈されていますが、モディファイヤを真のモディファイヤへ自動的に変換するため、<code>U-Control</code> は何の機能ももたないので、うまく動作しているように見えます。ですが、本来ならば元のキーマップで解釈されるべきなのでこれはバグなのですが、修正する予定はありません。</p>
+				</div>
+			  </ol>
+			  </blockquote>
+
+			</div>
+			
+		    <dt class="h3"><a name="function_Recenter"><code>&amp;Recenter</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>エディットコントロールかリッチエディットコントロールでのみ動作し、カレットの位置を縦方向の中央に移動させます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Repeat"><code>&amp;Repeat(<em>キーシーケンス</em>, <em>最大回数</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><a href="#function_Variable"><code>&amp;Variable</code></a> で設定した回数だけ <code><em>キーシーケンス</em></code> を実行します。ただし、実行しすぎると危険なので<em>最大回数</em>を指定できます。<em>最大回数</em>は省略することができ、その場合 10 回が最大になります。</p>
+			  
+			  <p class="sample">
+			  &nbsp;key A = &amp;Variable(0, 10) &amp;Repeat((X))
+			  </p>
+			  
+			  <p>上の例では、<kbd>A</kbd> を押すと、<kbd>X</kbd> が 10 回入力されます</p>
+			  
+			</div>
+			
+		    <dt class="h3"><a name="function_SetImeStatus"><code>&amp;SetImeStatus(<em>status</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>IME の ON/OFF を切り替えます。<code><em>status</em></code> は <code>on</code>, <code>off</code>, <code>toggle</code> のいずれかで、省略時は <code>toggle</code> として扱われます。</p>
+			  <p>MS-IME2002/2003 と一部のアプリケーション (例えば MS Word2002/2003) の組み合わせでは「詳細なテキストサービス」を無効にしない限り機能しません。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_SetImeString"><code>&amp;SetImeString(<em>text</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>IME を経由して <code><em>text</em></code> <a href="#string">文字列</a> を入力します。</p>
+			  <p>Windows2000/XP のみで機能します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_ShellExecute"><code>&amp;ShellExecute(<em>operation</em>, <em>file</em>, <em>parameters</em>, <em>directory</em>, <em>show_command</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>プログラムを実行します。</p>
+			  
+			  <ul>
+			    <li><code><em>operation</em></code> <a href="#string">文字列</a> にはファイルに対してどのような操作をするかを指示し、通常 <code>open</code> を指定します。
+			    <li><code><em>file</em></code> <a href="#string">文字列</a> にはファイルか実行ファイルを書きます。
+			    <li><code><em>parameters</em></code> <a href="#string">文字列</a> には <code><em>file</em></code> に実行ファイルを書いたときにオプションを記述します。
+			    <li><code><em>directory</em></code> <a href="#string">文字列</a> は作業ディレクトリを指定します。
+			    <li><code><em>show_command</em></code> には <code>ShowNormal</code> を指定します。
+			  </ul>
+			  
+			  <p>コントロールパネルを開く例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key M-B = &amp;ShellExecute("open", "C:\\WINDOWS\\system32\\Control.exe",,, ShowNormal)
+			  </p>
+			  
+			  <p>システムのプロパティを開く例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key M-C = &amp;ShellExecute("open", "C:/WINDOWS/system32/Control.exe", "sysdm.cpl",, ShowNormal)
+			  </p>
+			  
+			  <p>インターネットエクスプローラで「窓使いの憂鬱」のホームページを開く例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key M-I = &amp;ShellExecute("open", "C:\\Program Files\\Internet Explorer\\iexplore.exe\", "http://mayu.sourceforge.net",, ShowNormal)<br>
+			  &nbsp;key M-H = &amp;ShellExecute("open", "http://mayu.sourceforge.net",,, ShowNormal)
+			  </p>
+			  
+			  <p><code>flourish.mid</code> を演奏する例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key M-R = &amp;ShellExecute("play", "C:\\WINDOWS\\Media\\flourish.mid",,, ShowNormal)
+			  </p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Sync"><code>&amp;Sync</code></a>
+		    <dd class="d3">
+			<div>
+			  <p>基本的に、Windows へのキー入力と <code><em>FUNCTION</em></code> は非同期に実行されます。つまりキー入力と <code><em>FUNCTION</em></code> の実行順序は不明です。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key C-A = A &amp;WindowMinimize
+			  </p>
+			  
+			  <p class="continue">このように記述して <kbd>Control</kbd> + <kbd>A</kbd> を入力すると、Windows へ <code>A</code> が入力されるのが先か、<code>&amp;WindowMinimize</code> が実行されるのが先かは不明です。そこで、以下のように記述すればちゃんと順序が守られることを保証できます。</p>
+			  
+			  <p class="sample">
+			  &nbsp;key C-A = A &amp;Sync &amp;WindowMinimize
+			  </p>
+			  
+			  <p>また、<code><em>FUNCTION</em></code> には<a href="#modifier">モディファイヤ</a>を指定することが可能ですが、<code><em>FUNCTION</em></code> とモディファイヤキー入力が非同期に実行されるため通常は意味がありません。しかし、<code>&amp;Sync</code> を使えばモディファイヤキーの指定に意味が出てきます。</p>
+			  
+			  <p class="sample">
+			  window Explorer /Explorer\.exe/ : Global<br>
+			  &nbsp;key C-S-Z = &amp;Sync &amp;WindowMaximize # ウィンドウの最大化<br>
+			  &nbsp;key C-A-Z = C-&amp;Sync *&amp;WindowMaximize # ウィンドウの全画面化
+			  </p>
+			  
+			  <p>前者の指定では、ウィンドウを最大化するときに <kbd>Control</kbd> と <kbd>Shift</kbd> が入力されていないようにしています。後者では、<kbd>Control</kbd> は入力されるが、<kbd>Alt</kbd> は入力されていないようにします。</p>
+			  
+			  <p><a href="#def_sync"><code>def sync</code></a> 参照。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Toggle"><code>&amp;Toggle(Lock<em>N</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ロックキーをトグルします。<code>&amp;Toggle(Lock0)</code>〜<code>&amp;Toggle(Lock9)</code> が利用できます。引数の最後に <code>on</code>, <code>off</code> を追加すると、ロックキーを強制的にオンにしたりオフにしたりできます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Undefined"><code>&amp;Undefined</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>キーに何も割り当てられていないことにします。もしそのキーが押されると、ベルが鳴ります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_VK"><code>&amp;VK(<em>virtual_key</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>仮想キーを Windows へ入力します。仮想キーには、物理的なキーボードから入力できないキーも存在しますのでそのようなキーの入力に使用します。仮想キーを調べるには、タスクトレイメニュー<a href="MANUAL-ja.html#menu-i" class="menu-item">調査(I)...</a>の「仮想キーの調査」を利用します。例えば、</p>
+			  
+			  <p class="sample">
+			  &nbsp;key 変換 = &amp;VK(F13)
+			  </p>
+			  
+			  <p class="continue">と記述すると <kbd>変換</kbd> キーを押すと <kbd>F13</kbd> を入力できます。又、<code>E-</code> を付けると拡張キーを表し、<code>D-</code> はキーを押す、<code>U-</code> はキーを離すことを表します。</p>
+			  
+			  <p><code><em>virtual_key</em></code> に <code>LButton</code>、<code>MButton</code>、<code>RButton</code>、<code>XButton1</code>、<code>XButton2</code> を指定することによって、マウスのボタンをシミュレートすることができます。</p>
+			  
+			  <p>この <code><em>FUNCTION</em></code> を利用するときは、必ず最後にキーを離していることを確認してください (つまり最後に <code>&amp;VK(U-F13)</code> などを書いておく)。さもないと、そのキーが押されっぱなしになります。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Variable"><code>&amp;Variable(<em>mag</em>, <em>inc</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>内部変数を <code><em>mag</em></code> 倍してから <code><em>inc</em></code> を加えます。この変数は、<a href="#function_Repeat"><code>&amp;Repeat</code></a> と <a href="#function_HelpVariable"><code>&amp;HelpVariable</code></a> で使用されます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_Wait"><code>&amp;Wait(<em>milli_second</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p><code><em>milli_second</em></code> ミリ秒だけ実行を中断します。その間はキーを入力することはできません。最大 5 秒待つことができます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowCling"><code>&amp;WindowClingToLeft</code>, <code>&amp;WindowClingToRight</code>, <code>&amp;WindowClingToTop</code>, <code>&amp;WindowClingToBottom</code>, </a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウを、それぞれの辺が画面のそれぞれの辺にくっつくように移動させます。引数に <code>MDI</code> を指定すると、MDI 子ウィンドウを操作します。</p>
+			  
+			  <ul>
+			    <li><code>&amp;WindowClingToTop</code> は <a href="#function_WindowMoveTo"><code>&amp;WindowMoveTo(N, 0, 0)</code></a>と同じ。
+			    <li><code>&amp;WindowClingToRight</code> は <a href="#function_WindowMoveTo"><code>&amp;WindowMoveTo(E, 0, 0)</code></a> と同じ。
+			    <li><code>&amp;WindowClingToLeft</code> は <a href="#function_WindowMoveTo"><code>&amp;WindowMoveTo(W, 0, 0)</code></a> と同じ。
+			    <li><code>&amp;WindowClingToBottom</code> は <a href="#function_WindowMoveTo"><code>&amp;WindowMoveTo(S, 0, 0)</code></a> と同じ。
+			  </ul>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowClose"><code>&amp;WindowClose</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウを閉じます。引数に <code>MDI</code> を指定すると、MDI 子ウィンドウを操作します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowIdentify"><code>&amp;WindowIdentify</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウのウィンドウクラス名とタイトルを調べログに出力します。又、各種ウィンドウの位置と大きさも出力します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMaxMinHVMax"><code>&amp;WindowMinimize</code>, <code>&amp;WindowMaximize</code>, <code>&amp;WindowHMaximize</code>, <code>&amp;WindowVMaximize</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>それぞれ、ウィンドウを最小化、最大化、横方向に最大化、縦方向に最大化します。引数に <code>MDI</code> を指定すると、MDI 子ウィンドウを操作します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMonitor"><code>&amp;WindowMonitor(<em>monitor</em>, <em>adjust_position</em>, <em>adjust_size</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウをモニタ <code><em>monitor</em></code> へ移動します。<a href="#function_WindowMonitorTo"><code>&amp;WindowMonitorTo(primary, <em>monitor</em>, <em>adjust_position</em>, <em>adjust_size</em>)</code></a> と同じ動作をします。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMonitorTo"><code>&amp;WindowMonitorTo(<em>from</em>, <em>monitor</em>, <em>adjust_position</em>, <em>adjust_size</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウを <code><em>from</em></code> を基準としてモニタ <code><em>monitor</em></code> へ移動します。<code><em>from</em></code> には、次のものが指定できます。</p>
+
+			  <ul>
+			    <li><code>primary</code> : プライマリモニタを基準とします</li>
+			    <li><code>current</code> : 現在ウィンドウがあるモニタを基準とします</li>
+			  </ul>
+
+			  <p><code><em>monitor</em></code> には、数字が指定できます。<code>0</code> が基準となるモニタ、正の数は <code>1</code>: 次のモニタ、<code>2</code>: 次の次のモニタ…、負の数は <code>-1</code>: 前のモニタ、<code>-2</code>: 前の前のモニタ…、を意味します。</p>
+			  <p><code><em>adjust_position</em></code> は省略可能な引数で <code>true</code> か <code>false</code> を指定します。省略すると <code>true</code> が指定されたとみなされます。<code>true</code> が指定された場合、移動先がモニタからはみ出すときにできる限りモニタ内におさまる位置へ移動します。</p>
+			  <p><code><em>adjust_size</em></code> は省略可能な引数で <code>true</code> か <code>false</code> を指定します。省略すると <code>false</code> が指定されたとみなされます。<code><em>adjust_position</em></code> が <code>true</code> の場合のみ有効です。<code>true</code> が指定された場合、移動先がモニタからはみ出すときにモニタ内におさまるようウィンドウの大きさを調整します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMove"><code>&amp;WindowMove(<em>dx</em>, <em>dy</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウインドウを水平方向に <code><em>dx</em></code>、垂直方向に <code><em>dy</em></code> 移動します。<code>MDI</code> を引数の最後に追加指定すると、MDI 子ウィンドウを操作します。<code>&amp;WindowMoveTo(C, <em>dx</em>, <em>dy</em>)</code> と同じ動作をします。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMoveTo"><code>&amp;WindowMoveTo(<em>gravity</em>, <em>dx</em>, <em>dy</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>基準位置から相対的にウインドウを水平方向に <code><em>dx</em></code>、垂直方向に <code><em>dy</em></code> 移動します。<code>MDI</code> を引数の最後に追加指定すると、MDI 子ウィンドウを操作します。<code><em>gravity</em></code> には、次のものが指定できます。</p>
+			  
+			  <ul>
+			    <li><code>C</code> : 現在位置からの相対位置に移動します。
+			    <li><code>N</code> : 上下方向はデスクトップの上からの相対位置、左右方向は現在位置からの相対位置に移動します。
+			    <li><code>E</code> : 上下方向は現在位置からの相対位置、左右方向はデスクトップの右からの相対位置に移動します。
+			    <li><code>W</code> : 上下方向は現在位置からの相対位置、左右方向はデスクトップの左からの相対位置に移動します。
+			    <li><code>S</code> : 上下方向はデスクトップの下からの相対位置、左右方向は現在位置からの相対位置に移動します。
+			    <li><code>NE</code> : デスクトップ右上からの相対位置に移動。
+			    <li><code>NW</code> : デスクトップ左上からの相対位置に移動。
+			    <li><code>SE</code> : デスクトップ右下からの相対位置に移動。
+			    <li><code>SW</code> : デスクトップ左下からの相対位置に移動。
+			  </ul>
+			  
+			  <p>また、他の移動 <code><em>FUNCTION</em></code> とは以下のような関係があります。</p>
+			  
+			  <ul>
+			    <li><code>&amp;WindowMoveTo(C, <em>dx</em>, <em>dy</em>)</code> は <a href="#function_WindowMove"><code>&amp;WindowMove(<em>dx</em>, <em>dy</em>)</code></a> と同じ。
+			    <li><code>&amp;WindowMoveTo(N, 0, 0)</code> は <a href="#function_WindowCling"><code>&amp;WindowClingToTop</code></a> と同じ。
+			    <li><code>&amp;WindowMoveTo(E, 0, 0)</code> は <a href="#function_WindowCling"><code>&amp;WindowClingToRight</code></a> と同じ。
+			    <li><code>&amp;WindowMoveTo(W, 0, 0)</code> は <a href="#function_WindowCling"><code>&amp;WindowClingToLeft</code></a> と同じ。
+			    <li><code>&amp;WindowMoveTo(S, 0, 0)</code> は <a href="#function_WindowCling"><code>&amp;WindowClingToBottom</code></a> と同じ。
+			  </ul>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowMoveVisibly"><code>&amp;WindowMoveVisibly</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウ全体が画面に表示されるような位置へウィンドウを移動します。引数に <code>MDI</code> を指定すると、MDI 子ウィンドウを操作します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowRedraw"><code>&amp;WindowRedraw</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウを強制的に再描画させます。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowResizeTo"><code>&amp;WindowResizeTo(<em>width</em>, <em>height</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウインドウの大きさを幅 <code><em>width</em></code>、高さ <code><em>height</em></code> に変更します。<code>0</code> を指定すると現在の大きさに、負の値を指定するとデスクトップの大きさより指定したピクセル数だけ小さい大きさになります。<code>MDI</code> を引数の最後に追加指定すると、MDI 子ウィンドウを操作します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowRiseLower"><code>&amp;WindowRaise</code>, <code>&amp;WindowLower</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>それぞれ、ウィンドウを一番上、一番下へ移動します。引数に <code>MDI</code> を指定すると、MDI 子ウィンドウを操作します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowSetAlpha"><code>&amp;WindowSetAlpha(<em>alpha</em>)</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウを半透明化、又は半透明化解除します。トグルになっています。<code><em>alpha</em></code> は半透明の度合いを表し、<code>0</code> で透明、<code>100</code> で不透明になります。<code>-1</code> を指定すると、この <code><em>FUNCTION</em></code> で半透明化されたウィンドウを全て不透明状態に戻します。</p>
+			</div>
+			
+		    <dt class="h3"><a name="function_WindowToggleTopMost"><code>&amp;WindowToggleTopMost</code></a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>ウィンドウの最前面フラグをトグルします。</p>
+			</div>
+		
+		    <dt class="h3"><a name="arg_subst">引数置換</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>引数として <code>$</code> で始まるキーワードを指定することにより <code><em>FUNCTION</em></code> に以下の内容を渡すことができます。[]内はそのキーワードを指定できる引数の型です。値の取り出しは <code><em>FUNCTION</em></code> の実行時に行われます。</p>
+			  
+			  <ul>
+			    <li><code>$Clipboard</code>: [文字列] クリップボードの中身
+			    <li><code>$WindowClassName</code>: [文字列] フォーカスされているウィンドウのクラス名
+			    <li><code>$WindowTitleName</code>: [文字列] フォーカスされているウィンドウのタイトル名
+			  </ul>
+			  
+			  <p>クリップボード内の文字列を URL としてブラウザで開く例:</p>
+			  <p class="sample">
+			  &nbsp;key M-C-O = &amp;ShellExecute("open", $Clipboard,,, ShowNormal)
+			  </p>
+			  
+			  <p>フォーカスされているウィンドウのクラス名やタイトル名をクリップボードにコピーする例:</p>
+			  
+			  <p class="sample">
+			  &nbsp;key M-C-C = &amp;ClipboardCopy($WindowClassName)<br>
+			  &nbsp;key M-C-T = &amp;ClipboardCopy($WindowTitleName)
+			  </p>
+			</div>
+			
+		    <dt class="h3"><a name="string">文字列</a>
+			
+		    <dd class="d3">
+			<div>
+			  <p>文字列が記述できる箇所には <code>"文字列"</code> と記述することができますが、<code>\</code> という文字は、その次にくる文字と組み合わせて特殊な文字を表します。</p>
+			  <ul>
+			    <li><code>\a</code> (U+0007) ベル文字
+			    <li><code>\e</code> (U+001b) ESC 文字
+			    <li><code>\f</code> (U+000c) 改頁文字
+			    <li><code>\n</code> (U+000a) 改行文字
+			    <li><code>\r</code> (U+000d) 復帰文字
+			    <li><code>\t</code> (U+0009) タブ文字
+			    <li><code>\v</code> (U+000b) 垂直タブ文字
+			    <li><code>\'</code> 「<code>'</code>」
+			    <li><code>\"</code> 「<code>"</code>」
+			    <li><code>\\</code> 「<code>\</code>」
+			    <li><code>\c<em>X</em></code> コントロール文字一般。<code>^<em>X</em></code>
+			    <li><code>\x<em>XXXX</eM></code> (U+<em>XXXX</em>) 16 進数で表現した UNICODE 文字。<em>X</em> は 0〜9 と a〜f。
+			    <li><code>\0<em>XXXX</eM></code> 8 進数で表現した UNICODE 文字。<em>X</em> は 0〜7。
+			    <li>上記に当てはまらない <code>\<em>X</em></code> は <em>X</em> という文字そのもの。
+			</div>
+		  </dl>
+		</div>
+		
+	    <dt class="h2"><a name="compile">x. ビルド</a>
+		
+	    <dd class="d2">
+		<div>
+		  <dl>
+		    <dt class="h3"><a name="compile_tool">必要なもの</a>
+		    <dd class="d3">
+			<div>
+			  <p>Visual C++ を所有していない場合、マイクロソフトから無償で提供されているコンパイラを利用することでビルド可能です。</p>
+			  <dl>
+			    <dt class="h4">Visual C++
+			    <dd class="d4">
+				<div>
+				  <p>商用の Visual C++ 6.0 SP5 以降、又はマイクロソフトから無償で提供されている <a href="http://www.microsoft.com/downloads/details.aspx?FamilyID=272be09d-40bb-49fd-9cb0-4bfa122fa91b&DisplayLang=en">Visual C++ Toolkit 2003</a> をダウンロードして使用することが可能です。</p>
+				</div>
+
+			    <dt class="h4">Platform SDK 
+			    <dd class="d4">
+				<div>
+				  <p>Windows XP に対応したものが必要です。MSDN で配布されていますし、マイクロソフトのから無償で提供されている <a href="http://www.microsoft.com/msdownload/platformsdk/sdkupdate/XPSP2FULLInstall.htm" target="_top">XPSP2 PSDK</a> を利用することもできます。</p>
+				</div>
+				
+			    <dt class="h4">(Visual C++ Toolkit 2003 を利用する場合のみ) .NET Framework SDK Version 1.1
+			    <dd class="d4">
+				<div>
+				  <p>Visual C++ Toolkit 2003 のパッケージには nmake と cvtres が含まれていないので、<a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=9B3A2CA6-3647-4070-9F41-A333C6B9181D&displaylang=ja">.NET Framework SDK Version 1.1</a> をインストール(無償)する必要があります。</p>
+
+				  <p><code>C:\Program Files\Microsoft.NET\SDK\v1.1\Bin\nmake.exe</code> と <code>C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\cvtres.exe</code> を Visual C++ Toolkit 2003 の <code>bin/</code> ディレクトリへコピーします。(<code>cvtres.exe</code> は必ず <code>link.exe</code> と同じディレクトリに置いてください。<code>nmake.exe</code> はパスが通っていれば使用可能です。)</p>
+
+				  <p>商用パッケージの Visual C++ には最初から含まれているので、入れる必要はありません。</p>
+				</div>
+				
+			    <dt class="h4">DDK
+			    <dd class="d4">
+				<div>
+				  <p>デバイスドライバをビルドする場合のみ必要になります。MSDN で配布されていますし、マイクロソフトの<a href="http://www.microsoft.com/whdc/ddk/winddk.mspx" target="_top">サイト</a>から注文することもできます。</p>
+				</div>
+			    <dt class="h4">正規表現ライブラリ
+			    <dd class="d4">
+				<div>
+				  <p><a href="http://www.boost.org/libs/regex/doc/index.html" target="_top">Boost.Regex</a> が必要です。<a href="http://www.boost.org/" target="_top">Boost ライブラリ</a> に同梱されています。現在、「窓使いの憂鬱」のビルドが確認されている Boost のバージョンは 1.32.0 のみです。</p>
+				</div>
+			    <dt class="h4">Perl</a>
+			    <dd class="d4">
+				<div>
+				  <p>いくつかの作業の為に Perl が必要です。<a href="http://www.cygwin.com/" target="_top">Cygwin</a> の perl 又は <a href="http://www.activestate.com/Products/ActivePerl/" target="_top">ActivePerl</a> をインストールしてください。</p>
+				</div>
+			    <dt class="h4">bash, cvs, fileutils, sed, tar
+			    <dd class="d4">
+				<div>
+				  <p>配布パッケージを作成するためにのみ <a href="http://www.cygwin.com/" target="_top">Cygwin</a> の bash, fileutils, sed, tar が必要です。また、cvs は Cygwin のものを使用することをおすすめします。さもないと改行コードの違いによるトラブルが起こるかもしれません。mayu のソースの改行コードはすべて LF のみになっています。</p>
+				</div>
+			  </dl>
+			</div>
+			
+		    <dt class="h3"><a name="compile_source">ソースの展開</a>
+		    <dd class="d3">
+			<div>
+			  <dl>
+			    <dt class="h4">ソースの展開
+			    <dd class="d4">
+				<div>
+				  <p>SourfeForge の <a href="http://sourceforge.net/project/showfiles.php?group_id=5403">Download</a> から、ソースファイルをダウンロードします。ソースファイルの展開には Cygwin の tar を使うのが良いでしょう。
+				</div>
+			    <dt class="h4">cvs による取り寄せ
+			    <dd class="d4">
+				<div>
+				  <p>SourfeForge から cvs を使用して取り寄せることにより現在開発中で次のバージョンとなるはずのソースを入手することが出来ます。</p>
+				  <p class="sample">
+				  cvs -z 3 -d :pserver:anonymous@cvs1.sourceforge.net:/cvsroot/mayu checkout mayu
+				  </p>
+				</div>
+			    <dt class="h4">ディレクトリ構成
+			    <dd class="d4">
+				<div>
+				  <p>上記のどちらかの方法で「窓使いの憂鬱」本体のソースコードを展開後、Boost を展開します。最終的なディレクトリ構成が以下のようになるように展開してください。</p>
+				  <p class="tree">
+				  ./<br>
+				  <code>&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;+---</code>boost_1_??_?/ ... <span>Boost の展開により作成される</span><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+---</code>boost/ ... <span>Boost の展開により作成される</span><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+---</code>detail/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+---</code>re_detail/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;+---</code>libs/ ... <span>Boost の展開により作成される</span><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>regex/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>timer/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;+---</code>mayu-3.??/ ... <span>「窓使いの憂鬱」本体ソース</span><br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|</code><br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>contrib/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>d/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>r/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>s/ ...<br>
+				  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+---</code>tools/ ...<br>
+				  </p>
+				</div>
+			  </dl>
+			</div>
+		    <dt class="h3"><a name="compile_build">ビルド</a>
+		    <dd class="d3">
+			<div>
+			  <dl>
+			    <dt class="h4">Visual C++ の場合
+			    <dd class="d4">
+				<div>
+				  <p>まず、いくつかの環境変数を設定します。</p>
+				  <p> <code>vcvars32.bat</code> を利用すると設定してくれるはずですが、以下の環境変数の設定が必要になります。</p>
+				  <ul>
+				    <li><code>PATH</code> … コンパイラと nmake にパスを通します。
+				    <li><code>INCLUDE</code> … コンパイラと PSDK の include ディレクトリパスを設定します。
+				    <li><code>LIB</code> … コンパイラと PSDK の lib ディレクトリパスを設定します。
+				    <li><code>MSVCDIR</code> … Visual C++ Toolkit 2003 を使用する場合は設定されていないので、環境変数 <code>VCTOOLKITINSTALLDIR</code> と同じ内容に設定します。
+				  </ul>
+				  
+				  <p>次にコンパイルを行います。</p>
+
+				  <p>Visual C++ Toolkit 2003 の場合は、以下のようにします。</p>
+				  <p class="sample">
+				  mayu-3.??&gt; nmake MAYU_VC=vct
+				  </p>
+				  <p>Visual C++ 7.1 の場合は、以下のようにします。</p>
+				  <p class="sample">
+				  mayu-3.??&gt; nmake MAYU_VC=vc71
+				  </p>
+				  <p>Visual C++ 7.0 の場合は、以下のようにします。</p>
+				  <p class="sample">
+				  mayu-3.??&gt; nmake MAYU_VC=vc7
+				  </p>
+				  <p>Visual C++ 6.0 の場合は、以下のようにします。</p>
+				  <p class="sample">
+				  mayu-3.??&gt; nmake MAYU_VC=vc6
+				  </p>
+				  <p><code>out$(MAYU_VC)_winnt/</code>, <code>out$(MAYU_VC)_winnt_debug/</code> の各ディレクトリに実行ファイルが作成されます。</p>
+				  <p><code>d/</code> ディレクトリ以下にはドライバのソースが入っているので、必要なら適当にコンパイルしてください。</p>
+				  
+				  <hr>
+				  
+				  <p>Visual C++ Toolkit 2003 を使用する場合は、<code>libcpmtd.lib</code> が提供されていないため、デバッグバージョンの mayu はビルドできません。</p>
+				  
+				</div>
+			  </dl>
+			</div>
+		  </dl>
+		</div>
+	  </dl>
+	</div>
+  </dl>
+</div>
+
+</body>
+</html>

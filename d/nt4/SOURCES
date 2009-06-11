@@ -1,0 +1,7 @@
+TARGETNAME=	mayudnt4
+TARGETTYPE=	DRIVER
+TARGETPATH=	.
+
+INCLUDES=	$(BASEDIR)\inc;.
+
+SOURCES=	mayudnt4.c ../log.c

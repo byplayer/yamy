@@ -1,0 +1,289 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "setuprc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "setuprc.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_main DIALOG DISCARDABLE  0, 0, 263, 309
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "窓使いの憂鬱セットアップ"
+FONT 9, "MS UI Gothic"
+BEGIN
+    RTEXT           "インストール先(&D):",IDC_STATIC,0,217,52,8
+    EDITTEXT        IDC_EDIT_path,56,214,152,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "参照(&B)...",IDC_BUTTON_browse,212,214,44,14
+    ICON            IDI_ICON_mayu,IDC_STATIC,8,250,20,20
+    GROUPBOX        "",IDC_STATIC,35,230,192,56
+    CONTROL         "All Users のスタートメニューに登録(&A)",
+                    IDC_CHECK_registerStartMenu,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,44,240,176,10
+    CONTROL         "個人のスタートアップに登録(&S)",
+                    IDC_CHECK_registerStartUp,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,44,252,176,10
+    RTEXT           "キーボードの種類(&K):",IDC_STATIC,36,268,64,8
+    COMBOBOX        IDC_COMBO_keyboard,104,266,116,64,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,76,290,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,132,290,50,14
+    GROUPBOX        "注意(&N)",IDC_STATIC,25,4,212,206
+    EDITTEXT        IDC_EDIT_note,31,14,200,192,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_DIALOG_main, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 256
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 172
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_mayuSetup           "窓使いの憂鬱セットアップ"
+    IDS_mayuRunning         "窓使いの憂鬱が動作中です。終了してからセットアップをもう一度実行してください。"
+    IDS_mayuEmpty           "インストール先を指定してください。"
+    IDS_selectDir           "インストール先を指定してください。"
+    IDS_invalidDirectory    "不正なディレクトリです。"
+    IDS_removeOk            "窓使いの憂鬱をアンインストールしてよろしいですか？"
+    IDS_removeFinish        "窓使いの憂鬱はアンインストールされました。"
+    IDS_copyFinish          "インストールが終了しました。\n一度ログオフする必要があります。\n今すぐログオフしますか?"
+    IDS_error               "インストール中にエラーが起こりました。"
+    IDS_alreadyUninstalled  "窓使いの憂鬱のアンインストールが既に実行されています。\n再起動してからインストールしなおしてください。"
+    IDS_notAdministrator    "Administrator で実行してください。"
+    IDS_invalidOS           "この OS では動作しません。"
+    IDS_mayuFile            "窓使いの憂鬱ファイル"
+    IDS_mayuShellOpen       "notepad.exe ""%1"""
+    IDS_mayu                "窓使いの憂鬱"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_mayud               "窓使いの憂鬱ドライバ"
+    IDS_shortcutName        "窓使いの憂鬱"
+    IDS_keyboard109usb      "日本語 109 (106) キーボード"
+    IDS_keyboard104usb      "英語 104 (101) キーボード"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_note01              "◆「窓使いの憂鬱」をインストールしたらぜひメーリングリストに参加してください。参加方法は README.html に書かれています。\r\n\r\n"
+    IDS_note02              "◆標準でないキーボードドライバを利用していると Windows が青画面になって終了してしまうことがあります。"
+    IDS_note03              "そのような場合は、標準でないドライバをアンインストールしてください。"
+    IDS_note04              "標準でないドライバとは、ロジテックマウスに付属のドライバや AltIME のドライバなどです。\r\n\r\n"
+    IDS_note05		    "◆「窓使いの憂鬱」は、専用のデバイスドライバをインストールします。このドライバは Windows の起動時に実行開始されます。"
+    IDS_note06		    "このため、ドライバの不具合によって Windows へログインさえできなくなる可能性があります。"
+    IDS_note07		    "その場合でも下記の手順によってログイン可能にすることができる場合があります。\r\n\r\n"
+    IDS_note08		    "【1】電源ボタンの長押し等によって一旦、強制的に電源を落したあと回復コンソールを起動します。"
+    IDS_note09		    "尚、回復コンソールでの起動ができることを「窓使いの憂鬱」のインストール前に確認しておくことをお勧めします。"
+    IDS_note10              "(参考: http://support.microsoft.com/default.aspx?scid=kb;ja;314058 )\r\n"
+    IDS_note11              "【2】%WINDIR%\\system32\\drivers\\ 内の mayudrsc.sys を mayud.sys の名前で copy します (即ち mayud.sys を mayudrsc.sys で置き換えます)。\r\n"
+    IDS_note12              "【3】再起動します。\r\n"
+    IDS_note13              "【4】コントロールパネルから「窓使いの憂鬱」をアンインストールします。\r\n"
+    IDS_copyFinishUsb       "インストールが終了しました。\nコンピュータを再起動する必要があります。\n今すぐ再起動しますか?"
+    IDS_failedToReboot      "再起動に失敗しました。窓使いの憂鬱を実行する前に必ず再起動してください。"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// 英語 (ｱﾒﾘｶ) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DIALOG_main DIALOG DISCARDABLE  0, 0, 263, 179
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "MADO TSUKAI NO YUUTSU Setup"
+FONT 8, "MS Sans Serif"
+BEGIN
+    RTEXT           "&Destination:",IDC_STATIC,0,87,52,8
+    EDITTEXT        IDC_EDIT_path,56,84,152,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse...",IDC_BUTTON_browse,212,84,44,14
+    ICON            IDI_ICON_mayu,IDC_STATIC,8,120,18,21
+    GROUPBOX        "",IDC_STATIC,35,100,192,56
+    CONTROL         "Create shortcut in the Start Menu of &All Users.",
+                    IDC_CHECK_registerStartMenu,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,44,110,176,10
+    CONTROL         "Create shortcut in your &Startup Menu.",
+                    IDC_CHECK_registerStartUp,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,44,122,176,10
+    RTEXT           "&Keyboard:",IDC_STATIC,36,138,64,8
+    COMBOBOX        IDC_COMBO_keyboard,104,136,116,50,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,76,160,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,132,160,50,14
+    GROUPBOX        "&NOTE",IDC_STATIC,25,4,212,76
+    EDITTEXT        IDC_EDIT_note,31,14,200,62,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_DIALOG_main, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 255
+        TOPMARGIN, 7
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON_mayu           ICON    DISCARDABLE     "..\\r\\mayu.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_mayuSetup           "MADO TSUKAI NO YUUTSU Setup"
+    IDS_mayuRunning         "MADO TSUKAI NO YUUTSU is running. Please quit it, then run this program again."
+    IDS_mayuEmpty           "Select destination directory."
+    IDS_selectDir           "Select destination directory."
+    IDS_invalidDirectory    "Invalid directory."
+    IDS_removeOk            "Are you sure to uninstall MADO TSUKAI NO YUUTSU ?"
+    IDS_removeFinish        "MADO TSUKAI NO YUUTSU is uninstalled."
+    IDS_copyFinish          "Install complete."
+    IDS_error               "An error happened !"
+    IDS_alreadyUninstalled  "MADO TSUKAI NO YUUTSU has been uninstalled.\nPlease reboot Windows, then run this program again."
+    IDS_notAdministrator    "Only Administrator can complete install."
+    IDS_invalidOS           "Only for WindowsNT4.0/2000"
+    IDS_mayuFile            "MADO TSUKAI NO YUTSU file"
+    IDS_mayuShellOpen       "notepad.exe ""%1"""
+    IDS_mayu                "MADO TSUKAI NO YUUTSU"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_mayud               "MADO TSUKAI NO YUUTSU driver"
+    IDS_shortcutName        "MADO TSUKAI NO YUUTSU"
+    IDS_keyboard109usb      "Japanese 109 (106) Keybaord"
+    IDS_keyboard104usb      "Standard 104 (101) Keyboard"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_note01              "* After installing MADO TSUKAI NO YUUTSU, please subscribe MADO TSUKAI NO YUUTSU mailing list.  Details are written in README.html.\r\n"
+    IDS_note02              "* Windows may hang up, if you are using a non-standard keybaord driver. "
+    IDS_note03              "In that case, please uninstall the non-standard keybaord driver.\r\n"
+    IDS_note04              "* Non-standrd keybaord drivers are such as that of Logitech Mouse, and that of AltIME.\r\n"
+    IDS_note05		    "「窓使いの憂鬱」は、専用のデバイスドライバをインストールします。このドライバは Windows の起動時に実行開始されます。"
+    IDS_note06		    "このため、ドライバの不具合によって Windows へログインさえできなくなる可能性があります。"
+    IDS_note07		    "その場合でも下記の手順によってログイン可能にすることができる場合があります。\r\n\r\n"
+    IDS_note08		    "1. 電源ボタンの長押し等によって一旦、強制的に電源を落したあと回復コンソールを起動します。"
+    IDS_note09		    "尚、回復コンソールでの起動ができることを「窓使いの憂鬱」のインストール前に確認しておくことをお勧めします。"
+    IDS_note10              "(参考: http://support.microsoft.com/default.aspx?scid=kb;ja;314058 )\r\n"
+    IDS_note11              "2. %WINDIR%\\system32\\drivers\\ 内の mayudrsc.sys を mayud.sys の名前で copy します (即ち mayud.sys を mayudrsc.sys で置き換えます)。\r\n"
+    IDS_note12              "3. 再起動します。\r\n"
+    IDS_note13              "4. コントロールパネルから「窓使いの憂鬱」をアンインストールします。\r\n"
+    IDS_copyFinishUsb       "Install complete.  Do you want to reboot now?"
+    IDS_failedToReboot      "Failed to reboot."
+END
+
+#endif    // 英語 (ｱﾒﾘｶ) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

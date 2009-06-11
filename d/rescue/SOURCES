@@ -1,0 +1,7 @@
+TARGETNAME=	mayudrsc
+TARGETTYPE=	DRIVER
+TARGETPATH=	.
+
+INCLUDES=	$(BASEDIR)\inc;.
+
+SOURCES=	mayudrsc.c

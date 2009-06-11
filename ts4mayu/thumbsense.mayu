@@ -1,0 +1,76 @@
+# ts4mayu.dll を使って ThumbSense を実現するためのサンプル
+# オリジナルの ThumbSense のキー割り当て全てを実現しているわけではない。
+
+# F,J,Space を左ボタンのクリックに割り当てる。
+  key TS-*F TS-*J TS-*Space = &VK(LButton)
+# クリックがリピートされるのを防ぐ
+  key D-R-TS-*F D-R-TS-*J D-R-TS-*Space = &Ignore
+
+# D,K を右ボタンのクリックに割り当てる。
+  key TS-*D TS-*K = &VK(RButton)
+# クリックがリピートされるのを防ぐ
+  key D-R-TS-*D D-R-TS-*K = &Ignore
+
+# V を左ボタンのダブルクリックに割り当てる。
+  key D-T-*V = &VK(LButton) &Wait(10) &VK(LButton)
+# クリックがリピートされるのを防ぎ、キー離したときは無視する。
+  key D-R-T-*V U-T-*V = &Ignore
+
+# G を第4ボタンのクリックに割り当てる。
+  key TS-*G = &VK(XButton1)
+# クリックがリピートされるのを防ぐ
+  key D-R-TS-*G = &Ignore
+
+# H を第5ボタンのクリックに割り当てる。
+  key TS-*H = &VK(XButton2)
+# クリックがリピートされるのを防ぐ
+  key D-R-TS-*H = &Ignore
+
+# S,L を押しながらの上下方向ドラッグをホイール回転にする。
+  key D-TS-*S D-TS-*L = &MouseHook(Wheel, -5)
+# リピートは無視。
+  key D-R-TS-*S D-R-TS-*L = &Ignore
+# キーを離したら解除する。
+  key U-TS-*S U-TS-*L = &MouseHook(None, 0)
+
+# A を押しながらドラッグするとアクティブウィンドウが移動する。
+  key D-TS-*A = &MouseHook(WindowMove, 1)
+# リピートは無視。
+  key D-R-TS-*A = &Ignore
+# キーを離したら解除する。
+  key U-TS-*A = &MouseHook(None, 0)
+
+# R でウィンドウの最大化/解除をトグルする。
+  key T-R = &WindowMaximize
+
+# W,B でウィンドウを閉じる。
+  key T-W T-B = &WindowClose
+
+# M で My Document を開く。
+  key T-M = &ShellExecute("open", "C:\\WINDOWS\\explorer.exe", "::{450D8FBA-AD25-11D0-98A8-0800361B1103}",, ShowNormal)
+
+# O で Outlook Express を起動する。
+  key T-O = &ShellExecute("open", "C:\\Program Files\\Outlook Express\\msimn.exe",,, ShowNormal)
+
+# I で Internet Explorer を起動する。
+  key T-I = &ShellExecute("open", "C:\\Program Files\\Internet Explorer\\iexplore.exe",,, ShowNormal)
+
+# P でコマンドプロンプトを起動する。
+  key T-P = &ShellExecute("open", "C:\\WINDOWS\\system32\\cmd.exe",,, ShowNormal)
+
+# 以下はオリジナルの ThumbSense にはない割り当てを実現する。
+
+# C を中ボタンのクリックに割り当てる。
+#  key TS-*C = &VK(MButton)
+#  key D-R-TS-*C = &Ignore
+
+# ウインドウが最大化されている時に A を押しながらドラッグすると
+# アクティブ MDI 子アクティブウィンドウが移動する。
+#  key D-TS-MAX-*A = &MouseHook(WindowMove, -1)
+
+# Control+A を押しながらドラッグするとマウスカーソル直下のウィンドウが移動する。
+#  key D-TS-C-*A = &MouseHook(WindowMove, 2)
+
+# ウインドウが最大化されている時に Control+A を押しながらドラッグすると
+# マウスカーソル直下の MDI 子アクティブウィンドウが移動する。
+#  key D-TS-MAX-C-*A = &MouseHook(WindowMove, -2)

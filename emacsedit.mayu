@@ -1,0 +1,155 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 窓使いの憂鬱 - emacsedit.mayu
+# Copyright (C) 1999-2005, TAGA Nayuta <nayuta@users.sourceforge.net>
+#
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Emacs 風移動コマンド
+#
+
+keymap	EmacsMove : Global
+ key Home		= C-Home		# 文頭
+ key End		= C-End			# 文末
+ key C-Space		= &Undefined		# Mark
+ key C-A		= Home			# 行頭
+ key C-B		= Left			# ←
+ key M-B		= C-Left		# ←(単語)
+ key C-E		= End			# 行末
+ key C-F		= Right			# →
+ key M-F		= C-Right		# →(単語)
+ key C-G		= Escape		# CANCEL
+ key C-L		= &WindowRedraw &Recenter # 再描画
+ key C-N		= Down			# ↓
+ key C-P		= Up			# ↑
+ key C-Q		= &Prefix(KeymapDefault) # mayu に左右されないキー入力
+ key C-S		= C-F			# 検索
+ if ( !ZXCV ) key C-V	= Next			# 次頁
+ key M-V		= Prior			# 前頁
+ key S-Home		= S-C-Home		# 文頭(選択)
+ key S-End		= S-C-End		# 文末(選択)
+ key S-M-Comma		= C-Home		# 文頭
+ key S-M-Period		= C-End			# 文末
+
+ if ( EmacsMove/ShiftSelection )
+   key S-C-A		= S-Home		# 行頭(選択)
+   key S-C-B		= S-Left		# ←(選択)
+   key S-C-E		= S-End			# 行末(選択)
+   key S-C-F		= S-Right		# →(選択)
+   key S-C-N		= S-Down		# ↓(選択)
+   key S-C-P		= S-Up			# ↑(選択)
+   key S-C-V		= S-Next		# 次頁(選択)
+   key S-M-V		= S-Prior		# 前頁(選択)
+ endif
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Emacs 風編集コマンド
+#
+
+ keyseq	$EmacsEdit/kill-word		= S-C-Right C-X
+ keyseq	$EmacsEdit/backward-kill-word	= S-C-Left C-X
+ keyseq	$EmacsEdit/transpose-chars	= S-Right C-X Left C-V Right
+ keyseq	$EmacsEdit/upcase-word		= S-C-Right C-C *&Sync \
+					  &ClipboardUpcaseWord C-V
+ keyseq	$EmacsEdit/downcase-word	= S-C-Right C-C *&Sync \
+					  &ClipboardDowncaseWord C-V
+ keyseq	$EmacsEdit/kill-line		= &EmacsEditKillLineFunc S-End C-X \
+			&Sync &EmacsEditKillLinePred((Delete), (Return Left))
+ keyseq	$EmacsMark/cancel		= Left Right
+
+
+keymap	EmacsEdit : EmacsMove
+keymap2	EmacsMark : EmacsEdit = $EmacsMark/cancel &KeymapWindow
+keymap2 EmacsMarkEscape : EmacsMark = &KeymapParent
+
+keymap2	EmacsC-X : EmacsEdit
+ event prefixed		= &HelpMessage("EmacsEdit C-x-", "C-x u\tundo")
+ event before-key-down	= &HelpMessage
+ key *U			= C-Z					# UNDO
+
+keymap2 EmacsC-U0_9C-U : Global \
+		= &Repeat((&KeymapWindow), 100) &HelpMessage &Variable(0, 0)
+ key C-G	= &HelpMessage &Variable(0, 0) &Ignore
+ 
+keymap2 EmacsC-U0_9 : EmacsC-U0_9C-U
+ event prefixed		= &HelpVariable("繰り返し")
+ key _0 Num0		= &Variable(10, 0) &Prefix(EmacsC-U0_9)
+ key _1 Num1		= &Variable(10, 1) &Prefix(EmacsC-U0_9)
+ key _2 Num2		= &Variable(10, 2) &Prefix(EmacsC-U0_9)
+ key _3 Num3		= &Variable(10, 3) &Prefix(EmacsC-U0_9)
+ key _4 Num4		= &Variable(10, 4) &Prefix(EmacsC-U0_9)
+ key _5 Num5		= &Variable(10, 5) &Prefix(EmacsC-U0_9)
+ key _6 Num6		= &Variable(10, 6) &Prefix(EmacsC-U0_9)
+ key _7 Num7		= &Variable(10, 7) &Prefix(EmacsC-U0_9)
+ key _8 Num8		= &Variable(10, 8) &Prefix(EmacsC-U0_9)
+ key _9 Num9		= &Variable(10, 9) &Prefix(EmacsC-U0_9)
+ key C-U		= &Prefix(EmacsC-U0_9C-U)
+
+keymap2 EmacsC-U : EmacsC-U0_9C-U
+ event prefixed		= &HelpVariable("繰り返し")
+ key _0 Num0		= &Variable(0, 0) &Prefix(EmacsC-U0_9)
+ key _1 Num1		= &Variable(0, 1) &Prefix(EmacsC-U0_9)
+ key _2 Num2		= &Variable(0, 2) &Prefix(EmacsC-U0_9)
+ key _3 Num3		= &Variable(0, 3) &Prefix(EmacsC-U0_9)
+ key _4 Num4		= &Variable(0, 4) &Prefix(EmacsC-U0_9)
+ key _5 Num5		= &Variable(0, 5) &Prefix(EmacsC-U0_9)
+ key _6 Num6		= &Variable(0, 6) &Prefix(EmacsC-U0_9)
+ key _7 Num7		= &Variable(0, 7) &Prefix(EmacsC-U0_9)
+ key _8 Num8		= &Variable(0, 8) &Prefix(EmacsC-U0_9)
+ key _9 Num9		= &Variable(0, 9) &Prefix(EmacsC-U0_9)
+ key C-U		= &Variable(4, 0) &Prefix(EmacsC-U)
+
+keymap	EmacsEdit
+ key C-Space		= &Prefix(EmacsMark)			# Mark
+ key M-BackSpace	= $EmacsEdit/backward-kill-word		# BS(単語)
+ key C-D		= Delete				# 削除
+ key M-D		= $EmacsEdit/kill-word			# 削除(単語)
+ key C-H		= BackSpace				# BS
+ key C-J		= Return				# RETURN
+ key C-K		= $EmacsEdit/kill-line			# 行末まで削除
+ key C-M		= Return				# RETURN
+ key C-O		= Return Left				# 一行増やす
+ if ( !GANA ) key C-T	= $EmacsEdit/transpose-chars		# 文字入れ替え
+ key C-W		= C-X					# CUT
+ key M-W		= C-C					# COPY
+ key C-U		= &Variable(0, 4) &Prefix(EmacsC-U)
+ if ( !ZXCV ) key C-X	= &Prefix(EmacsC-X)
+ key C-Y		= C-V					# PASTE
+ key C-Slash		= C-Z					# UNDO
+ key M-U		= $EmacsEdit/upcase-word		# 大文字
+ key M-L		= $EmacsEdit/downcase-word		# 小文字
+
+keymap2	EmacsMark
+ key Home		= S-C-Home	&Prefix(EmacsMark)	# 文頭
+ key End		= S-C-End	&Prefix(EmacsMark)	# 文末
+ key C-A		= S-Home	&Prefix(EmacsMark)	# 行頭
+ key C-B		= S-Left	&Prefix(EmacsMark)	# ←
+ key M-B		= S-C-Left	&Prefix(EmacsMark)	# ←(単語)
+ key C-E		= S-End		&Prefix(EmacsMark)	# 行末
+ key C-F		= S-Right	&Prefix(EmacsMark)	# →
+ key M-F		= S-C-Right	&Prefix(EmacsMark)	# →(単語)
+ key C-G		= $EmacsMark/cancel &Undefined		# キャンセル
+ key C-N		= S-Down	&Prefix(EmacsMark)	# ↓
+ key C-P		= S-Up		&Prefix(EmacsMark)	# ↑
+ if ( !ZXCV ) key C-V	= S-Next	&Prefix(EmacsMark)	# 次頁
+ key M-V		= S-Prior	&Prefix(EmacsMark)	# 前頁
+ key C-W		= C-X Left Right			# CUT
+ key M-W		= C-C Left Right			# COPY
+ key S-M-Comma		= S-C-Home	&Prefix(EmacsMark)	# 文頭
+ key S-M-Period		= S-C-End	&Prefix(EmacsMark)	# 文末
+ key Left		= S-Left	&Prefix(EmacsMark)	# ←
+ key Up			= S-Up		&Prefix(EmacsMark)	# ↑
+ key Right		= S-Right	&Prefix(EmacsMark)	# →
+ key Down		= S-Down	&Prefix(EmacsMark)	# ↓
+ if ( MAP-ESCAPE-TO-META )
+   key Escape		= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
+   if ( KBD109 ) and ( ! KBD104on109 )
+     key 半角/全角	= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
+   endif
+ endif
+
+keymap2 EmacsMarkEscape
+ event prefixed		= &HelpMessage("EmacsMark ESC-", " ")
+ event before-key-down	= &HelpMessage
+ key M-C-G		= &Ignore

@@ -1,0 +1,319 @@
+/* general */
+
+frameset {
+  border-width: 0px;
+}
+body {
+  color: #000;
+  font-size: medium;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  margin: 0pt;
+  padding: 0pt;
+ }
+a {
+  color: #000;
+}
+a:hover, a:active {
+  text-decoration: underline;
+  background-color: #ffa;
+}
+img {
+  border-width: 0pt;
+}
+code, code a {
+  font-size: 100%;
+  font-family: Courier New, monospace;
+  color: #a00;
+}
+em {
+  color: #000;
+  font-weight: bold;
+}
+kbd {
+  font-size: 100%;
+  font-weight: bold;
+  font-family: monospace;
+  color: #55a;
+
+  background-color: #ccc;
+  border-color: #fff;
+  border-width: 4px;
+  border-style: outset;
+  color: #000;
+  padding: 0px 3px 0px 3px;
+  margin: 0px 2px 0px 2px;
+}
+p {
+  text-justify: distribute;
+  text-align: justify;
+}
+p.noindent {
+  text-indent: 0em;
+}
+
+/* contents */
+
+.contents {
+  font-size: smaller;
+}
+.contents code, .contents code a {
+  font-size: 100%;
+}
+.contents a {
+  text-decoration: none;
+  color: #fff;
+}
+.contents a:hover, .contents a:active {
+  color: #000;
+  background-color: #fff;
+}
+.contents .section, .contents .appendix {
+  color: #fff;
+  background-color: #000;
+  font-weight: bold;
+}
+.contents .section ol, .contents .appendix ol {
+  margin: 0pt;
+  padding: 0px 1.1em 0px 3em;
+}
+.contents .appendix ol {
+  list-style-type: upper-alpha;
+}
+.contents .subsection {
+  color: #000;
+  font-weight: normal;
+  background-color: #fff;
+  margin: 0px -1.1em 0px -3em;
+  padding: 1ex 1.1em 1ex 0px;
+
+  border-color: #aaa;
+  border-width: 3px;
+  border-style: solid none none none;
+}
+.contents .subsection a { 
+  color: #000;
+}
+.contents .subsection a:hover,
+.contents .subsection a:active {
+  color: #000;
+  background-color: #ffa;
+  text-decoration: underline;
+}
+.contents .subsection ol {
+  margin: 0px;
+  padding: 0px 0px 0px 3em;
+  list-style-type: lower-roman;
+}
+.contents .subsubsection {
+  margin: 0px -1.1em 0px -3em;
+  background-color: #eef;
+}
+.contents .subsubsection ul {
+  margin: .5ex 0pt .5ex 0pt;
+  padding: .5ex 1.1em .5ex 4em;
+  list-style-type: disc;
+}
+
+/* manual */
+
+.manual {
+  font-size: smaller;
+  line-height: 150%;
+}
+.manual a {
+  text-decoration: underline;
+}
+.manual a code {
+  text-decoration: underline;
+}
+.manual .title {
+  text-align: center;
+}
+.manual .copyright {
+  text-align: right;
+  font-weight: bold;
+  margin-bottom: 4ex;
+}
+.manual .main {
+  margin-bottom: 1024px;
+}
+.manual dl {
+  padding: 0pt;
+  margin: 0pt;
+}
+.manual .h1 {
+  padding: 4pt;
+  padding-left: 10pt;
+  margin: 0pt;
+  font-weight:bold;
+  background-color: #000;
+  color: #fff;
+
+  border-color: #aaa;
+  border-width: 3px;
+  border-style: none none solid none;
+}
+.manual .h1 a, .manual .h1 a code {
+  text-decoration: none;
+  color: #fff;
+}
+.manual .h1 a:hover,
+.manual .h1 a:active {
+  text-decoration: none;
+  color: #000;
+  background-color: #fff;
+}
+.manual .d1 {
+  padding: 2ex 1em 2ex 1em;
+  margin: 0pt;
+  background-color:#fff;
+}
+.manual .d1 p {
+  margin: 1ex 0px 1ex 0px;
+  text-indent: 1em;
+}
+.manual .d1 p.continue {
+  text-indent: 0em;
+}
+.manual .d1 ol, .manual .d1 ul {
+  margin-top: 1ex;
+  margin-bottom: 1ex;
+}
+.manual .d1 ol li, .manual .d1 ul li {
+  margin-left: -1em;
+}
+.manual .h2 {
+  padding: .5ex;
+  font-weight: bold;
+}
+.manual .h2 a, .manual .h2 a code {
+  text-decoration: none;
+}
+.manual .d2 {
+  background-color: #eef;
+  margin: 0pt 1em 0pt 1em;
+  padding: 1ex 1em 1ex 1em;
+}
+.manual .h3 {
+  padding: 0px 0px 0px 1em;
+  margin: 1ex 0px 0px 0px;
+  font-weight: bold;
+  background-color: #7a96df;
+  color: #fff;
+  
+  border-color: #7a96df;
+  border-width: 1px;
+  border-style: solid;
+}
+.manual .h3 a, .manual .h3 a code {
+  text-decoration: none;
+  color: #fff;
+}
+.manual .d3 {
+  margin: 0px 0px 1ex 0ex;
+  padding: 0ex 1em 0ex 1em;
+  background-color: #fff;
+  border-color: #7a96df;
+  border-width: 1px;
+  border-style: solid;
+}
+.manual .d3 blockquote {
+  margin: 1ex 2em 1ex 2em;
+  padding: 1em;
+  background-color: #eef;
+}
+.manual .h4 {
+  font-weight: bold;
+  margin: 1ex 0pt 1ex 0pt;
+}
+.manual .d4 {
+  margin: 0pt 0pt 0pt 1em;
+}
+.manual .history dt {
+  font-weight:bold;
+}
+.manual .history ul li {
+  margin-left: -4em;
+}
+.manual .history ul ul li {
+  margin-left: 0pt;
+}
+.manual .sample, .manual p.sample {
+  white-space: nowrap;
+  text-indent: 0em;
+  padding: 0pt 1em 0pt 1em;
+  font-family: Courier New, monospace;
+  color: #a00;
+  border-color: #a00;
+  border-width: 1px;
+  border-style: solid;
+  margin-left: 4pt;
+  background-color: #fff;
+  overflow: auto;
+}
+.manual .bug {
+  font-weight: bold;
+  color: #f00;
+}
+.manual .menu-item {
+  background-color: #fff;
+  border-color: #000;
+  border-width: 1px;
+  border-style: solid;
+  padding: 3px .5em 3px .5em;
+  margin: 0px .5em 0px .5em;
+  font-family: "MS UI Gothic", sans-serif;
+}
+.manual .menu-item a {
+  text-decoration: none;
+}
+.manual .default-settings {
+  border-width: 1px;
+  border-color: #000;
+  border-style: solid;
+  background-color: #7a96df;
+  border-collapse: collapse;
+  border-spacing: 0pt;
+}
+.manual .default-settings th {
+  font-family: Arial, sans-serif;
+  padding: 0pt .5em 0pt .5em;
+  font-size: 10pt;
+  color: #fff;
+}
+.manual .default-settings td {
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  padding: 0pt .5em 0pt .5em;
+  font-size: 10pt;
+  color: #000;
+}
+.manual .default-settings .name th {
+  border-width: 1px;
+  border-color: #000;
+  border-style: solid none none none;
+}
+.manual .default-settings .name td {
+  border-width: 1px;
+  border-color: #000;
+  border-style: solid none none none;
+}
+.manual .default-settings .name-english th {
+  border-width: 3px;
+  border-color: #000;
+  border-style: double none none none;
+}
+.manual .default-settings .name-english td {
+  border-width: 3px;
+  border-color: #000;
+  border-style: double none none none;
+}
+.manual p.tree {
+  white-space: nowrap;
+  text-indent: 0em;
+  line-height: 90%;
+}
+.manual p.tree span {
+  color: #55a;
+}

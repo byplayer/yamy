@@ -1,0 +1,312 @@
+###############################################################################
+#
+# mayu file syntax
+#
+###############################################################################
+
+
+#
+# NOTE:
+#	* case insensitive
+#	* <...> is a non-terminal symbol
+#	* "..." is a terminal symbol
+#	* /.../ is a terminal symbol (regular expression)
+#	* namespace is
+#		1. KEY_NAME
+#		2. KEYSEQ_NAME
+#		3. KEYMAP_NAME
+#		4. ALIAS_NAME
+#		5. FUNCTION_NAME
+#		6. SYMBOL
+#	* the default of <...MODIFIED_KEY_NAME>'s modifier-settings is:
+#		1. "IL-", "NL-", "CL-", "SL-", "KL-",
+#		   "MAX-", "MIN-", "MMAX-", "MMIN-",
+#		   "T-", "TS-",
+#		   /L[0-9]/, "U-" and "D-"
+#		   are specified with "*"
+#		2. all other modifiers are specified with "~"
+#		3. they can be changed by
+#		   "key" <ASSIGN_MODIFIER> "=" <ASSIGN_MODIFIER>
+#
+
+#
+# FILE STRUCTURE
+#
+
+	<MAYU_FILE> : ( <LINE> <COMMENT>? <CRLF> )*
+	<LINE> :
+		  <COND_SYMBOL>
+		| <INCLUDE>
+		| <KEYBOARD_DEFINITION>
+		| <KEYMAP_DEFINITION>
+		| <KEY_ASSIGN>
+		| <EVENT_ASSIGN>
+		| <KEYSEQ_DEFINITION>
+		| <MODIFIER_ASSIGNMENT>
+	# each <LINE> can be divided into some lines by \
+	<COMMENT> : /#.*/
+	<CRLF> : "\r\n"
+
+#
+# BASIC TYPE
+#
+
+	<number> :
+		  /[-+]?[0-9]+/		# decimal
+		| /[-+]?0[0-9]+/	# octal
+		| /[-+]?0x[0-9a-f]+/	# hexadecimal
+
+	<bool> :
+		  "false"		# false
+		| <string>		# true
+
+	<string> :
+		  /([/?_a-z]|\MBCS|\EC)([-+/?_a-z0-9]|\MBCS|\EC)*/
+		| /"([^"]|\MBCS|\EC)*"/
+		| /'([^']|\MBCS|\EC)*'/
+	# \MBCS : Multi Byte Character (such as Shift_JIS)
+	# \EC : Escaped Characters
+	#	| "\a"	# bell
+	#	| "\e"	# escape
+	#	| "\f"	# form feed
+	#	| "\n"	# newline
+	#	| "\r"	# carriage return
+	#	| "\t"	# horizontal tab
+	#	| "\\"	# \
+	#	| /\\[0-7]+/		# character as octal
+	#	| /\\x[0-9a-f]+/	# character as hexadecimal
+
+	<regexp> :
+		  /\REGEXP/
+		| \m@\REGEXP@		# @ can be any character
+	# \REGEXP :
+	#	| "|"		# Alternation
+	#	| "*"		# Match 0 or more times
+	#	| "+"		# Match 1 or more times
+	#	| "?"		# Match 1 or 0 times
+	#	| "."		# Match any character
+	#	| "^"		# Match the beginning of the string
+	#	| "$"		# Match the end of the string
+	#	| "\b"		# Match a word boundary
+	#	| "\B"		# Match a non word boundary
+	#	| "\w"		# Match a word character (alphanumeric, "_")
+	#	| "\W"		# Match a non word character
+	#	| "\s"		# Match a whitespace character
+	#	| "\S"		# Match a non-whitespace character
+	#	| "\d"		# Match a digit character
+	#	| "\D"		# Match a non-digit character
+	#	| "(" ")"	# Grouping
+	#	| "[" "]"	# Character class
+
+#
+# COND SYMBOL
+#
+
+	<COND_SYMBOL> : <DEFINE> | <IF> | <ELSE> | <ELSEIF> | <ENDIF>
+	<DEFINE> : "define" <SYMBOL>
+	<IF> : ( "if" | "and" ) <IF_BODY>
+	<IF_BODY> : "(" "!"? <SYMBOL> ")" ( <LINE> )?
+	<ELSE> : "else" ( <LINE> )?
+	<ELSEIF> : ( "elseif" | "elsif" | "elif" ) <IF_BODY>
+	<ENDIF> : "endif"
+	<SYMBOL> : <string>
+
+#
+# INCLUDE
+#
+
+	<INCLUDE> : "include" <MAYU_FILE_NAME>
+	<MAYU_FILE_NAME> : <string>
+
+#
+# KEYBOARD DEFINITION
+#
+
+	<KEYBOARD_DEFINITION>
+		: "def" <DEFINE_KEY>
+		| "def" <DEFINE_MODIFIER>
+		| "def" <DEFINE_LOCK>
+		| "def" <DEFINE_SYNC_KEY>
+		| "def" <DEFINE_ALIAS>
+		| "def" <DEFINE_SUBSTITUTE>
+		| "def" <DEFINE_OPTION>
+
+	<DEFINE_KEY> : "key" <KEY_NAMES> "=" <SCAN_CODES>
+
+	<KEY_NAMES>
+		: "(" <KEY_NAME>+ ")"
+		| <KEY_NAME>+
+	<KEY_NAME> : <string>
+	<SCAN_CODES> : <SCAN_CODE> <SCAN_CODE>? <SCAN_CODE>? <SCAN_CODE>?
+	<SCAN_CODE> : <SCAN_CODE_EXTENTION>* <number>
+	<SCAN_CODE_EXTENTION> : "E0-" | "E1-"
+
+	<DEFINE_MODIFIER> : "mod" <BASIC_MODIFIER_NAME> "=" <KEY_NAME>*
+	<BASIC_MODIFIER_NAME>
+		: "shift"
+		| "alt" | "meta" | "menu"
+		| "control" | "ctrl"
+		| "windows" | "win"
+
+	<BASIC_LOCK_NAME> : "num" | "caps" | "scroll"
+	<BASIC_MODIFIER> : "S-" | "A-" | "M-" | "C-" | "W-"
+		| "*"		# we don't care the next modifier
+		| "~"		# the next modifier must be released
+
+	<DEFINE_SYNC_KEY> : "sync" "=" <SCAN_CODES>
+
+	<DEFINE_ALIAS> : "alias" <ALIAS_NAME> "=" <KEY_NAME>
+	<ALIAS_NAME> : <string>
+	<ALIASED_KEY_NAME>
+		: <ALIAS_NAME>
+		| <KEY_NAME>
+
+	<DEFINE_SUBSTITUTE>
+		: "subst" <ASSIGN_MODIFIED_KEY_NAME>+ "=" <SUBST_KEY_SEQUENCE>
+
+	<DEFINE_OPTION>
+		: "option" "KL-" "=" <bool>
+		| "option" "delay-of" "!!!" "=" <number>
+
+#
+# KEYMAP DEFINITION
+#
+
+	<KEYMAP_DEFINITION>
+		: "keymap" <KEYMAP_NAME> <KEYMAP_PARENT>? <KEYSEQ_DEFAULT>?
+		| "keymap2" <KEYMAP_NAME> <KEYMAP_PARENT>? <KEYSEQ_DEFAULT>?
+		| "window" <KEYMAP_NAME> <WINDOW>? <KEYMAP_PARENT>? \
+							<KEYSEQ_DEFAULT>?
+	<KEYMAP_NAME> : <string>
+	<KEYMAP_PARENT> : ":" <KEYMAP_NAME>
+	<KEYSEQ_DEFAULT> : "=" <KEY_SEQUENCE>
+	<WINDOW>
+		: <WINDOW_CLASS_NAME>
+		| "(" <WINDOW_CLASS_NAME> "&&" <WINDOW_TITLE_NAME> ")"
+		| "(" <WINDOW_CLASS_NAME> "||" <WINDOW_TITLE_NAME> ")"
+	<WINDOW_CLASS_NAME> : <regexp>
+	<WINDOW_TITLE_NAME> : <regexp>
+
+#
+# KEY TO KEY SEQUENCE ASSIGNMENT
+#
+
+	<KEY_ASSIGN>
+		: "key" <ASSIGN_MODIFIED_KEY_NAME>+ "=" <KEY_SEQUENCE>
+		| "key" <ASSIGN_MODIFIER>* "=" <KEYSEQ_MODIFIER>*
+	<ASSIGN_MODIFIED_KEY_NAME> : <ASSIGN_MODIFIER>* <ALIASED_KEY_NAME>
+	<ASSIGN_MODIFIER>
+		: <KEYSEQ_MODIFIER>
+		| "R-"		# auto repeated key
+		| "IL-"		# if IME on
+		| "IC-" | "I-"	# if IME on and compositioning
+		| "NL-"		# if Num Lock on
+		| "CL-"		# if Caps Lock on
+		| "SL-"		# if Scroll Lock on
+		| "KL-"		# if Kana Lock on
+		| "MAX-"	# if Window maximized
+		| "MIN-"	# if Window minimized
+		| "MMAX-"	# if MDI child Window maximized
+		| "MMIN-"	# if MDI child Window minimized
+		| "T-"		# if finger on touchpad
+		| "TS-"	# same as "T-" except for sticky up to release all keys
+		| /M[0-9]/	# user defined modifier
+		| /L[0-9]/	# user defined lock
+
+#
+# EVENT TO KEY SEQUENCE ASSIGNMENT
+#
+
+	<EVENT_ASSIGN>
+		: "event" <EVENT_NAME> "=" <KEY_SEQUENCE>
+	<EVENT_NAME>
+		: "prefixed"
+		| "before-key-down"
+		| "after-key-up"
+
+#
+# MODIFIER ASSIGNMENT
+#
+
+	<MODIFIER_ASSIGNMENT>
+		: "mod" ( <ASSIGN_MODE> <MODIFIER_NAME> )* \
+			<MODIFIER_NAME> <ASSIGN_OP> \
+					( <ASSIGN_MODE>? <ALIASED_KEY_NAME> )+
+	<MODIFIER_NAME> : <BASIC_MODIFIER_NAME> | /mod[0-9]/
+
+	<ASSIGN_OP> : "=" | "-=" | "+="
+	<ASSIGN_MODE>
+		: "!"		# true modifier (doesn't generate scan code)
+		| "!!"		# one shot modifier
+		| "!!!"		# one shot repeatable modifier
+
+#
+# KEY SEQUENCE DEFINITION
+#
+
+	<KEYSEQ_DEFINITION>
+		: "keyseq" "$" <KEYSEQ_NAME> "=" <KEY_SEQUENCE>
+		| "keyseq" "$" <SUBST_KEYSEQ_NAME> "=" <SUBST_KEY_SEQUENCE>
+
+	<SUBST_KEY_SEQUENCE> : <SUBST_ACTION>+
+	<SUBST_ACTION>
+		: <ASSIGN_MODIFIED_KEY_NAME>
+		| "$" ( <SUBST_KEYSEQ_NAME> | <KEYSEQ_NAME> )
+		| <ASSIGN_MODIFIER>* "&" <FUNCTION_NAME> <ARGUMENTS>?
+		| "(" <SUBST_KEY_SEQUENCE> ")"
+
+	<KEY_SEQUENCE> : <ACTION>+
+	<ACTION>
+		: <KEYSEQ_MODIFIED_KEY_NAME>
+		| "$" <KEYSEQ_NAME>
+		| <KEYSEQ_MODIFIER>* "&" <FUNCTION_NAME> <ARGUMENTS>?
+		| "(" <KEY_SEQUENCE> ")"
+	<ARGUMENTS> : "(" ( <ARGUMENT> ( "," <ARGUMENT> )* )? ")"
+	<KEYSEQ_MODIFIED_KEY_NAME> : <KEYSEQ_MODIFIER>* <ALIASED_KEY_NAME>
+	<KEYSEQ_MODIFIED_KEY_NAME> : <KEYSEQ_MODIFIER>* <ALIASED_KEY_NAME>
+	<KEYSEQ_MODIFIER>
+		: <BASIC_MODIFIER>
+		| "U-"		# up
+		| "D-"		# down
+	<KEYSEQ_NAME> : <string>
+	<SUBST_KEYSEQ_NAME> : <string>
+	<FUNCTION_NAME> : <string>
+	<ARGUMENT>
+		: <KEYMAP_NAME>
+		| "$" <KEYSEQ_NAME> | "(" <KEY_SEQUENCE> ")"
+		| <ARGUMENT_LOCK>
+		| <string>
+		| <number>
+		| <ARGUMENT_VK>
+		| <ARGUMENT_SHOW_WINDOW>
+		| <ARGUMENT_WINDOW>
+		| <ARGUMENT_TARGET_WINDOW_TYPE>
+		| <ASSIGN_MODIFIER>*
+		| <bool>
+
+	<ARGUMENT_LOCK> : /lock\d/	# &Toggle()
+
+	<ARGUMENT_VK>			# &VK()
+		: <VK_MODIFIER>* <VK_NAME>
+	<VK_MODIFIER> : "E-" | "U-" | "D-"
+	<VK_NAME> : <string>
+
+	<ARGUMENT_SHOW_WINDOW>		# &ShellExecute()
+		: "HIDE" | "MAXIMIZE" | "MINIMIZE" | "RESTORE" | "SHOW"
+		| "SHOWDEFAULT" | "SHOWMAXIMIZED" | "SHOWMINIMIZED"
+		| "SHOWMINNOACTIVE" | "SHOWNA" | "SHOWNOACTIVATE"
+		| "SHOWNORMAL"
+
+	<ARGUMENT_WINDOW>		# &PostMessage()
+		: <number>
+		| "toOverlappedWindow"
+		| "toMainWindow"
+		| "toItself"
+		| "toParentWindow"
+
+	<ARGUMENT_TARGET_WINDOW_TYPE> : "overlapped" | "mdi"
+
+# Local Variables:
+# mode: text
+# eval: (progn	(font-lock-mode) (font-lock-add-keywords  nil '(("#.*$" . font-lock-comment-face) ("\\\\$" (0 font-lock-warning-face)) ("/\\(\\[[^]\n]*\\]\\|[^/\n]\\)*/" (0 font-lock-string-face)) ("'[^'\n]*'" (0 font-lock-string-face)) ("\"[^\"\n]*\"" (0 font-lock-string-face)) ("<\\([A-Za-z_][A-Za-z_0-9]*\\)>"  (1 font-lock-constant-face)) ("[*?+]" (0 font-lock-keyword-face)) )) (font-lock-fontify-buffer))
+# End:

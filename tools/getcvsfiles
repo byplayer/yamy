@@ -1,0 +1,28 @@
+#!/usr/bin/perl -w
+
+#
+# print filenames existing in CVS Repository
+#
+
+sub getcvsfiles {
+  my ($dir) = @_;
+  return if (! -d $dir);	# empty directory 
+  open(CVS_Entries, "<$dir/CVS/Entries") || die;
+  my (@lines) = <CVS_Entries>;
+  close(CVS_Entries);
+  my ($i);
+  foreach $i ( @lines ) {
+    if ( $i =~ /dummy timestamp/) { # removed file
+    } elsif ( $i =~ m:^D/([^/]*)/: ) {
+      &getcvsfiles("$dir/$1");
+    } elsif ( $i =~ m:^/([^/]*)/: ) {
+      $files{"$dir/$1"} = 1;
+    }
+  }
+}
+
+getcvsfiles(".");
+
+foreach $i ( sort keys %files ) {
+  print $i . "\n";
+}

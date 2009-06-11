@@ -1,0 +1,27 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 窓使いの憂鬱 - dot.mayu
+# Copyright (C) 1999-2005, TAGA Nayuta <nayuta@users.sourceforge.net>
+#
+
+# まずキーボード定義を読み込む
+if ( USE104 )
+  include "104.mayu"		# 104 キーボード設定
+  if ( USE109on104 )
+    include "109on104.mayu"	# 104 キーボードを 109 キーボード風に
+  endif
+else
+  include "109.mayu"		# 109 キーボード設定
+  if ( USE104on109 )
+    include "104on109.mayu"	# 109 キーボードを 104 キーボード風に
+  endif
+endif
+
+if ( USEdefault )
+  include	"default.mayu"	# Emacs ライクなさまざまな設定
+endif
+
+keymap Global
+
+# このファイルをホームディレクトリにコピーしてから、
+# 以下に自分の好みのキーバインディングを設定するとよい。
+# このファイル自体を変更しないこと。

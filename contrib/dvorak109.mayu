@@ -1,0 +1,111 @@
+#
+# Dvorak layout for ‘‹Žg‚¢‚Ì—JŸT
+#
+# Written by KANAI Makoto <kanai@nadmin.org>
+#         on May. 2, 2000
+# Modified by Oota Toshiya <oota@mspd.mt.nec.co.jp>
+#	ver 1.1 2001/11/1
+#
+# [Žg‚¢•û]
+# .mayu‚Ì’†‚Å
+#     include "109.mayu"
+# ‚É‘±‚¢‚Ä
+#     include "dvorak109.mayu"
+# ‚Æ‚µ‚Ä“Ç‚Ýž‚Ü‚¹‚é¡
+
+def key EqualsSign Equal		=    0x0d # =+
+#key ~S-*”¼Šp/‘SŠp		= $GRAVE_ACCENT
+#key  S-*”¼Šp/‘SŠp		= $TILDE
+#key  A-”¼Šp/‘SŠp		= $ToggleIME
+#key    *–³•ÏŠ·		= *Space
+#key    *•ÏŠ·		= *Space
+#key    *‚Ð‚ç‚ª‚È		= *Space
+#key    *‰p”		= S-*‰p”
+#key *ReverseSolidus	= *RightShift
+
+
+def alias  _A			= A
+def alias  _B			= N
+def alias  _C			= I
+def alias  _D			= H
+def alias  _E			= D
+def alias  _F			= Y
+def alias  _G			= U
+def alias  _H			= J
+def alias  _I			= G
+def alias  _J			= C
+def alias  _K			= V
+def alias  _L			= P
+def alias  _M			= M
+def alias  _N			= L
+def alias  _O			= S
+def alias  _P			= R
+def alias  _Q			= X
+def alias  _R			= O
+def alias  _S			= Semicolon
+def alias  _T			= K
+def alias  _U			= F
+def alias  _V			= Period
+def alias  _W			= Comma
+def alias  _X			= B
+def alias  _Y			= T
+def alias  _Z			= Slash
+def alias  _Comma		= W
+def alias  _Period		= E
+
+key S-*_2		=> Atmark
+def subst S-*_6		=> $CIRCUMFLEX_ACCENT
+def subst S-*_7		=> $AMPERSAND
+key S-*_8		=> $ASTERISK
+key S-*_9		=> $LEFT_PARENTHESIS
+key S-*_0		=> $RIGHT_PARENTHESIS
+key *Minus		=> $LEFT_SQUARE_BRACKET
+key S-*Minus		=> $LEFT_CURLY_BRACKET
+key *EqualsSign		=> $RIGHT_SQUARE_BRACKET
+key S-*EqualsSign	=> $RIGHT_CURLY_BRACKET
+key S-*Q		=> $QUOTATION_MARK
+key ~S-*Q		=> $APOSTROPHE
+key S-*Atmark		=> $QUESTION_MARK
+key ~S-*Atmark		=> $SOLIDUS
+key S-*OpenBracket	=> $PLUS_SIGN
+key ~S-*OpenBracket	=> $EQUALS_SIGN
+
+key S-*Colon		=> $LOW_LINE
+key ~S-*Colon		=> $HYPHEN-MINUS
+key *X			=> *Q
+key S-*CloseBracket	=> $TILDE
+key ~S-*CloseBracket	=> $GRAVE_ACCENT
+
+key  S-*Z		=> $COLON
+key  ~S-*Z		=> $SEMICOLON
+
+
+key *_A			=> *A
+key *_B			=> *B
+key *_C			=> *C
+key *_D			=> *D
+key *_E			=> *E
+key *_F			=> *F
+key *_G			=> *G
+key *_H			=> *H
+key *_I			=> *I
+key *_J			=> *J
+key *_K			=> *K
+key *_L			=> *L
+key *_M			=> *M
+key *_N			=> *N
+key *_O			=> *O
+key *_P			=> *P
+key *_R			=> *R
+key *_S			=> *S
+key *_T			=> *T
+key *_U			=> *U
+key *_V			=> *V
+key *_W			=> *W
+key *_X			=> *X
+key *_Y			=> *Y
+key *_Z			=> *Z
+key *_Comma		=> *Comma
+key *_Period		=> *Period
+
+#--

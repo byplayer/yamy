@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+
+if ( $#ARGV < 0 ) {
+  print <<'__EOM__';
+usage:	checkversion FILENAME.EXE [EXCLUDE_TEXT]
+example:
+	C:> tools/checkversion mayu.exe "Windows 95 or later"
+	This outputs imported APIs that are not supported on Windows 95.
+required:	
+	DUMPBIN.EXE
+	%MSDevDir%\..\..\VC98\Lib\/WIN32API.CSV
+__EOM__
+  exit(1);
+}
+
+open(IMPORTS, "dumpbin.exe -imports $ARGV[0]|") || die;
+
+while (<IMPORTS>) {
+  chomp;
+  if ( /^\s+\S+\s+(\S+)$/ ) {
+    my ($name) = $1;
+    $IMPORTS{$name} = 1;
+    if ( $name =~ /(U|A)$/ ) {
+      chop($name);
+      $IMPORTS{$name} = 1;
+    }
+  }
+}
+
+open(WIN32API, "<$ENV{MSDevDir}/../../VC98/Lib/WIN32API.CSV") || die;
+
+$items = <WIN32API>;
+chomp($items);
+@items = split(/,/, $items);
+
+while (<WIN32API>) {
+  chomp;
+  my (@API) = split(/,/, $_);
+  if ( $IMPORTS{$API[0]} ) {
+
+    next if ( 1 <= $#ARGV && /$ARGV[1]/ ); # filter by $ARGV[1];
+    
+    my ($i);
+    for ($i = 0; $i <= $#items; ++ $i) {
+      printf('%-20s%s' . "\n", $items[$i] . ":", $API[$i]);
+    }
+    print "\n";
+  }
+}

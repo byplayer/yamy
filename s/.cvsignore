@@ -1,0 +1,9 @@
+strres.h
+*.aps
+*.opt
+*.tgz
+*.pdb
+outvc6_*
+outvc7_*
+outvc71_*
+outbcc_*
