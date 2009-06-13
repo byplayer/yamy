@@ -7,7 +7,7 @@
 
 !if "$(VERSION)" == ""
 #VERSION		= 3.31
-VERSION		= snapshot20050612
+VERSION		= snapshot20090614
 !endif
 
 !if "$(TARGETOS)" == "WINNT"
@@ -213,18 +213,11 @@ depend::
 
 distrib:
 		-@echo "we need cygwin tool"
-		-rm -f mayu-$(VERSION) 
-		-ln -s . mayu-$(VERSION)
-		-bash -c "tar cvjf mayu-$(VERSION)-src.tar.bz2 `$(GETCVSFILES) | sed 's/^./mayu-$(VERSION)/'`"
-		-rm -f mayu-$(VERSION) 
-		-$(GENIEXPRESS) \
-			mayu-$(VERSION)-$(DISTRIB_OS).exe \
-			"MADO TSUKAI NO YUUTSU $(VERSION) $(TARGETOS)" \
-			setup.exe $(DISTRIB) > __mayu__.sed
-		-$(UNIX2DOS) $(DISTRIB_SETTINGS) $(DISTRIB_CONTRIBS)
-		-$(IEXPRESS) /N __mayu__.sed
-		-$(DOS2UNIX) $(DISTRIB_SETTINGS) $(DISTRIB_CONTRIBS)
-		-$(RM) __mayu__.sed
+		-rm -f yamy-$(VERSION).zip
+		zip yamy-$(VERSION).zip 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu yamy.ini
+		cd $(OUT_DIR_EXE)
+		zip ../yamy-$(VERSION).zip yamy.exe yamy64.exe yamy.dll yamy64.dll yamyd
+		cd ..
 
 srcdesc::
 		@$(ECHO) USE DOC++ 3.4.4 OR HIGHER
