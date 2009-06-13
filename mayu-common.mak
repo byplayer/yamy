@@ -32,9 +32,9 @@ BOOST_DIR	= $(BOOST_DIR)_x64
 !endif
 
 
-# mayu.exe	###############################################################
+# yamy.exe	###############################################################
 
-TARGET_1	= $(OUT_DIR_EXE)\mayu$(X64).exe
+TARGET_1	= $(OUT_DIR_EXE)\yamy$(X64).exe
 OBJS_1		=					\
 		$(OUT_DIR)\compiler_specific_func.obj	\
 		$(OUT_DIR)\dlgeditsetting.obj		\
@@ -86,22 +86,22 @@ LIBS_1		=			\
 		shell32.lib		\
 		comctl32.lib		\
 		wtsapi32.lib		\
-		$(OUT_DIR_EXE)\mayu$(X64).lib	\
+		$(OUT_DIR_EXE)\yamy$(X64).lib	\
 
-EXTRADEP_1	= $(OUT_DIR_EXE)\mayu$(X64).lib
+EXTRADEP_1	= $(OUT_DIR_EXE)\yamy$(X64).lib
 
-# mayu.dll	###############################################################
+# yamy.dll	###############################################################
 
-TARGET_2	= $(OUT_DIR_EXE)\mayu$(X64).dll
+TARGET_2	= $(OUT_DIR_EXE)\yamy$(X64).dll
 OBJS_2		= $(OUT_DIR)\hook.obj $(OUT_DIR)\stringtool.obj
 SRCS_2		= hook.cpp stringtool.cpp
 LIBS_2		= $(guixlibsmt) imm32.lib
 
 
-# mayu.lib	###############################################################
+# yamy.lib	###############################################################
 
-TARGET_3	= $(OUT_DIR_EXE)\mayu$(X64).lib
-DLL_3		= $(OUT_DIR_EXE)\mayu$(X64).dll
+TARGET_3	= $(OUT_DIR_EXE)\yamy$(X64).lib
+DLL_3		= $(OUT_DIR_EXE)\yamy$(X64).dll
 
 
 # yamyd		###############################################################
@@ -110,9 +110,9 @@ TARGET_4	= $(OUT_DIR_EXE)\yamyd$(X64)
 OBJS_4		= $(OUT_DIR)\yamyd.obj
 
 SRCS_4		= yamyd.cpp
-LIBS_4		= user32.lib $(OUT_DIR_EXE)\mayu$(X64).lib
+LIBS_4		= user32.lib $(OUT_DIR_EXE)\yamy$(X64).lib
 
-EXTRADEP_4	= $(OUT_DIR_EXE)\mayu$(X64).lib
+EXTRADEP_4	= $(OUT_DIR_EXE)\yamy$(X64).lib
 
 # distribution	###############################################################
 
