@@ -24,6 +24,7 @@
 #include "setting.h"
 #include "target.h"
 #include "windowstool.h"
+#include "vk2tchar.h"
 #include <process.h>
 #include <time.h>
 #include <commctrl.h>
@@ -56,8 +57,20 @@ class Mayu
 
   tomsgstream m_log;				/** log stream (output to log
 						    dialog's edit) */
+#ifdef LOG_TO_FILE
+  tofstream m_logFile;
+#endif // LOG_TO_FILE
 
   HMENU m_hMenuTaskTray;			/// tasktray menu
+  STARTUPINFO m_si;
+  PROCESS_INFORMATION m_pi;
+  HANDLE m_mutex;
+#ifdef USE_MAILSLOT
+  HANDLE m_hNotifyMailslot;			/// mailslot to receive notify
+  HANDLE m_hNotifyEvent;			/// event on receive notify
+  OVERLAPPED m_olNotify;			/// 
+  BYTE m_notifyBuf[NOTIFY_MESSAGE_SIZE];
+#endif // USE_MAILSLOT
   
   Setting *m_setting;				/// current setting
   bool m_isSettingDialogOpened;			/// is setting dialog opened ?
@@ -75,6 +88,37 @@ class Mayu
   };
 
 private:
+#ifdef USE_MAILSLOT
+  static VOID CALLBACK mailslotProc(DWORD i_code, DWORD i_len, LPOVERLAPPED i_ol)
+  {
+    Mayu *pThis;
+
+    pThis = reinterpret_cast<Mayu*>(CONTAINING_RECORD(i_ol, Mayu, m_olNotify));
+    pThis->mailslotHandler(i_code, i_len);
+    return;
+  }
+
+  BOOL mailslotHandler(DWORD i_code, DWORD i_len)
+  {
+    BOOL result;
+
+    if (i_len)
+    {
+      COPYDATASTRUCT cd;
+
+      cd.dwData = reinterpret_cast<Notify *>(m_notifyBuf)->m_type;
+      cd.cbData = i_len;
+      cd.lpData = m_notifyBuf;
+      notifyHandler(&cd);
+    }
+
+    memset(m_notifyBuf, 0, sizeof(m_notifyBuf));
+    result = ReadFileEx(m_hNotifyMailslot, m_notifyBuf, sizeof(m_notifyBuf),
+			&m_olNotify, Mayu::mailslotProc);
+    return result;
+  }
+#endif // USE_MAILSLOT
+
   /// register class for tasktray
   ATOM Register_tasktray()
   {
@@ -105,13 +149,13 @@ private:
 	  n->m_titleName[NUMBER_OF(n->m_titleName) - 1] = _T('\0');
 	  
 	  if (n->m_type == Notify::Type_setFocus)
-	    m_engine.setFocus(n->m_hwnd, n->m_threadId,
+	    m_engine.setFocus(reinterpret_cast<HWND>(n->m_hwnd), n->m_threadId,
 			      n->m_className, n->m_titleName, false);
 
 	  {
 	    Acquire a(&m_log, 1);
 	    m_log << _T("HWND:\t") << std::hex
-		  << reinterpret_cast<int>(n->m_hwnd)
+		  << n->m_hwnd
 		  << std::dec << std::endl;
 	    m_log << _T("THREADID:") << static_cast<int>(n->m_threadId)
 		  << std::endl;
@@ -121,7 +165,7 @@ private:
 	  m_log << _T("TITLE:\t") << n->m_titleName << std::endl;
 	  
 	  bool isMDI = true;
-	  HWND hwnd = getToplevelWindow(n->m_hwnd, &isMDI);
+	  HWND hwnd = getToplevelWindow(reinterpret_cast<HWND>(n->m_hwnd), &isMDI);
 	  RECT rc;
 	  if (isMDI)
 	  {
@@ -130,7 +174,7 @@ private:
 		  << rc.left << _T(", ") << rc.top << _T(") / (")
 		  << rcWidth(&rc) << _T("x") << rcHeight(&rc) << _T(")")
 		  << std::endl;
-	    hwnd = getToplevelWindow(n->m_hwnd, NULL);
+	    hwnd = getToplevelWindow(reinterpret_cast<HWND>(n->m_hwnd), NULL);
 	  }
 	  
 	  GetWindowRect(hwnd, &rc);
@@ -227,7 +271,11 @@ private:
   tasktray_wndProc(HWND i_hwnd, UINT i_message,
 		   WPARAM i_wParam, LPARAM i_lParam)
   {
+#ifdef MAYU64
+    Mayu *This = reinterpret_cast<Mayu *>(GetWindowLongPtr(i_hwnd, 0));
+#else
     Mayu *This = reinterpret_cast<Mayu *>(GetWindowLong(i_hwnd, 0));
+#endif
 
     if (!This)
       switch (i_message)
@@ -235,7 +283,11 @@ private:
 	case WM_CREATE:
 	  This = reinterpret_cast<Mayu *>(
 	    reinterpret_cast<CREATESTRUCT *>(i_lParam)->lpCreateParams);
+#ifdef MAYU64
+	  SetWindowLongPtr(i_hwnd, 0, (LONG_PTR)This);
+#else
 	  SetWindowLong(i_hwnd, 0, (long)This);
+#endif
 	  return 0;
       }
     else
@@ -299,6 +351,9 @@ private:
 	  tomsgstream::StreamBuf *log =
 	    reinterpret_cast<tomsgstream::StreamBuf *>(i_lParam);
 	  const tstring &str = log->acquireString();
+#ifdef LOG_TO_FILE
+	  This->m_logFile << str << std::flush;
+#endif // LOG_TO_FILE
 	  editInsertTextAtLast(GetDlgItem(This->m_hwndLog, IDC_EDIT_log),
 			       str, 65000);
 	  log->releaseString();
@@ -422,6 +477,50 @@ private:
 		ShowWindow(This->m_hwndLog, SW_SHOW);
 		SetForegroundWindow(This->m_hwndLog);
 		break;
+	      case ID_MENUITEM_check:
+	      {
+		BOOL ret;
+		BYTE keys[256];
+		ret = GetKeyboardState(keys);
+		if (ret == 0)
+		{
+		  This->m_log << _T("Check Keystate Failed(%d)")
+			      << GetLastError() << std::endl;
+		}
+		else
+		{
+		  This->m_log << _T("Check Keystate: ") << std::endl;
+		  for (int i = 0; i < 0xff; i++)
+		  {
+		    USHORT asyncKey;
+		    asyncKey = GetAsyncKeyState(i);
+		    This->m_log << std::hex;
+		    if (asyncKey & 0x8000)
+		    {
+		      This->m_log << _T("  ") << VK2TCHAR[i]
+				  << _T("(0x") << i << _T("): pressed!")
+				  << std::endl;
+		    }
+		    if (i == 0x14 || // VK_CAPTITAL
+			i == 0x15 || // VK_KANA
+			i == 0x19 || // VK_KANJI
+			i == 0x90 || // VK_NUMLOCK
+			i == 0x91    // VK_SCROLL
+			)
+		    {
+		      if (keys[i] & 1)
+		      {
+			This->m_log << _T("  ") << VK2TCHAR[i]
+				    << _T("(0x") << i << _T("): locked!")
+				    << std::endl;
+		      }
+		    }
+		    This->m_log << std::dec;
+		  }
+		  This->m_log << std::endl;
+		}
+		break;
+	      }
 	      case ID_MENUITEM_version:
 		ShowWindow(This->m_hwndVersion, SW_SHOW);
 		SetForegroundWindow(This->m_hwndVersion);
@@ -699,8 +798,9 @@ private:
 
 public:
   ///
-  Mayu()
+  Mayu(HANDLE i_mutex)
     : m_hwndTaskTray(NULL),
+      m_mutex(i_mutex),
       m_hwndLog(NULL),
       m_WM_TaskbarRestart(RegisterWindowMessage(_T("TaskbarCreated"))),
       m_WM_MayuIPC(RegisterWindowMessage(WM_MayuIPC_NAME)),
@@ -711,6 +811,15 @@ public:
       m_isSettingDialogOpened(false),
       m_engine(m_log)
   {
+#ifdef USE_MAILSLOT
+	m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
+	ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
+	m_hNotifyEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	ASSERT(m_hNotifyEvent);
+	m_olNotify.Offset = 0;
+	m_olNotify.OffsetHigh = 0;
+	m_olNotify.hEvent = m_hNotifyEvent;
+#endif // USE_MAILSLOT
     time(&m_startTime);
 
     CHECK_TRUE( Register_focus() );
@@ -736,7 +845,10 @@ public:
     CHECK_TRUE( m_hwndTaskTray );
     
     // set window handle of tasktray to hooks
-    g_hookData->m_hwndTaskTray = m_hwndTaskTray;
+#ifndef USE_MAILSLOT
+    g_hookData->m_hwndTaskTray = reinterpret_cast<DWORD>(m_hwndTaskTray);
+#endif // !USE_MAILSLOT
+    CHECK_FALSE( installHooks(Engine::keyboardDetour, &m_engine) );
     m_usingSN = wtsRegisterSessionNotification(m_hwndTaskTray,
 					       NOTIFY_FOR_THIS_SESSION);
 
@@ -763,6 +875,19 @@ public:
     CHECK_TRUE( m_hwndVersion );
 
     // attach log
+#ifdef LOG_TO_FILE
+    tstring path;
+    _TCHAR exePath[GANA_MAX_PATH];
+    _TCHAR exeDrive[GANA_MAX_PATH];
+    _TCHAR exeDir[GANA_MAX_PATH];
+    GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
+    _tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
+    path = exeDrive;
+    path += exeDir;
+    path += _T("mayu.log");
+    m_logFile.open(path.c_str(), std::ios::app);
+    m_logFile.imbue(std::locale("japanese"));
+#endif // LOG_TO_FILE
     SendMessage(GetDlgItem(m_hwndLog, IDC_EDIT_log), EM_SETLIMITTEXT, 0, 0);
     m_log.attach(m_hwndTaskTray);
 
@@ -796,16 +921,32 @@ public:
     
     // set initial lock state
     notifyLockState();
+
+    BOOL result;
+
+    ZeroMemory(&m_pi,sizeof(m_pi));
+    ZeroMemory(&m_si,sizeof(m_si));
+    m_si.cb=sizeof(m_si);
+#ifdef _WIN64
+    result = CreateProcess(_T("yamyd"), _T("yamyd"), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
+#endif // _WIN64
   }
 
   ///
   ~Mayu()
   {
+    ReleaseMutex(m_mutex);
+    WaitForSingleObject(m_mutex, INFINITE);
     // first, detach log from edit control to avoid deadlock
     m_log.detach();
+#ifdef LOG_TO_FILE
+    m_logFile.close();
+#endif // LOG_TO_FILE
    
     // stop notify from mayu.dll
     g_hookData->m_hwndTaskTray = NULL;
+    CHECK_FALSE( uninstallHooks() );
+	SendMessage(HWND_BROADCAST, WM_NULL, 0, 0);
     
     // destroy windows
     CHECK_TRUE( DestroyWindow(m_hwndVersion) );
@@ -826,6 +967,11 @@ public:
     
     // remove setting;
     delete m_setting;
+    
+#ifdef USE_MAILSLOT
+    CloseHandle(m_hNotifyEvent);
+    CloseHandle(m_hNotifyMailslot);
+#endif // USE_MAILSLOT
   }
 
   /// message loop
@@ -834,6 +980,49 @@ public:
     showBanner(false);
     load();
     
+#ifdef USE_MAILSLOT
+    mailslotHandler(0, 0);
+    while (1)
+    {
+      HANDLE handles[] = { m_hNotifyEvent };
+      DWORD ret;
+      switch (ret = MsgWaitForMultipleObjectsEx(NUMBER_OF(handles), &handles[0],
+												INFINITE, QS_ALLINPUT, MWMO_ALERTABLE | MWMO_INPUTAVAILABLE))
+      {
+	case WAIT_OBJECT_0:			// m_hNotifyEvent
+	  break;
+	  
+        case WAIT_OBJECT_0 + NUMBER_OF(handles):
+	{
+	  MSG msg;
+	  if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0)
+	  {
+	    if (msg.message == WM_QUIT)
+	    {
+	      return msg.wParam;
+	    }
+	    if (IsDialogMessage(m_hwndLog, &msg))
+	      break;
+	    if (IsDialogMessage(m_hwndInvestigate, &msg))
+	      break;
+	    if (IsDialogMessage(m_hwndVersion, &msg))
+	      break;
+	    TranslateMessage(&msg);
+	    DispatchMessage(&msg);
+	    break;
+	  }
+	  break;
+	}
+	
+        case WAIT_IO_COMPLETION:
+	  break;
+	
+        case 0x102:
+        default:
+	  break;
+      }
+    }
+#else // !USE_MAILSLOT
     MSG msg;
     while (0 < GetMessage(&msg, NULL, 0, 0))
     {
@@ -847,6 +1036,7 @@ public:
       DispatchMessage(&msg);
     }
     return msg.wParam;
+#endif // !USE_MAILSLOT
   }  
 };
 
@@ -931,12 +1121,13 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 #endif
 
   // convert old registry to new registry
+#ifndef USE_INI
   convertRegistry();
+#endif // !USE_INI
   
   // is another mayu running ?
-  HANDLE mutex = CreateMutex(
-      (SECURITY_ATTRIBUTES *)NULL, TRUE,
-      addSessionId(MUTEX_MAYU_EXCLUSIVE_RUNNING).c_str());
+  HANDLE mutex = CreateMutex((SECURITY_ATTRIBUTES *)NULL, TRUE,
+			     MUTEX_MAYU_EXCLUSIVE_RUNNING);
   if (GetLastError() == ERROR_ALREADY_EXISTS)
   {
     // another mayu already running
@@ -944,7 +1135,8 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
     tstring title = loadString(IDS_mayu);
     if (g_hookData) {
 	UINT WM_TaskbarRestart = RegisterWindowMessage(_T("TaskbarCreated"));
-	PostMessage(g_hookData->m_hwndTaskTray, WM_TaskbarRestart, 0, 0);
+	PostMessage(reinterpret_cast<HWND>(g_hookData->m_hwndTaskTray),
+		    WM_TaskbarRestart, 0, 0);
     }
     MessageBox((HWND)NULL, text.c_str(), title.c_str(), MB_OK | MB_ICONSTOP);
     return 1;
@@ -961,10 +1153,9 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
     return 1;
   }
   
-  CHECK_FALSE( installHooks() );
   try
   {
-    Mayu().messageLoop();
+    Mayu(mutex).messageLoop();
   }
   catch (ErrorMessage &i_e)
   {
@@ -972,7 +1163,6 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
     MessageBox((HWND)NULL, i_e.getMessage().c_str(), title.c_str(),
 	       MB_OK | MB_ICONSTOP);
   }
-  CHECK_FALSE( uninstallHooks() );
   
   CHECK_TRUE( CloseHandle(mutex) );
   return 0;

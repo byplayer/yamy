@@ -989,7 +989,11 @@ void Engine::funcPostMessage(FunctionParam *i_param, ToWindowType i_window,
   {
     while (hwnd)
     {
+#ifdef MAYU64
+      LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
+#else
       LONG style = GetWindowLong(hwnd, GWL_STYLE);
+#endif
       if ((style & WS_CHILD) == 0)
 	break;
       hwnd = GetParent(hwnd);
@@ -1636,7 +1640,11 @@ void Engine::funcWindowToggleTopMost(FunctionParam *i_param)
     return;
   SetWindowPos(
     hwnd,
+#ifdef MAYU64
+    (GetWindowLongPtr(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) ?
+#else
     (GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) ?
+#endif
     HWND_NOTOPMOST : HWND_TOPMOST,
     0, 0, 0, 0,
     SWP_ASYNCWINDOWPOS | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOSIZE);
@@ -1707,8 +1715,13 @@ void Engine::funcWindowSetAlpha(FunctionParam *i_param, int i_alpha)
     for (WindowsWithAlpha::iterator i = m_windowsWithAlpha.begin(); 
 	 i != m_windowsWithAlpha.end(); ++ i)
     {
+#ifdef MAYU64
+      SetWindowLongPtr(*i, GWL_EXSTYLE,
+		    GetWindowLongPtr(*i, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+#else
       SetWindowLong(*i, GWL_EXSTYLE,
 		    GetWindowLong(*i, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+#endif
       RedrawWindow(*i, NULL, NULL,
 		   RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
     }
@@ -1716,7 +1729,11 @@ void Engine::funcWindowSetAlpha(FunctionParam *i_param, int i_alpha)
   }
   else
   {
+#ifdef MAYU64
+    LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+#else
     LONG exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+#endif
     if (exStyle & WS_EX_LAYERED)	// remove alpha
     {
       WindowsWithAlpha::iterator
@@ -1727,11 +1744,19 @@ void Engine::funcWindowSetAlpha(FunctionParam *i_param, int i_alpha)
     
       m_windowsWithAlpha.erase(i);
     
+#ifdef MAYU64
+      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
+#else    
       SetWindowLong(hwnd, GWL_EXSTYLE, exStyle & ~WS_EX_LAYERED);
+#endif
     }
     else	// add alpha
     {
+#ifdef MAYU64
+      SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+#else
       SetWindowLong(hwnd, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
+#endif
       i_alpha %= 101;
       if (!setLayeredWindowAttributes(hwnd, 0,
 				      (BYTE)(255 * i_alpha / 100), LWA_ALPHA))
@@ -2140,7 +2165,11 @@ void Engine::funcDirectSSTP(FunctionParam *i_param,
       cd.cbData = request.size();
       cd.lpData = (void *)request.c_str();
 #endif
+#ifdef MAYU64
+      DWORD_PTR result;
+#else
       DWORD result;
+#endif
       SendMessageTimeout(i->second.m_hwnd, WM_COPYDATA,
 			 reinterpret_cast<WPARAM>(m_hwndAssocWindow),
 			 reinterpret_cast<LPARAM>(&cd),
@@ -2324,7 +2353,7 @@ void Engine::funcMouseHook(FunctionParam *i_param,
 	target = i_param->m_hwnd;
 
       g_hookData->m_hwndMouseHookTarget =
-	getToplevelWindow(target, &isMDI);
+	reinterpret_cast<DWORD>(getToplevelWindow(target, &isMDI));
       break;
     default:
       g_hookData->m_hwndMouseHookTarget = NULL;

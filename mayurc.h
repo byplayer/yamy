@@ -73,6 +73,7 @@
 #define ID_MENUITEM_help                40006
 #define ID_MENUITEM_disable             40007
 #define ID_MENUITEM_log                 40008
+#define ID_MENUITEM_check               40009
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

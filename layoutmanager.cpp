@@ -58,7 +58,11 @@ bool LayoutManager::addItem(HWND i_hwnd, Origin i_originLeft,
   if (!i_hwnd)
     return false;
   item.m_hwnd = i_hwnd;
+#ifdef MAYU64
+  if (!(GetWindowLongPtr(i_hwnd, GWL_STYLE) & WS_CHILD))
+#else
   if (!(GetWindowLong(i_hwnd, GWL_STYLE) & WS_CHILD))
+#endif
     return false;
   item.m_hwndParent = GetParent(i_hwnd);
   if (!item.m_hwndParent)
@@ -197,7 +201,11 @@ BOOL LayoutManager::wmNcHitTest(int i_x, int i_y)
   if (rc.right - GetSystemMetrics(SM_CXHTHUMB) <= p.x &&
       rc.bottom - GetSystemMetrics(SM_CYVTHUMB) <= p.y)
   {
+#ifdef MAYU64
+    SetWindowLongPtr(m_hwnd, DWLP_MSGRESULT, HTBOTTOMRIGHT);
+#else
     SetWindowLong(m_hwnd, DWL_MSGRESULT, HTBOTTOMRIGHT);
+#endif
     return TRUE;
   }
   return FALSE;

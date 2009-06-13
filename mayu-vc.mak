@@ -8,13 +8,13 @@
 ###############################################################################
 
 !if "$(BOOST_VER)" == ""
-BOOST_VER	= 1_32
+BOOST_VER	= 1_38
 !endif
 INCLUDES	= -I$(BOOST_DIR)	# why here ?
 DEPENDIGNORE	= --ignore=$(BOOST_DIR)
 
 !if "$(MAYU_VC)" == ""
-MAYU_VC	= vc6
+MAYU_VC	= vc9
 !endif
 
 !if ( "$(MAYU_VC)" == "vct" )
@@ -27,19 +27,24 @@ MAYU_REGEX_VC	= $(MAYU_VC)
 !include <mayu-common.mak>
 
 DEFINES		= $(COMMON_DEFINES) -DVERSION=""""$(VERSION)"""" \
-		-DLOGNAME=""""$(LOGNAME)"""" \
-		-DCOMPUTERNAME=""""$(COMPUTERNAME)""""
+		-DLOGNAME=""""$(USERNAME)"""" \
+		-DCOMPUTERNAME=""""$(COMPUTERNAME)"""" -D_CRT_SECURE_NO_WARNINGS -DMAYU64 -DNO_DRIVER -DUSE_MAILSLOT -DUSE_INI
 # INCLUDES	= -I$(BOOST_DIR)	# make -f mayu-vc.mak depend fails ...
 
 LDFLAGS_1	=						\
 		$(guilflags)					\
 		/PDB:$(TARGET_1).pdb				\
-		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)	\
+		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)0	\
 
 LDFLAGS_2	=						\
 		$(dlllflags)					\
 		/PDB:$(TARGET_2).pdb				\
-		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)	\
+		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)0	\
+
+LDFLAGS_4	=						\
+		$(guilflags)					\
+		/PDB:$(TARGET_4).pdb				\
+		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)0	\
 
 $(TARGET_1):	$(OBJS_1) $(RES_1) $(EXTRADEP_1)
 	$(link) -out:$@ $(ldebug) $(LDFLAGS_1) $(OBJS_1) $(LIBS_1) $(RES_1)
@@ -49,6 +54,9 @@ $(TARGET_2):	$(OBJS_2) $(RES_2) $(EXTRADEP_2)
 
 $(TARGET_3):	$(DLL_3)
 
+$(TARGET_4):	$(OBJS_4) $(EXTRADEP_4)
+	$(link) -out:$@ $(ldebug) $(LDFLAGS_4) $(OBJS_4) $(LIBS_4)
+
 REGEXPP_XCFLAGS	= $(REGEXPP_XCFLAGS) XCFLAGS=-D_WCTYPE_INLINE_DEFINED
 
 clean::
@@ -56,22 +64,22 @@ clean::
 
 boost:
 		cd $(BOOST_DIR)/libs/regex/build/
-		$(MAKE) -f $(MAYU_REGEX_VC).mak $(REGEXPP_XCFLAGS) main_dir libboost_regex-$(MAYU_REGEX_VC)-mt-s-$(BOOST_VER)_dir ./$(MAYU_REGEX_VC)/libboost_regex-$(MAYU_REGEX_VC)-mt-s-$(BOOST_VER).lib
-		cd ../../../../mayu
+		$(MAKE) -f $(MAYU_REGEX_VC).mak $(REGEXPP_XCFLAGS) main_dir libboost_regex-$(MAYU_REGEX_VC)0-mt-s-$(BOOST_VER)_dir ./$(MAYU_REGEX_VC)0/libboost_regex-$(MAYU_REGEX_VC)0-mt-s-$(BOOST_VER).lib libboost_regex-$(MAYU_REGEX_VC)0-mt-sgd-$(BOOST_VER)_dir ./$(MAYU_REGEX_VC)0/libboost_regex-$(MAYU_REGEX_VC)0-mt-sgd-$(BOOST_VER).lib
+		cd ../../../../yamy
 
 distclean::	clean
 		cd $(BOOST_DIR)/libs/regex/build/
 		-$(MAKE) -k -f $(MAYU_REGEX_VC).mak clean
-		cd ../../../../mayu
+		cd ../../../../yamy
 
 batch:
 !if "$(MAYU_VC)" != "vct"
-		-$(MAKE) -k -f mayu-vc.mak MAYU_VC=$(MAYU_VC) TARGETOS=WINNT
+		-$(MAKE) -f mayu-vc.mak MAYU_VC=$(MAYU_VC) TARGETOS=WINNT
 !endif
-		-$(MAKE) -k -f mayu-vc.mak MAYU_VC=$(MAYU_VC) TARGETOS=WINNT nodebug=1
-		cd s
-		-$(MAKE) -k -f setup-vc.mak MAYU_VC=$(MAYU_VC) batch
-		cd ..
+		-$(MAKE) -f mayu-vc.mak MAYU_VC=$(MAYU_VC) TARGETOS=WINNT nodebug=1
+#		cd s
+#		-$(MAKE) -f setup-vc.mak MAYU_VC=$(MAYU_VC) batch
+#		cd ..
 
 batch_clean:
 		-$(MAKE) -k -f mayu-vc.mak MAYU_VC=$(MAYU_VC) TARGETOS=WINNT nodebug=1 clean

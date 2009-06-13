@@ -9,7 +9,11 @@
 
 
 /// dialog procedure of "Edit Setting" dialog box
+#ifdef MAYU64
+INT_PTR CALLBACK dlgEditSetting_dlgProc(
+#else
 BOOL CALLBACK dlgEditSetting_dlgProc(
+#endif
   HWND i_hwnd, UINT i_message, WPARAM i_wParam, LPARAM i_lParam);
 
 /// parameters for "Edit Setting" dialog box

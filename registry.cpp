@@ -12,6 +12,12 @@
 bool Registry::remove(HKEY i_root, const tstring &i_path,
 		      const tstring &i_name)
 {
+#ifdef USE_INI
+  return false;
+  if (i_name.empty())
+    return false;
+  return WritePrivateProfileString(_T("yamy"), i_name.c_str(), NULL, i_path.c_str()) == TRUE;
+#else // !USE_INI
   if (i_name.empty())
     return RegDeleteKey(i_root, i_path.c_str()) == ERROR_SUCCESS;
   HKEY hkey;
@@ -21,18 +27,23 @@ bool Registry::remove(HKEY i_root, const tstring &i_path,
   LONG r = RegDeleteValue(hkey, i_name.c_str());
   RegCloseKey(hkey);
   return r == ERROR_SUCCESS;
+#endif // !USE_INI
 }
 
 
 // does exist the key ?
 bool Registry::doesExist(HKEY i_root, const tstring &i_path)
 {
+#ifdef USE_INI
+  return true;
+#else // !USE_INI
   HKEY hkey;
   if (ERROR_SUCCESS !=
       RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey))
     return false;
   RegCloseKey(hkey);
   return true;
+#endif // !USE_INI
 }
 
 
@@ -40,6 +51,11 @@ bool Registry::doesExist(HKEY i_root, const tstring &i_path)
 bool Registry::read(HKEY i_root, const tstring &i_path,
 		    const tstring &i_name, int *o_value, int i_defaultValue)
 {
+#ifdef USE_INI
+  *o_value =
+    GetPrivateProfileInt(_T("yamy"), i_name.c_str(), i_defaultValue, i_path.c_str());
+  return true;
+#else // !USE_INI
   HKEY hkey;
   if (ERROR_SUCCESS ==
       RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey))
@@ -54,6 +70,7 @@ bool Registry::read(HKEY i_root, const tstring &i_path,
   }
   *o_value = i_defaultValue;
   return false;
+#endif // !USE_INI
 }
 
 
@@ -61,6 +78,15 @@ bool Registry::read(HKEY i_root, const tstring &i_path,
 bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		     int i_value)
 {
+#ifdef USE_INI
+  DWORD ret;
+  _TCHAR buf[GANA_MAX_PATH];
+
+  _stprintf(buf, _T("%d"), i_value);
+  ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
+				   buf, i_path.c_str());
+  return ret != 0;
+#else // !USE_INI
   HKEY hkey;
   DWORD disposition;
   if (ERROR_SUCCESS !=
@@ -72,6 +98,7 @@ bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 			 (BYTE *)&i_value, sizeof(i_value));
   RegCloseKey(hkey);
   return r == ERROR_SUCCESS;
+#endif // !USE_INI
 }
 
 
@@ -79,6 +106,20 @@ bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		    tstring *o_value, const tstring &i_defaultValue)
 {
+#ifdef USE_INI
+  _TCHAR buf[GANA_MAX_PATH];
+  DWORD len;
+  len = GetPrivateProfileString(_T("yamy"), i_name.c_str(), _T(""),
+				buf, sizeof(buf) / sizeof(buf[0]), i_path.c_str());
+  if (len > 0)
+  {
+    *o_value = buf;
+    return true;
+  }
+  if (!i_defaultValue.empty())
+    *o_value = i_defaultValue;
+  return false;
+#else // !USE_INI
   HKEY hkey;
   if (ERROR_SUCCESS ==
       RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey))
@@ -107,6 +148,7 @@ bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
   if (!i_defaultValue.empty())
     *o_value = i_defaultValue;
   return false;
+#endif // !USE_INI
 }
 
 
@@ -114,6 +156,13 @@ bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 bool Registry::write(HKEY i_root, const tstring &i_path,
 		     const tstring &i_name, const tstring &i_value)
 {
+#ifdef USE_INI
+  DWORD ret;
+
+  ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
+				   i_value.c_str(), i_path.c_str());
+  return ret != 0;
+#else // !USE_INI
   HKEY hkey;
   DWORD disposition;
   if (ERROR_SUCCESS !=
@@ -126,9 +175,11 @@ bool Registry::write(HKEY i_root, const tstring &i_path,
 		(i_value.size() + 1) * sizeof(tstring::value_type));
   RegCloseKey(hkey);
   return true;
+#endif // !USE_INI
 }
 
 
+#ifndef USE_INI
 // read list of string
 bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		    tstrings *o_value, const tstrings &i_defaultValue)
@@ -239,6 +290,7 @@ bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
   RegCloseKey(hkey);
   return true;
 }
+#endif //!USE_INI
 
 
 //

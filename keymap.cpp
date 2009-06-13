@@ -228,8 +228,7 @@ Keymap::Keymap(Type i_type,
     try
     {
       tregex::flag_type f = (tregex::normal | 
-			     tregex::icase |
-			     tregex::use_except);
+			     tregex::icase);
       if (!i_windowClass.empty())
 	m_windowClass.assign(i_windowClass, f);
       if (!i_windowTitle.empty())

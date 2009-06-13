@@ -161,7 +161,11 @@ public:
 
 
 //
+#ifdef MAYU64
+INT_PTR CALLBACK dlgLog_dlgProc(HWND i_hwnd, UINT i_message,
+#else
 BOOL CALLBACK dlgLog_dlgProc(HWND i_hwnd, UINT i_message,
+#endif
 			     WPARAM i_wParam, LPARAM i_lParam)
 {
   DlgLog *wc;

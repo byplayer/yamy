@@ -9,7 +9,11 @@
 
 
 /// dialog procedure of "Investigate" dialog box
+#ifdef MAYU64
+INT_PTR CALLBACK dlgInvestigate_dlgProc(
+#else
 BOOL CALLBACK dlgInvestigate_dlgProc(
+#endif
   HWND i_hwnd, UINT i_message, WPARAM i_wParam, LPARAM i_lParam);
 
 class Engine;

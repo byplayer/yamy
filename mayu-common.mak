@@ -27,11 +27,14 @@ DISTRIB_OS	= 9x
 
 COMMON_DEFINES	= -DSTRICT -D_WIN32_IE=0x0500 $(OS_SPECIFIC_DEFINES)
 BOOST_DIR	= ../boost_$(BOOST_VER)_0
+!ifdef X64
+BOOST_DIR	= $(BOOST_DIR)_x64
+!endif
 
 
 # mayu.exe	###############################################################
 
-TARGET_1	= $(OUT_DIR)\mayu.exe
+TARGET_1	= $(OUT_DIR_EXE)\mayu$(X64).exe
 OBJS_1		=					\
 		$(OUT_DIR)\compiler_specific_func.obj	\
 		$(OUT_DIR)\dlgeditsetting.obj		\
@@ -83,13 +86,13 @@ LIBS_1		=			\
 		shell32.lib		\
 		comctl32.lib		\
 		wtsapi32.lib		\
-		$(OUT_DIR)\mayu.lib	\
+		$(OUT_DIR_EXE)\mayu$(X64).lib	\
 
-EXTRADEP_1	= $(OUT_DIR)\mayu.lib
+EXTRADEP_1	= $(OUT_DIR_EXE)\mayu$(X64).lib
 
 # mayu.dll	###############################################################
 
-TARGET_2	= $(OUT_DIR)\mayu.dll
+TARGET_2	= $(OUT_DIR_EXE)\mayu$(X64).dll
 OBJS_2		= $(OUT_DIR)\hook.obj $(OUT_DIR)\stringtool.obj
 SRCS_2		= hook.cpp stringtool.cpp
 LIBS_2		= $(guixlibsmt) imm32.lib
@@ -97,9 +100,19 @@ LIBS_2		= $(guixlibsmt) imm32.lib
 
 # mayu.lib	###############################################################
 
-TARGET_3	= $(OUT_DIR)\mayu.lib
-DLL_3		= $(OUT_DIR)\mayu.dll
+TARGET_3	= $(OUT_DIR_EXE)\mayu$(X64).lib
+DLL_3		= $(OUT_DIR_EXE)\mayu$(X64).dll
 
+
+# yamyd		###############################################################
+
+TARGET_4	= $(OUT_DIR_EXE)\yamyd$(X64)
+OBJS_4		= $(OUT_DIR)\yamyd.obj
+
+SRCS_4		= yamyd.cpp
+LIBS_4		= user32.lib $(OUT_DIR_EXE)\mayu$(X64).lib
+
+EXTRADEP_4	= $(OUT_DIR_EXE)\mayu$(X64).lib
 
 # distribution	###############################################################
 
@@ -153,6 +166,7 @@ DISTRIB_DRIVER	= d_win9x\mayud.vxd
 DISTRIB		=			\
 		$(TARGET_1)		\
 		$(TARGET_2)		\
+		$(TARGET_4)		\
 		s\$(OUT_DIR)\setup.exe	\
 		$(DISTRIB_SETTINGS)	\
 		$(DISTRIB_MANUAL)	\
@@ -174,19 +188,22 @@ GENIEXPRESS	= perl tools/geniexpress
 
 # rules		###############################################################
 
-all:		boost $(OUT_DIR) $(TARGET_1) $(TARGET_2) $(TARGET_3)
+all:		boost $(OUT_DIR) $(OUT_DIR_EXE) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4)
 
 $(OUT_DIR):
 		if not exist "$(OUT_DIR)\\" $(MKDIR) $(OUT_DIR)
+
+$(OUT_DIR_EXE):
+		if not exist "$(OUT_DIR_EXE)\\" $(MKDIR) $(OUT_DIR_EXE)
 
 functions.h:	engine.h tools/makefunc
 		$(MAKEFUNC) < engine.h > functions.h
 
 clean::
-		-$(RM) $(TARGET_1) $(TARGET_2) $(TARGET_3)
+		-$(RM) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4)
 		-$(RM) $(OUT_DIR)\*.obj
-		-$(RM) $(OUT_DIR)\*.res $(OUT_DIR)\*.exp
-		-$(RM) mayu.aps mayu.opt $(OUT_DIR)\*.pdb
+		-$(RM) $(OUT_DIR)\*.res $(OUT_DIR_EXE)\*.exp
+		-$(RM) mayu.aps mayu.opt $(OUT_DIR_EXE)\*.pdb
 		-$(RM) *~ $(CLEAN)
 		-$(RMDIR) $(OUT_DIR)
 

@@ -152,7 +152,11 @@ public:
 
 
 //
+#ifdef MAYU64
+INT_PTR CALLBACK dlgInvestigate_dlgProc(HWND i_hwnd, UINT i_message,
+#else
 BOOL CALLBACK dlgInvestigate_dlgProc(HWND i_hwnd, UINT i_message,
+#endif
 				     WPARAM i_wParam, LPARAM i_lParam)
 {
   DlgInvestigate *wc;

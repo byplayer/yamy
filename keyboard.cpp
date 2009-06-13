@@ -240,7 +240,15 @@ Keyboard::KeyIterator::KeyIterator(Keys *i_hashedKeys, size_t i_hashedKeysSize)
     m_i((*m_hashedKeys).begin())
 {
   if ((*m_hashedKeys).empty())
-    next();
+  {
+    do
+    {
+      -- m_hashedKeysSize;
+      ++ m_hashedKeys;
+    } while (0 < m_hashedKeysSize && (*m_hashedKeys).empty());
+    if (0 < m_hashedKeysSize)
+      m_i = (*m_hashedKeys).begin();
+  }
 }
 
 

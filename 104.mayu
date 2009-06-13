@@ -83,6 +83,7 @@ def key FullStop Period			=    0x34 # .>
 def key Solidus Slash			=    0x35 # /?
 def key NumSolidus NumSlash		= E0-0x35 # Numpad /
 def key RightShift RShift		=    0x36
+def key E0RightShift E0RShift		= E0-0x36
 def key NumAsterisk NumMultiply		=    0x37 # Numpad *
 def key PrintScreen Snapshot		= E0-0x37
 def key LeftAlt LAlt LMenu		=    0x38
@@ -157,6 +158,8 @@ def mod Shift	= LShift RShift
 def mod Alt	= LAlt RAlt
 def mod Control	= LControl RControl
 def mod Windows	= LWindows RWindows
+mod shift += E0RShift
+key *E0RShift = *RShift
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

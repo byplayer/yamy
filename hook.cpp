@@ -16,6 +16,11 @@
 
 ///
 #define HOOK_DATA_NAME _T("{08D6E55C-5103-4e00-8209-A1C4AB13BBEF}") _T(VERSION)
+#ifdef _WIN64
+#define HOOK_DATA_NAME_ARCH _T("{290C0D51-8AEE-403d-9172-E43D46270996}") _T(VERSION)
+#else // !_WIN64
+#define HOOK_DATA_NAME_ARCH _T("{716A5DEB-CB02-4438-ABC8-D00E48673E45}") _T(VERSION)
+#endif // !_WIN64
 
 // Some applications use different values for below messages
 // when double click of title bar.
@@ -23,21 +28,56 @@
 #define SC_MINIMIZE2 (SC_MINIMIZE + 2)
 #define SC_RESTORE2 (SC_RESTORE + 2)
 
+// Debug Macros
+#ifdef NDEBUG
+#define HOOK_RPT0(msg)
+#define HOOK_RPT1(msg, arg1)
+#define HOOK_RPT2(msg, arg1, arg2)
+#else
+#define HOOK_RPT0(msg) if (g.m_isLogging) { _RPT0(_CRT_WARN, msg); }
+#define HOOK_RPT1(msg, arg1) if (g.m_isLogging) { _RPT1(_CRT_WARN, msg, arg1); }
+#define HOOK_RPT2(msg, arg1, arg2) if (g.m_isLogging) { _RPT2(_CRT_WARN, msg, arg1, arg2); }
+#endif
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Global Variables
 
 
 DllExport HookData *g_hookData;			///
 
+///
+class HookDataArch
+{
+public:
+  HHOOK m_hHookGetMessage;			///
+  HHOOK m_hHookCallWndProc;			///
+};
+
+static HookDataArch *s_hookDataArch;
+
 struct Globals
 {
   HANDLE m_hHookData;				///
+  HANDLE m_hHookDataArch;			///
   HWND m_hwndFocus;				/// 
   HINSTANCE m_hInstDLL;				///
   bool m_isInMenu;				///
   UINT m_WM_MAYU_MESSAGE;			///
   bool m_isImeLock;				///
   bool m_isImeCompositioning;			///
+  HHOOK m_hHookMouseProc;			///
+#ifdef NO_DRIVER
+  HHOOK m_hHookKeyboardProc;			///
+  KEYBOARD_DETOUR m_keyboardDetour;
+  Engine *m_engine;
+#endif // NO_DRIVER
+  DWORD m_hwndTaskTray;				///
+  HANDLE m_hMailslot;
+  bool m_isInitialized;
+#ifndef NDEBUG
+  bool m_isLogging;
+  _TCHAR m_moduleName[GANA_MAX_PATH];
+#endif // !NDEBUG
 };
 
 static Globals g;
@@ -52,11 +92,48 @@ static void notifyShow(NotifyShow::Show i_show, bool i_isMDI);
 static void notifyLog(_TCHAR *i_msg);
 static bool mapHookData();
 static void unmapHookData();
+static bool initialize();
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Functions
 
+bool initialize()
+{
+#ifndef NDEBUG
+  _TCHAR path[GANA_MAX_PATH];
+  GetModuleFileName(NULL, path, GANA_MAX_PATH);
+  _tsplitpath_s(path, NULL, 0, NULL, 0, g.m_moduleName, GANA_MAX_PATH, NULL, 0);
+  if (_tcsncmp(g.m_moduleName, _T("Dbgview"), sizeof(_T("Dbgview"))/sizeof(_TCHAR)) != 0 &&
+      _tcsncmp(g.m_moduleName, _T("windbg"), sizeof(_T("windbg"))/sizeof(_TCHAR)) != 0)
+  {
+	g.m_isLogging = true;
+  }
+#endif // !NDEBUG
+#ifdef USE_MAILSLOT
+  g.m_hMailslot =
+	  CreateFile(NOTIFY_MAILSLOT_NAME, GENERIC_WRITE,
+		     FILE_SHARE_READ | FILE_SHARE_WRITE,
+		     (SECURITY_ATTRIBUTES *)NULL, OPEN_EXISTING,
+		     FILE_ATTRIBUTE_NORMAL, (HANDLE)NULL);
+  if (g.m_hMailslot == INVALID_HANDLE_VALUE)
+  {
+    HOOK_RPT2("MAYU: %S create mailslot failed(0x%08x)\r\n", g.m_moduleName, GetLastError());
+  }
+  else
+  {
+    HOOK_RPT1("MAYU: %S create mailslot successed\r\n", g.m_moduleName);
+  }
+#endif //USE_MAILSLOT
+  if (!mapHookData())
+    return false;
+  _tsetlocale(LC_ALL, _T(""));
+  g.m_WM_MAYU_MESSAGE =
+    RegisterWindowMessage(addSessionId(WM_MAYU_MESSAGE_NAME).c_str());
+  g.m_hwndTaskTray = g_hookData->m_hwndTaskTray;
+  g.m_isInitialized = true;
+  return true;
+}
 
 /// EntryPoint
 BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
@@ -66,12 +143,11 @@ BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
   {
     case DLL_PROCESS_ATTACH:
     {
-      if (!mapHookData())
-	return FALSE;
+#ifndef NDEBUG
+      g.m_isLogging = false;
+#endif // !NDEBUG
+      g.m_isInitialized = false;
       g.m_hInstDLL = i_hInstDLL;
-      _tsetlocale(LC_ALL, _T(""));
-      g.m_WM_MAYU_MESSAGE = RegisterWindowMessage(
-	addSessionId(WM_MAYU_MESSAGE_NAME).c_str());
       break;
     }
     case DLL_THREAD_ATTACH:
@@ -79,6 +155,13 @@ BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
     case DLL_PROCESS_DETACH:
       notifyThreadDetach();
       unmapHookData();
+#ifdef USE_MAILSLOT
+      if (g.m_hMailslot != INVALID_HANDLE_VALUE)
+      {
+	CloseHandle(g.m_hMailslot);
+	g.m_hMailslot = INVALID_HANDLE_VALUE;
+      }
+#endif //USE_MAILSLOT
       break;
     case DLL_THREAD_DETACH:
       notifyThreadDetach();
@@ -93,11 +176,14 @@ BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
 /// map hook data
 static bool mapHookData()
 {
-  g.m_hHookData = CreateFileMapping((HANDLE)0xffffffff, NULL, PAGE_READWRITE,
+  g.m_hHookData = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
 				    0, sizeof(HookData),
 				    addSessionId(HOOK_DATA_NAME).c_str());
   if (!g.m_hHookData)
+  {
+    unmapHookData();
     return false;
+  }
   
   g_hookData =
     (HookData *)MapViewOfFile(g.m_hHookData, FILE_MAP_READ | FILE_MAP_WRITE,
@@ -107,6 +193,25 @@ static bool mapHookData()
     unmapHookData();
     return false;
   }
+
+  g.m_hHookDataArch = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
+				    0, sizeof(HookDataArch),
+				    addSessionId(HOOK_DATA_NAME_ARCH).c_str());
+  if (!g.m_hHookDataArch)
+  {
+    unmapHookData();
+    return false;
+  }
+  
+  s_hookDataArch =
+    (HookDataArch *)MapViewOfFile(g.m_hHookDataArch, FILE_MAP_READ | FILE_MAP_WRITE,
+			      0, 0, sizeof(HookDataArch));
+  if (!s_hookDataArch)
+  {
+    unmapHookData();
+    return false;
+  }
+
   return true;
 }
 
@@ -115,12 +220,17 @@ static bool mapHookData()
 static void unmapHookData()
 {
   if (g_hookData)
-    if (!UnmapViewOfFile(g_hookData))
-      return;
+    UnmapViewOfFile(g_hookData);
   g_hookData = NULL;
   if (g.m_hHookData)
     CloseHandle(g.m_hHookData);
   g.m_hHookData = NULL;
+  if (s_hookDataArch)
+    UnmapViewOfFile(s_hookDataArch);
+  s_hookDataArch = NULL;
+  if (g.m_hHookDataArch)
+    CloseHandle(g.m_hHookDataArch);
+  g.m_hHookDataArch = NULL;
 }
 
 
@@ -128,17 +238,43 @@ static void unmapHookData()
 DllExport bool notify(void *i_data, size_t i_dataSize)
 {
   COPYDATASTRUCT cd;
+#ifdef MAYU64
+  DWORD_PTR result;
+#else  // MAYU64
   DWORD result;
+#endif // MAYU64
 
+#ifdef USE_MAILSLOT
+  DWORD len;
+  if (g.m_hMailslot != INVALID_HANDLE_VALUE)
+  {
+    BOOL ret;
+    ret = WriteFile(g.m_hMailslot, i_data, i_dataSize, &len, NULL);
+#ifndef NDEBUG
+    if (ret == 0)
+    {
+      HOOK_RPT2("MAYU: %S WriteFile to mailslot failed(0x%08x)\r\n", g.m_moduleName, GetLastError());
+    }
+    else
+    {
+      HOOK_RPT1("MAYU: %S WriteFile to mailslot successed\r\n", g.m_moduleName);
+    }
+#endif // !NDEBUG
+  }
+#else // !USE_MAILSLOT
   cd.dwData = reinterpret_cast<Notify *>(i_data)->m_type;
   cd.cbData = i_dataSize;
   cd.lpData = i_data;
-  if (g_hookData->m_hwndTaskTray == NULL)
+  if (g.m_hwndTaskTray == 0)
     return false;
-  if (!SendMessageTimeout(g_hookData->m_hwndTaskTray, WM_COPYDATA,
-			  NULL, reinterpret_cast<LPARAM>(&cd),
+  if (!SendMessageTimeout(reinterpret_cast<HWND>(g.m_hwndTaskTray),
+			  WM_COPYDATA, NULL, reinterpret_cast<LPARAM>(&cd),
 			  SMTO_ABORTIFHUNG | SMTO_NORMAL, 5000, &result))
+  {
+    _RPT0(_CRT_WARN, "MAYU: SendMessageTimeout() timeouted\r\n");
     return false;
+  }
+#endif // !USE_MAILSLOT
   return true;
 }
 
@@ -207,13 +343,21 @@ static void updateShow(HWND i_hwnd, NotifyShow::Show i_show)
   if (!i_hwnd)
     return;
 
+#ifdef MAYU64
+  LONG_PTR style = GetWindowLongPtr(i_hwnd, GWL_STYLE);
+#else
   LONG style = GetWindowLong(i_hwnd, GWL_STYLE);
+#endif
   if (!(style & WS_MAXIMIZEBOX) && !(style & WS_MAXIMIZEBOX))
     return; // ignore window that has neither maximize or minimize button
 
   if (style & WS_CHILD)
   {
+#ifdef MAYU64
+    LONG_PTR exStyle = GetWindowLongPtr(i_hwnd, GWL_EXSTYLE);
+#else
     LONG exStyle = GetWindowLong(i_hwnd, GWL_EXSTYLE);
+#endif
     if (exStyle & WS_EX_MDICHILD)
     {
       isMDI = true;
@@ -236,7 +380,7 @@ static void notifyName(HWND i_hwnd, Notify::Type i_type = Notify::Type_name)
   NotifySetFocus *nfc = new NotifySetFocus;
   nfc->m_type = i_type;
   nfc->m_threadId = GetCurrentThreadId();
-  nfc->m_hwnd = i_hwnd;
+  nfc->m_hwnd = reinterpret_cast<DWORD>(i_hwnd);
   tcslcpy(nfc->m_className, className.c_str(), NUMBER_OF(nfc->m_className));
   tcslcpy(nfc->m_titleName, titleName.c_str(), NUMBER_OF(nfc->m_titleName));
 
@@ -280,6 +424,7 @@ static void notifyThreadDetach()
 static void notifyCommand(
   HWND i_hwnd, UINT i_message, WPARAM i_wParam, LPARAM i_lParam)
 {
+#ifndef _WIN64
   if (g_hookData->m_doesNotifyCommand)
   {
     NotifyCommand ntc;
@@ -290,6 +435,7 @@ static void notifyCommand(
     ntc.m_lParam = i_lParam;
     notify(&ntc, sizeof(ntc));
   }
+#endif
 }
 
 
@@ -327,7 +473,11 @@ static void funcRecenter(HWND i_hwnd)
   else
     return;	// this function only works for Edit control
 
+#ifdef MAYU64
+  LONG_PTR style = GetWindowLongPtr(i_hwnd, GWL_STYLE);
+#else
   LONG style = GetWindowLong(i_hwnd, GWL_STYLE);
+#endif
   if (!(style & ES_MULTILINE))
     return;	// this function only works for multi line Edit control
 
@@ -427,10 +577,16 @@ DllExport void notifyLockState()
 /// hook of GetMessage
 LRESULT CALLBACK getMessageProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 {
+  if (!g.m_isInitialized)
+    initialize();
+
   if (!g_hookData)
     return 0;
   
   MSG &msg = (*(MSG *)i_lParam);
+
+  if (i_wParam != PM_REMOVE)
+    goto finally;
 
   switch (msg.message)
   {
@@ -498,7 +654,8 @@ LRESULT CALLBACK getMessageProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
       }
       break;
   }
-  return CallNextHookEx(g_hookData->m_hHookGetMessage,
+ finally:
+  return CallNextHookEx(s_hookDataArch->m_hHookGetMessage,
 			i_nCode, i_wParam, i_lParam);
 }
 
@@ -506,6 +663,9 @@ LRESULT CALLBACK getMessageProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 /// hook of SendMessage
 LRESULT CALLBACK callWndProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 {
+  if (!g.m_isInitialized)
+    initialize();
+
   if (!g_hookData)
     return 0;
   
@@ -615,7 +775,7 @@ LRESULT CALLBACK callWndProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 	break;
     }
   }
-  return CallNextHookEx(g_hookData->m_hHookCallWndProc, i_nCode,
+  return CallNextHookEx(s_hookDataArch->m_hHookCallWndProc, i_nCode,
 			i_wParam, i_lParam);
 }
 
@@ -625,7 +785,10 @@ static LRESULT CALLBACK lowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
   MSLLHOOKSTRUCT *pMsll = (MSLLHOOKSTRUCT*)lParam;
   LONG dx = pMsll->pt.x - g_hookData->m_mousePos.x;
   LONG dy = pMsll->pt.y - g_hookData->m_mousePos.y;
-  HWND target = g_hookData->m_hwndMouseHookTarget;
+  HWND target = reinterpret_cast<HWND>(g_hookData->m_hwndMouseHookTarget);
+
+  if (!g.m_isInitialized)
+    initialize();
 
   if (!g_hookData || nCode < 0 || wParam != WM_MOUSEMOVE)
     goto through;
@@ -677,24 +840,64 @@ static LRESULT CALLBACK lowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
   }
     
  through:
-  return CallNextHookEx(g_hookData->m_hHookMouseProc,
+  return CallNextHookEx(g.m_hHookMouseProc,
 			nCode, wParam, lParam);
 }
 
 
-/// install hooks
-DllExport int installHooks()
+#ifdef NO_DRIVER
+static LRESULT CALLBACK lowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-  g_hookData->m_hwndTaskTray = NULL;
-  g_hookData->m_hHookGetMessage =
+  KBDLLHOOKSTRUCT *pKbll = (KBDLLHOOKSTRUCT*)lParam;
+
+  if (!g.m_isInitialized)
+    initialize();
+
+  if (!g_hookData || nCode < 0)
+    goto through;
+
+  if (g.m_keyboardDetour && g.m_engine)
+  {
+    unsigned int result;
+    result = g.m_keyboardDetour(g.m_engine, pKbll);
+    if (result)
+    {
+      return 1;
+    }
+  }
+ through:
+  return CallNextHookEx(g.m_hHookKeyboardProc,
+			nCode, wParam, lParam);
+}
+#endif // NO_DRIVER
+
+
+/// install hooks
+DllExport int installHooks(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine)
+{
+  if (!g.m_isInitialized)
+    initialize();
+
+  g.m_hwndTaskTray = g_hookData->m_hwndTaskTray;
+  s_hookDataArch->m_hHookGetMessage =
     SetWindowsHookEx(WH_GETMESSAGE, (HOOKPROC)getMessageProc,
 		     g.m_hInstDLL, 0);
-  g_hookData->m_hHookCallWndProc =
+  s_hookDataArch->m_hHookCallWndProc =
     SetWindowsHookEx(WH_CALLWNDPROC, (HOOKPROC)callWndProc, g.m_hInstDLL, 0);
   g_hookData->m_mouseHookType = MouseHookType_None;
-  g_hookData->m_hHookMouseProc =
-    SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)lowLevelMouseProc,
-		     g.m_hInstDLL, 0);
+  if (i_engine != NULL)
+  {
+#ifdef NO_DRIVER
+    g.m_keyboardDetour = i_keyboardDetour;
+    g.m_engine = i_engine;
+    g.m_hHookKeyboardProc =
+      SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)lowLevelKeyboardProc,
+		       g.m_hInstDLL, 0);
+#endif // NO_DRIVER
+    g.m_hHookMouseProc =
+      SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)lowLevelMouseProc,
+		       g.m_hInstDLL, 0);
+  }
   return 0;
 }
 
@@ -702,14 +905,20 @@ DllExport int installHooks()
 /// uninstall hooks
 DllExport int uninstallHooks()
 {
-  if (g_hookData->m_hHookGetMessage)
-    UnhookWindowsHookEx(g_hookData->m_hHookGetMessage);
-  g_hookData->m_hHookGetMessage = NULL;
-  if (g_hookData->m_hHookCallWndProc)
-    UnhookWindowsHookEx(g_hookData->m_hHookCallWndProc);
-  g_hookData->m_hHookCallWndProc = NULL;
-  if (g_hookData->m_hHookMouseProc)
-    UnhookWindowsHookEx(g_hookData->m_hHookMouseProc);
-  g_hookData->m_hHookMouseProc = NULL;
+  if (s_hookDataArch->m_hHookGetMessage)
+    UnhookWindowsHookEx(s_hookDataArch->m_hHookGetMessage);
+  s_hookDataArch->m_hHookGetMessage = NULL;
+  if (s_hookDataArch->m_hHookCallWndProc)
+    UnhookWindowsHookEx(s_hookDataArch->m_hHookCallWndProc);
+  s_hookDataArch->m_hHookCallWndProc = NULL;
+  if (g.m_hHookMouseProc)
+    UnhookWindowsHookEx(g.m_hHookMouseProc);
+  g.m_hHookMouseProc = NULL;
+#ifdef NO_DRIVER
+  if (g.m_hHookKeyboardProc)
+    UnhookWindowsHookEx(g.m_hHookKeyboardProc);
+  g.m_hHookKeyboardProc = NULL;
+#endif // NO_DRIVER
+  g.m_hwndTaskTray = 0;
   return 0;
 }

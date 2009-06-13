@@ -17,10 +17,15 @@ TARGETOS	= WINNT
 !if "$(TARGETOS)" == "WINNT"
 APPVER		= 5.0
 !ifdef nodebug
-OUT_DIR		= out$(MAYU_VC)_winnt
+OUT_DIR_EXE	= out$(MAYU_VC)_winnt
 !else	# nodebug
-OUT_DIR		= out$(MAYU_VC)_winnt_debug
+OUT_DIR_EXE	= out$(MAYU_VC)_winnt_debug
 !endif	# nodebug
+!ifdef X64
+OUT_DIR		= $(OUT_DIR_EXE)_x64
+!else
+OUT_DIR		= $(OUT_DIR_EXE)_x86
+!endif
 !endif	# TARGETOS
 
 !if "$(TARGETOS)" == "WIN95"
@@ -41,23 +46,28 @@ OUT_DIR		= out$(MAYU_VC)_win9x_debug
 #NMAKE_WINVER	= 0x0500	# trick for WS_EX_LAYERED
 
 !ifdef nodebug
-DEBUG_FLAG	= $(cdebug)
-!else	# nodebug
 DEBUG_FLAG	=
+!else	# nodebug
+DEBUG_FLAG	= $(cdebug)
 !endif	# nodebug
 
 {}.cpp{$(OUT_DIR)}.obj:
-	$(cc) -GX $(cflags) $(cvarsmt) $(DEFINES) $(INCLUDES) \
+	$(cc) -EHsc $(cflags) $(cvarsmt) $(DEFINES) $(INCLUDES) \
 		$(DEBUG_FLAG) -Fo$@ $(*B).cpp
 {}.rc{$(OUT_DIR)}.res:
 	$(rc) $(rcflags) $(rcvars) /fo$@ $(*B).rc
 
+!ifdef nodebug
 conxlibsmt	= $(conlibsmt) libcpmt.lib libcmt.lib
 guixlibsmt	= $(guilibsmt) libcpmt.lib libcmt.lib
+!else	# nodebug
+conxlibsmt	= $(conlibsmt) libcpmtd.lib libcmtd.lib
+guixlibsmt	= $(guilibsmt) libcpmtd.lib libcmtd.lib
+!endif	# nodebug
 
 DEPENDFLAGS	= --cpp=vc --ignore='$(INCLUDE)' -p"$$(OUT_DIR)\\"	\
 		--path-delimiter=dos --newline=unix			\
-		$(DEPENDIGNORE) -GX $(cflags) $(cvarsmt)	\
+		$(DEPENDIGNORE) -EHsc $(cflags) $(cvarsmt)	\
 		$(DEFINES) $(INCLUDES) $(DEBUG_FLAG)
 
 CLEAN		= $(OUT_DIR)\*.pdb

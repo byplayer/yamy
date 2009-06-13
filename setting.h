@@ -130,6 +130,8 @@ private:
   void load_ARGUMENT(int *o_arg);		/// &lt;ARGUMENT&gt;
   void load_ARGUMENT(unsigned int *o_arg);	/// &lt;ARGUMENT&gt;
   void load_ARGUMENT(long *o_arg);		/// &lt;ARGUMENT&gt;
+  void load_ARGUMENT(unsigned __int64 *o_arg);	/// &lt;ARGUMENT&gt;
+  void load_ARGUMENT(__int64 *o_arg);		/// &lt;ARGUMENT&gt;
   void load_ARGUMENT(tstringq *o_arg);		/// &lt;ARGUMENT&gt;
   void load_ARGUMENT(std::list<tstringq> *o_arg); /// &lt;ARGUMENT&gt;
   void load_ARGUMENT(tregex *o_arg);		/// &lt;ARGUMENT&gt;

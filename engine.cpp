@@ -313,10 +313,14 @@ void Engine::generateKeyEvent(Key *i_key, bool i_doPress, bool i_isByAssign)
 	kid.Flags = sc[i].m_flags;
 	if (!i_doPress)
 	  kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
-	DWORD len;
 #if defined(_WINNT)
+#ifdef NO_DRIVER
+	injectInput(&kid, NULL);
+#else // !NO_DRIVER
+	DWORD len;
 	WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
 	CHECK_TRUE( GetOverlappedResult(m_device, &m_ol, &len, TRUE) );
+#endif // !NO_DRIVER
 #elif defined(_WIN95)
 	DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
 #else
@@ -657,6 +661,30 @@ void Engine::beginGeneratingKeyboardEvents(
 }
 
 
+#ifdef NO_DRIVER
+unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw)
+{
+  INPUT kid;
+  kid.type = INPUT_KEYBOARD;
+  kid.ki.wVk = 0;
+  kid.ki.wScan = i_kid->MakeCode;
+  kid.ki.dwFlags = KEYEVENTF_SCANCODE;
+  kid.ki.time = i_kidRaw ? i_kidRaw->time : 0;
+  kid.ki.dwExtraInfo = i_kidRaw ? i_kidRaw->dwExtraInfo : 0;
+  if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK)
+  {
+    kid.ki.dwFlags |= KEYEVENTF_KEYUP;
+  }
+  if (i_kid->Flags & KEYBOARD_INPUT_DATA::E0)
+  {
+    kid.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+  }
+  SendInput(1, &kid, sizeof(kid));
+  return 1;
+}
+#endif // NO_DRIVER
+
+
 // pop all pressed key on win32
 void Engine::keyboardResetOnWin32()
 {
@@ -668,6 +696,52 @@ void Engine::keyboardResetOnWin32()
   }
 }
 
+
+#ifdef NO_DRIVER
+unsigned int WINAPI Engine::keyboardDetour(Engine *i_this, KBDLLHOOKSTRUCT *i_kid)
+{
+  return i_this->keyboardDetour(i_kid);
+}
+
+unsigned int Engine::keyboardDetour(KBDLLHOOKSTRUCT *i_kid)
+{
+#if 0
+  Acquire a(&m_log, 1);
+  m_log << std::hex
+	<< _T("keyboardDetour: vkCode=") << i_kid->vkCode
+	<< _T(" scanCode=") << i_kid->scanCode
+	<< _T(" flags=") << i_kid->flags << std::endl;
+#endif
+  if (i_kid->flags & LLKHF_INJECTED)
+  {
+    return 0;
+  }
+  else
+  {
+    Key key;
+    KEYBOARD_INPUT_DATA kid;
+
+    kid.UnitId = 0;
+    kid.MakeCode = i_kid->scanCode;
+    kid.Flags = 0;
+    if (i_kid->flags & LLKHF_UP)
+    {
+      kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+    }
+    if (i_kid->flags & LLKHF_EXTENDED)
+    {
+	  kid.Flags |= KEYBOARD_INPUT_DATA::E0;
+    }
+    kid.Reserved = 0;
+    kid.ExtraInformation = 0;
+
+    Acquire a(&m_cskidq);
+    m_kidq.push_back(kid);
+    SetEvent(m_readEvent);
+    return 1;
+  }
+}
+#endif // NO_DRIVER
 
 // keyboard handler thread
 unsigned int WINAPI Engine::keyboardHandler(void *i_this)
@@ -687,16 +761,23 @@ void Engine::keyboardHandler()
   {
     KEYBOARD_INPUT_DATA kid;
     
+#ifndef NO_DRIVER
     DWORD len;
+#endif // !NO_DRIVER
 #if defined(_WINNT)
     {
       Acquire a(&m_log, 1);
       m_log << _T("begin ReadFile();") << std::endl;
     }
+#ifdef NO_DRIVER
+    if (1)
+    {
+#else // !NO_DRIVER
     if (!ReadFile(m_device, &kid, sizeof(kid), &len, &m_ol))
     {
       if (GetLastError() != ERROR_IO_PENDING)
 	continue;
+#endif // !NO_DRIVER
       
       HANDLE handles[] = { m_readEvent, m_interruptThreadEvent };
     rewait:
@@ -704,8 +785,24 @@ void Engine::keyboardHandler()
 				     FALSE, INFINITE, QS_POSTMESSAGE))
       {
 	case WAIT_OBJECT_0:			// m_readEvent
+#ifdef NO_DRIVER
+	{
+	  Acquire a(&m_cskidq);
+	  if (m_kidq.empty())
+	  {
+	    goto rewait;
+	  }
+	  kid = m_kidq.front();
+	  m_kidq.pop_front();
+	  if (!m_kidq.empty())
+	  {
+	    SetEvent(m_readEvent);
+	  }
+	}
+#else // !NO_DRIVER
 	  if (!GetOverlappedResult(m_device, &m_ol, &len, FALSE))
 	    continue;
+#endif // !NO_DRIVER
 	  break;
 	  
 	case WAIT_OBJECT_0 + 1:			// m_interruptThreadEvent
@@ -807,8 +904,12 @@ void Engine::keyboardHandler()
       else
       {
 #if defined(_WINNT)
+#ifdef NO_DRIVER
+	injectInput(&kid, NULL);
+#else // !NO_DRIVER
 	WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
 	GetOverlappedResult(m_device, &m_ol, &len, TRUE);
+#endif // !NO_DRIVER
 #elif defined(_WIN95)
 	DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
 #else
@@ -825,8 +926,10 @@ void Engine::keyboardHandler()
 	!m_currentKeymap)
     {
 #if defined(_WINNT)
+#ifndef NO_DRIVER
       WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
       GetOverlappedResult(m_device, &m_ol, &len, TRUE);
+#endif // !NO_DRIVER
 #elif defined(_WIN95)
       DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
 #else
@@ -1022,10 +1125,13 @@ Engine::Engine(tomsgstream &i_log)
   for (int i = Modifier::Type_Lock0; i <= Modifier::Type_Lock9; ++ i)
     m_currentLock.release(static_cast<Modifier::Type>(i));
 
+#ifndef NO_DRIVER
   if (!open()) {
       throw ErrorMessage() << loadString(IDS_driverNotInstalled);
   }
+#endif // !NO_DRIVER
   
+#ifndef NO_DRIVER
   {
     TCHAR versionBuf[256];
     DWORD length = 0;
@@ -1036,6 +1142,7 @@ Engine::Engine(tomsgstream &i_log)
 	&& length < sizeof(versionBuf))			// fail safe
 	m_mayudVersion = tstring(versionBuf, length / 2);
   }
+#endif // !NO_DRIVER
   // create event for sync
   CHECK_TRUE( m_eSync = CreateEvent(NULL, FALSE, FALSE, NULL) );
 #if defined(_WINNT)
@@ -1054,9 +1161,11 @@ bool Engine::open()
 {
   // open mayu m_device
 #if defined(_WINNT)
+#ifndef NO_DRIVER
   m_device = CreateFile(MAYU_DEVICE_FILE_NAME, GENERIC_READ | GENERIC_WRITE,
 			0, NULL, OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+#endif // !NO_DRIVER
 #elif defined(_WIN95)
   m_device = CreateFile(MAYU_DEVICE_FILE_NAME, 0,
 			0, NULL, CREATE_NEW, FILE_FLAG_DELETE_ON_CLOSE, NULL);
@@ -1069,6 +1178,7 @@ bool Engine::open()
   }
 
 #if defined(_WINNT)
+#ifndef NO_DRIVER
   // start mayud
   SC_HANDLE hscm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
   if (hscm)
@@ -1087,6 +1197,7 @@ bool Engine::open()
   m_device = CreateFile(MAYU_DEVICE_FILE_NAME, GENERIC_READ | GENERIC_WRITE,
 			0, NULL, OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+#endif // !NO_DRIVER
 #endif // _WINNT
   return (m_device != INVALID_HANDLE_VALUE);
 }
@@ -1096,7 +1207,9 @@ bool Engine::open()
 void Engine::close()
 {
   if (m_device != INVALID_HANDLE_VALUE) {
+#ifndef NO_DRIVER
     CHECK_TRUE( CloseHandle(m_device) );
+#endif // !NO_DRIVER
   }
   m_device = INVALID_HANDLE_VALUE;
 }
@@ -1180,7 +1293,9 @@ bool Engine::pause()
       m_interruptThreadReason = InterruptThreadReason_Pause;
       SetEvent(m_interruptThreadEvent);
     } while (WaitForSingleObject(m_threadEvent, 100) != WAIT_OBJECT_0);
+#ifndef NO_DRIVER
     close();
+#endif // !NO_DRIVER
   }
 #endif // _WINNT
   return true;
@@ -1191,9 +1306,11 @@ bool Engine::resume()
 {
 #if defined(_WINNT)
   if (m_device == INVALID_HANDLE_VALUE) {
+#ifndef NO_DRIVER
     if (!open()) {
       return false;				// FIXME
     }
+#endif // !NO_DRIVER
     do {
       m_interruptThreadReason = InterruptThreadReason_Resume;
       SetEvent(m_interruptThreadEvent);
@@ -1221,11 +1338,16 @@ Engine::~Engine()
   CHECK_TRUE( CloseHandle(m_eSync) );
   
   // close m_device
+#ifndef NO_DRIVER
   close();
+#endif // !NO_DRIVER
 #if defined(_WINNT)
   // destroy named pipe for &SetImeString
-  DisconnectNamedPipe(m_hookPipe);
-  CHECK_TRUE( CloseHandle(m_hookPipe) );
+  if (m_hookPipe && m_hookPipe != INVALID_HANDLE_VALUE)
+  {
+    DisconnectNamedPipe(m_hookPipe);
+    CHECK_TRUE( CloseHandle(m_hookPipe) );
+  }
 #endif // _WINNT
 }
 
@@ -1361,7 +1483,11 @@ void Engine::checkShow(HWND i_hwnd)
   bool isMDIMinimized = false;
   while (i_hwnd)
   {
+#ifdef MAYU64
+    LONG_PTR exStyle = GetWindowLongPtr(i_hwnd, GWL_EXSTYLE);
+#else
     LONG exStyle = GetWindowLong(i_hwnd, GWL_EXSTYLE);
+#endif
     if (exStyle & WS_EX_MDICHILD)
     {
       WINDOWPLACEMENT placement;
@@ -1383,7 +1509,11 @@ void Engine::checkShow(HWND i_hwnd)
       }
     }
 
+#ifdef MAYU64
+    LONG_PTR style = GetWindowLongPtr(i_hwnd, GWL_STYLE);
+#else
     LONG style = GetWindowLong(i_hwnd, GWL_STYLE);
+#endif
     if ((style & WS_CHILD) == 0)
     {
       WINDOWPLACEMENT placement;
@@ -1426,16 +1556,19 @@ bool Engine::setFocus(HWND i_hwndFocus, DWORD i_threadId,
   if (!m_detachedThreadIds.empty())
   {
     DetachedThreadIds::iterator i;
+    bool retry;
     do
     {
+      retry = false;
       for (i = m_detachedThreadIds.begin();
 	   i != m_detachedThreadIds.end(); ++ i)
 	if (*i == i_threadId)
 	{
 	  m_detachedThreadIds.erase(i);
+	  retry = true;
 	  break;
 	}
-    } while (i != m_detachedThreadIds.end());
+    } while (retry);
   }
   
   FocusOfThread *fot;
@@ -1594,7 +1727,11 @@ void Engine::commandNotify(
       HWND h = hf;
       while (h)
       {
+#ifdef MAYU64
+	LONG_PTR style = GetWindowLongPtr(h, GWL_STYLE);
+#else
 	LONG style = GetWindowLong(h, GWL_STYLE);
+#endif
 	if ((style & WS_CHILD) == 0)
 	  break;
 	h = GetParent(h);

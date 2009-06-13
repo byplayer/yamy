@@ -7,11 +7,19 @@
 
 #  include "misc.h"
 #  include <tchar.h>
+#ifdef NO_DRIVER
+#  include <windows.h>
+#endif // NO_DRIVER
 
 ///
 #  define HOOK_PIPE_NAME \
  _T("\\\\.\\pipe\\GANAware\\mayu\\{4B22D464-7A4E-494b-982A-C2B2BBAAF9F3}") _T(VERSION)
 ///
+#ifdef USE_MAILSLOT
+#  define NOTIFY_MAILSLOT_NAME \
+_T("\\\\.\\mailslot\\GANAware\\mayu\\{330F7914-EB5B-49be-ACCE-D2B8DF585B32}") _T(VERSION)
+///
+#endif // USE_MAILSLOT
 #  define WM_MAYU_MESSAGE_NAME _T("GANAware\\mayu\\WM_MAYU_MESSAGE")
 
 ///
@@ -48,7 +56,7 @@ struct Notify
 struct NotifySetFocus : public Notify
 {
   DWORD m_threadId;				///
-  HWND m_hwnd;					///
+  DWORD m_hwnd;				///
   _TCHAR m_className[GANA_MAX_PATH];		///
   _TCHAR m_titleName[GANA_MAX_PATH];		///
 };
@@ -119,21 +127,23 @@ enum MouseHookType
   MouseHookType_WindowMove = 1 << 1,		/// window move
 };
 
+#ifdef NO_DRIVER
+class Engine;
+typedef unsigned int (WINAPI *KEYBOARD_DETOUR)(Engine *i_engine, KBDLLHOOKSTRUCT *i_kid);
+#endif // NO_DRIVER
+
 ///
 class HookData
 {
 public:
-  HHOOK m_hHookGetMessage;			///
-  HHOOK m_hHookCallWndProc;			///
-  HHOOK m_hHookMouseProc;			///
   USHORT m_syncKey;				///
   bool m_syncKeyIsExtended;			///
   bool m_doesNotifyCommand;			///
-  HWND m_hwndTaskTray;				///
+  DWORD m_hwndTaskTray;				///
   bool m_correctKanaLockHandling;		/// does use KL- ?
   MouseHookType m_mouseHookType;		///
   int m_mouseHookParam;			///
-  HWND m_hwndMouseHookTarget;		///
+  DWORD m_hwndMouseHookTarget;		///
   POINT m_mousePos;				///
 };
 
@@ -146,7 +156,7 @@ public:
 
 #  ifndef _HOOK_CPP
 extern DllImport HookData *g_hookData;
-extern DllImport int installHooks();
+extern DllImport int installHooks(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine);
 extern DllImport int uninstallHooks();
 extern DllImport bool notify(void *data, size_t sizeof_data);
 extern DllImport void notifyLockState();

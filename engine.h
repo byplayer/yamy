@@ -9,6 +9,7 @@
 #  include "setting.h"
 #  include "msgstream.h"
 #  include <set>
+#  include <queue>
 
 
 enum
@@ -163,6 +164,10 @@ private:
   unsigned m_threadId;
   tstring m_mayudVersion;			/// version of mayud.sys
 #if defined(_WINNT)
+#ifdef NO_DRIVER
+  std::deque<KEYBOARD_INPUT_DATA> m_kidq;
+  CriticalSection m_cskidq;
+#endif // NO_DRIVER
   HANDLE m_readEvent;				/** reading from mayu device
                                                     has been completed */
   HANDLE m_interruptThreadEvent;		/// interrupt thread event
@@ -233,6 +238,17 @@ private:
 public:
   tomsgstream &m_log;				/** log stream (output to log
                                                     dialog's edit) */
+  
+public:
+#ifdef NO_DRIVER
+  /// keyboard handler thread
+  static unsigned int WINAPI keyboardDetour(Engine *i_this, KBDLLHOOKSTRUCT *i_kid);
+private:
+  ///
+  unsigned int keyboardDetour(KBDLLHOOKSTRUCT *i_kid);
+  ///
+  unsigned int injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw);
+#endif // NO_DRIVER
   
 private:
   /// keyboard handler thread

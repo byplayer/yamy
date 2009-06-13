@@ -129,12 +129,20 @@ HWND getToplevelWindow(HWND i_hwnd, bool *io_isMDI)
 {
   while (i_hwnd)
   {
+#ifdef MAYU64
+    LONG_PTR style = GetWindowLongPtr(i_hwnd, GWL_STYLE);
+#else
     LONG style = GetWindowLong(i_hwnd, GWL_STYLE);
+#endif
     if ((style & WS_CHILD) == 0)
       break;
     if (io_isMDI && *io_isMDI)
     {
+#ifdef MAYU64
+      LONG_PTR exStyle = GetWindowLongPtr(i_hwnd, GWL_EXSTYLE);
+#else
       LONG exStyle = GetWindowLong(i_hwnd, GWL_EXSTYLE);
+#endif
       if (exStyle & WS_EX_MDICHILD)
 	return i_hwnd;
     }

@@ -10,6 +10,8 @@
 #  include <cctype>
 #  include <string>
 #  include <iosfwd>
+#  include <fstream>
+#  include <locale>
 #  include <boost/regex.hpp>
 #  include <stdio.h>				// for snprintf
 
@@ -26,6 +28,8 @@ typedef std::basic_streambuf<_TCHAR> tstreambuf;
 typedef std::basic_stringstream<_TCHAR> tstringstream;
 /// ifstream for generic international text
 typedef std::basic_ifstream<_TCHAR> tifstream;
+/// ofstream for generic international text
+typedef std::basic_ofstream<_TCHAR> tofstream;
 /// basic_regex for generic international text
 typedef boost::basic_regex<_TCHAR> tregex;
 /// match_results for generic international text

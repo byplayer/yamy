@@ -10,7 +10,11 @@
 
 
 //
+#ifdef MAYU64
+INT_PTR CALLBACK dlgLog_dlgProc(
+#else
 BOOL CALLBACK dlgLog_dlgProc(
+#endif
   HWND i_hwnd, UINT i_message, WPARAM i_wParam, LPARAM i_lParam);
 
 enum

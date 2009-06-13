@@ -190,6 +190,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "調査(&I)...",                 ID_MENUITEM_investigate
         MENUITEM "ログ(&L)...",                 ID_MENUITEM_log
+        MENUITEM "チェック(&C)...",             ID_MENUITEM_check
         MENUITEM "バージョン(&V)...",           ID_MENUITEM_version
         MENUITEM "ヘルプ(&H)...",               ID_MENUITEM_help
         MENUITEM SEPARATOR
@@ -440,6 +441,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Investigation...",           ID_MENUITEM_investigate
         MENUITEM "&Log...",                     ID_MENUITEM_log
+        MENUITEM "&Check...",                   ID_MENUITEM_check
         MENUITEM "&Version...",                 ID_MENUITEM_version
         MENUITEM "&Help...",                    ID_MENUITEM_help
         MENUITEM SEPARATOR

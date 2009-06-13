@@ -20,14 +20,25 @@ public:
   
 public:
   ///
-  Registry() : m_root(NULL) { }
+  Registry() : m_root(NULL) { setRoot(NULL, _T("")); }
   ///
   Registry(HKEY i_root, const tstring &i_path)
-    : m_root(i_root), m_path(i_path) { }
+    : m_root(i_root), m_path(i_path) { setRoot(i_root, i_path); }
   
   /// set registry root and path
   void setRoot(HKEY i_root, const tstring &i_path)
-  { m_root = i_root; m_path = i_path; }
+  {
+    m_root = i_root;
+    m_path = i_path;
+    _TCHAR exePath[GANA_MAX_PATH];
+    _TCHAR exeDrive[GANA_MAX_PATH];
+    _TCHAR exeDir[GANA_MAX_PATH];
+    GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
+    _tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
+    m_path = exeDrive;
+    m_path += exeDir;
+    m_path += _T("yamy.ini");
+  }
   
   /// remvoe
   bool remove(const tstring &i_name = _T("")) const
@@ -52,6 +63,7 @@ public:
   bool write(const tstring &i_name, const tstring &i_value) const
   { return write(m_root, m_path, i_name, i_value); }
 
+#ifndef USE_INI
   /// read list of tstring
   bool read(const tstring &i_name, tstrings *o_value, 
 	    const tstrings &i_defaultValue = tstrings()) const
@@ -70,6 +82,7 @@ public:
   bool write(const tstring &i_name, const BYTE *i_value,
 	     DWORD i_valueSize) const
   { return write(m_root, m_path, i_name, i_value, i_valueSize); }
+#endif //!USE_INI
 
 public:
   /// remove
@@ -93,6 +106,7 @@ public:
   static bool write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		    const tstring &i_value);
   
+#ifndef USE_INI
   /// read list of tstring
   static bool read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		   tstrings *o_value, const tstrings &i_defaultValue = tstrings());
@@ -108,6 +122,7 @@ public:
   /// write binary data
   static bool write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		    const BYTE *i_value, DWORD i_valueSize);
+#endif //!USE_INI
   /// read LOGFONT
   static bool read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 		   LOGFONT *o_value, const tstring &i_defaultStringValue);

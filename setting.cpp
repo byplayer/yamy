@@ -77,6 +77,7 @@ static bool getFilenameFromRegistry(
 void getHomeDirectories(HomeDirectories *o_pathes)
 {
   tstringi filename;
+#ifndef USE_INI
   if (getFilenameFromRegistry(NULL, &filename, NULL) &&
       !filename.empty())
   {
@@ -103,6 +104,9 @@ void getHomeDirectories(HomeDirectories *o_pathes)
   DWORD len = GetCurrentDirectory(NUMBER_OF(buf), buf);
   if (0 < len && len < NUMBER_OF(buf))
     o_pathes->push_back(buf);
+#else //USE_INI
+  _TCHAR buf[GANA_MAX_PATH];
+#endif //USE_INI
 
   if (GetModuleFileName(GetModuleHandle(NULL), buf, NUMBER_OF(buf)))
     o_pathes->push_back(pathRemoveFileSpec(buf));
@@ -688,6 +692,20 @@ void SettingLoader::load_ARGUMENT(unsigned int *o_arg)
 
 // &lt;ARGUMENT&gt;
 void SettingLoader::load_ARGUMENT(long *o_arg)
+{
+  *o_arg = getToken()->getNumber();
+}
+
+
+// &lt;ARGUMENT&gt;
+void SettingLoader::load_ARGUMENT(unsigned __int64 *o_arg)
+{
+  *o_arg = getToken()->getNumber();
+}
+
+
+// &lt;ARGUMENT&gt;
+void SettingLoader::load_ARGUMENT(__int64 *o_arg)
 {
   *o_arg = getToken()->getNumber();
 }
