@@ -928,7 +928,7 @@ public:
     ZeroMemory(&m_si,sizeof(m_si));
     m_si.cb=sizeof(m_si);
 #ifdef _WIN64
-    result = CreateProcess(_T("yamyd"), _T("yamyd"), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
+    result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
 #endif // _WIN64
   }
 

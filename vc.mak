@@ -21,11 +21,12 @@ OUT_DIR_EXE	= out$(MAYU_VC)_winnt
 !else	# nodebug
 OUT_DIR_EXE	= out$(MAYU_VC)_winnt_debug
 !endif	# nodebug
-!ifdef X64
-OUT_DIR		= $(OUT_DIR_EXE)_x64
+!if "$(CPU)" == "AMD64"
+MAYU_ARCH	= 64
 !else
-OUT_DIR		= $(OUT_DIR_EXE)_x86
+MAYU_ARCH	= 32
 !endif
+OUT_DIR		= $(OUT_DIR_EXE)_$(MAYU_ARCH)
 !endif	# TARGETOS
 
 !if "$(TARGETOS)" == "WIN95"

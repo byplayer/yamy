@@ -26,15 +26,12 @@ DISTRIB_OS	= 9x
 
 
 COMMON_DEFINES	= -DSTRICT -D_WIN32_IE=0x0500 $(OS_SPECIFIC_DEFINES)
-BOOST_DIR	= ../boost_$(BOOST_VER)_0
-!ifdef X64
-BOOST_DIR	= $(BOOST_DIR)_x64
-!endif
+BOOST_DIR	= ../boost_$(BOOST_VER)_0($(MAYU_ARCH))
 
 
 # yamy.exe	###############################################################
 
-TARGET_1	= $(OUT_DIR_EXE)\yamy$(X64).exe
+TARGET_1	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).exe
 OBJS_1		=					\
 		$(OUT_DIR)\compiler_specific_func.obj	\
 		$(OUT_DIR)\dlgeditsetting.obj		\
@@ -86,13 +83,13 @@ LIBS_1		=			\
 		shell32.lib		\
 		comctl32.lib		\
 		wtsapi32.lib		\
-		$(OUT_DIR_EXE)\yamy$(X64).lib	\
+		$(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib	\
 
-EXTRADEP_1	= $(OUT_DIR_EXE)\yamy$(X64).lib
+EXTRADEP_1	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 
 # yamy.dll	###############################################################
 
-TARGET_2	= $(OUT_DIR_EXE)\yamy$(X64).dll
+TARGET_2	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).dll
 OBJS_2		= $(OUT_DIR)\hook.obj $(OUT_DIR)\stringtool.obj
 SRCS_2		= hook.cpp stringtool.cpp
 LIBS_2		= $(guixlibsmt) imm32.lib
@@ -100,19 +97,19 @@ LIBS_2		= $(guixlibsmt) imm32.lib
 
 # yamy.lib	###############################################################
 
-TARGET_3	= $(OUT_DIR_EXE)\yamy$(X64).lib
-DLL_3		= $(OUT_DIR_EXE)\yamy$(X64).dll
+TARGET_3	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
+DLL_3		= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).dll
 
 
 # yamyd		###############################################################
 
-TARGET_4	= $(OUT_DIR_EXE)\yamyd$(X64)
+TARGET_4	= $(OUT_DIR_EXE)\yamyd$(MAYU_ARCH)
 OBJS_4		= $(OUT_DIR)\yamyd.obj
 
 SRCS_4		= yamyd.cpp
-LIBS_4		= user32.lib $(OUT_DIR_EXE)\yamy$(X64).lib
+LIBS_4		= user32.lib $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 
-EXTRADEP_4	= $(OUT_DIR_EXE)\yamy$(X64).lib
+EXTRADEP_4	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 
 # distribution	###############################################################
 
@@ -216,7 +213,7 @@ distrib:
 		-rm -f yamy-$(VERSION).zip
 		zip yamy-$(VERSION).zip 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu yamy.ini
 		cd $(OUT_DIR_EXE)
-		zip ../yamy-$(VERSION).zip yamy.exe yamy64.exe yamy.dll yamy64.dll yamyd
+		zip ../yamy-$(VERSION).zip yamy32.exe yamy64.exe yamy32.dll yamy64.dll yamyd32
 		cd ..
 
 srcdesc::
