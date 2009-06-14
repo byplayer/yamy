@@ -47,7 +47,7 @@ OUT_DIR		= out$(MAYU_VC)_win9x_debug
 #NMAKE_WINVER	= 0x0500	# trick for WS_EX_LAYERED
 
 !ifdef nodebug
-DEBUG_FLAG	=
+DEBUG_FLAG	= -DNDEBUG
 !else	# nodebug
 DEBUG_FLAG	= $(cdebug)
 !endif	# nodebug
