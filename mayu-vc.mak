@@ -54,8 +54,10 @@ $(TARGET_2):	$(OBJS_2) $(RES_2) $(EXTRADEP_2)
 
 $(TARGET_3):	$(DLL_3)
 
+!if "$(MAYU_ARCH)" == "32"
 $(TARGET_4):	$(OBJS_4) $(EXTRADEP_4)
 	$(link) -out:$@ $(ldebug) $(LDFLAGS_4) $(OBJS_4) $(LIBS_4)
+!endif
 
 REGEXPP_XCFLAGS	= $(REGEXPP_XCFLAGS) XCFLAGS=-D_WCTYPE_INLINE_DEFINED
 

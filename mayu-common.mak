@@ -103,6 +103,7 @@ DLL_3		= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).dll
 
 # yamyd		###############################################################
 
+!if "$(MAYU_ARCH)" == "32"
 TARGET_4	= $(OUT_DIR_EXE)\yamyd$(MAYU_ARCH)
 OBJS_4		= $(OUT_DIR)\yamyd.obj
 
@@ -110,6 +111,7 @@ SRCS_4		= yamyd.cpp
 LIBS_4		= user32.lib $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 
 EXTRADEP_4	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
+!endif
 
 # distribution	###############################################################
 
