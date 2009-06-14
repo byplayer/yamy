@@ -1,0 +1,4 @@
+*~
+*.pdb
+out*_winnt*
+functions.h
