@@ -28,7 +28,7 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 
 IDD_DIALOG_investigate DIALOGEX 0, 0, 298, 51
 STYLE DS_MODALFRAME | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "調査 - 窓使いの憂鬱"
+CAPTION "調査 - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
     CONTROL         "scancode",IDC_CUSTOM_scancode,"mayuFocus",WS_TABSTOP,88,
@@ -51,7 +51,7 @@ END
 
 IDD_DIALOG_setting DIALOGEX 0, 0, 302, 135
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "設定 - 窓使いの憂鬱"
+CAPTION "設定 - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
     GROUPBOX        "設定ファイル名リスト(&L)",IDC_STATIC_mayuPaths,4,4,296,
@@ -71,7 +71,7 @@ END
 IDD_DIALOG_log DIALOGEX 0, 0, 250, 62
 STYLE DS_CENTERMOUSE | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
-CAPTION "ログ - 窓使いの憂鬱"
+CAPTION "ログ - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
     DEFPUSHBUTTON   "閉じる(&C)",IDOK,192,44,50,15
@@ -86,9 +86,9 @@ BEGIN
                     WS_TABSTOP,149,47,39,10
 END
 
-IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 140
+IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 150
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "バージョン情報 - 窓使いの憂鬱"
+CAPTION "バージョン情報 - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
     DEFPUSHBUTTON   "閉じる",IDOK,136,120,50,14
@@ -101,7 +101,7 @@ END
 
 IDD_DIALOG_editSetting DIALOG DISCARDABLE  0, 0, 254, 75
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "設定の編集 - 窓使いの憂鬱"
+CAPTION "設定の編集 - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
     LTEXT           "名前(&N)",IDC_STATIC_mayuPathName,8,7,36,8
@@ -232,15 +232,15 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_mayu                "窓使いの憂鬱"
-    IDS_mayuAlreadyExists   "既に窓使いの憂鬱は動作中です"
-    IDS_cannotOpenDevice    "窓使いの憂鬱デバイスドライバが利用できません"
-    IDS_driverNotInstalled  "窓使いの憂鬱デバイスドライバが正しくインストールされていません"
-    IDS_executedInRemoteDesktop  "窓使いの憂鬱はりモートデスクトップ上では実行できません"
-    IDS_openMayu            "設定ファイルを探す - 窓使いの憂鬱"
-    IDS_openMayuFilter      "窓使いの憂鬱ファイル (*.mayu) |*.mayu|全てのファイル|*|"
+    IDS_mayu                "YAMY"
+    IDS_mayuAlreadyExists   "既に窓使いの憂鬱またはYAMYが動作中です"
+    IDS_cannotOpenDevice    "YAMYデバイスドライバが利用できません"
+    IDS_driverNotInstalled  "YAMYデバイスドライバが正しくインストールされていません"
+    IDS_executedInRemoteDesktop  "YAMYはりモートデスクトップ上では実行できません"
+    IDS_openMayu            "設定ファイルを探す - YAMY"
+    IDS_openMayuFilter      "YAMYファイル (*.mayu) |*.mayu|全てのファイル|*|"
     IDS_helpFilename        "doc\\README-ja.html"
-    IDS_mayuFile            "窓使いの憂鬱ファイル"
+    IDS_mayuFile            "YAMYファイル"
     IDS_mayuShellOpen       "notepad.exe ""%1"""
     IDS_readFromHomeDirectory "(ホームディレクトリから)"
 END
@@ -259,8 +259,8 @@ BEGIN
     IDS_mayuPathName        "名前"
     IDS_mayuPath            "設定ファイル名"
     IDS_mayuSymbols         "シンボル"
-    IDS_version             "窓使いの憂鬱 %s\r\n(mayud: %s)\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
-    IDS_homepage            "http://mayu.sourceforge.net"
+    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\nCopyright (C) 2009,\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
+    IDS_homepage            "http://yamy.sourceforge.jp/"
 END
 
 #endif    // 日本語 resources
@@ -283,7 +283,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDD_DIALOG_investigate DIALOGEX 0, 0, 298, 51
 STYLE DS_MODALFRAME | DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Investigation - MADO TSUKAI NO YUUTSU"
+CAPTION "Investigation - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "scancode",IDC_CUSTOM_scancode,"mayuFocus",WS_TABSTOP,88,
@@ -304,7 +304,7 @@ END
 IDD_DIALOG_setting DIALOGEX 0, 0, 304, 135
 STYLE DS_CENTERMOUSE | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Setting - MADO TSUKAI NO YUUTSU"
+CAPTION "Setting - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
     GROUPBOX        "Setting File &List",IDC_STATIC_mayuPaths,4,4,296,108
@@ -323,7 +323,7 @@ END
 IDD_DIALOG_log DIALOGEX 0, 0, 243, 162
 STYLE DS_CENTERMOUSE | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
     WS_THICKFRAME
-CAPTION "Log - MADO TSUKAI NO YUUTSU"
+CAPTION "Log - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "&Close",IDOK,192,144,50,15
@@ -338,9 +338,9 @@ BEGIN
                     WS_TABSTOP,149,147,39,10
 END
 
-IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 140
+IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 150
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Version - MADO TSUKAI NO YUUTSU"
+CAPTION "Version - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "&Close",IDOK,136,120,50,14
@@ -353,7 +353,7 @@ END
 
 IDD_DIALOG_editSetting DIALOG DISCARDABLE  0, 0, 256, 76
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Edit Settings - MADO TSUKAI NO YUUTSU"
+CAPTION "Edit Settings - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "&Name",IDC_STATIC,8,7,36,8
@@ -475,15 +475,15 @@ IDC_CURSOR_target       CURSOR  DISCARDABLE     "r\\target.cur"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_mayu                "MADO TSUKAI NO YUUTSU"
-    IDS_mayuAlreadyExists   "Already MADO TSUKAI NO YUUTSU is running."
-    IDS_cannotOpenDevice    "MADO TSUKAI NO YUUTSU driver is not available."
-    IDS_driverNotInstalled  "MADO TSUKAI NO YUUTSU is not installed correctly."
-    IDS_executedInRemoteDesktop  "MADO TSUKAI NO YUUTSU cannot be executed in the Remote Desktop."
-    IDS_openMayu            "Find Setting File - MADO TSUKAI NO YUUTSU"
-    IDS_openMayuFilter      "MADO TSUKAI NO YUUTSU file (*.mayu) |*.mayu|All Files|*|"
+    IDS_mayu                "YAMY"
+    IDS_mayuAlreadyExists   "Already MADO TSUKAI NO YUUTSU or YAMY is running."
+    IDS_cannotOpenDevice    "YAMY driver is not available."
+    IDS_driverNotInstalled  "YAMY is not installed correctly."
+    IDS_executedInRemoteDesktop  "YAMY cannot be executed in the Remote Desktop."
+    IDS_openMayu            "Find Setting File - YAMY"
+    IDS_openMayuFilter      "YAMY file (*.mayu) |*.mayu|All Files|*|"
     IDS_helpFilename        "doc\\README-ja.html"
-    IDS_mayuFile            "MADO TSUKAI NO YUUTSU file"
+    IDS_mayuFile            "YAMY file"
     IDS_mayuShellOpen       "notepad.exe ""%1"""
     IDS_readFromHomeDirectory "(from home directory)"
 END
@@ -502,8 +502,8 @@ BEGIN
     IDS_mayuPathName        "Name"
     IDS_mayuPath            "Setting Filename"
     IDS_mayuSymbols         "Symbols"
-    IDS_version             "MADO TSUKAI NO YUUTSU %s\r\n(mayud: %s)\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
-    IDS_homepage            "http://mayu.sourceforge.net"
+    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
+    IDS_homepage            "http://yamy.sourceforge.jp/"
 END
 
 #endif    // 英語 (ｱﾒﾘｶ) resources

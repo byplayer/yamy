@@ -48,7 +48,6 @@ public:
 	       _T(" (UNICODE)")
 #endif // !_UNICODE
 	       ,
-	       mayudVersion,
 	       loadString(IDS_homepage).c_str(),
 	       (_T(LOGNAME) _T("@") + toLower(_T(COMPUTERNAME))).c_str(),
 	       _T(__DATE__) _T(" ") _T(__TIME__),
