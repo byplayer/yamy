@@ -27,6 +27,7 @@
 #define IDS_mayuSymbols                 27
 #define IDS_version                     28
 #define IDS_homepage                    29
+#define IDS_cannotInvoke                30
 #define IDC_CURSOR_target               101
 #define IDD_DIALOG_editSetting          102
 #define IDD_DIALOG_investigate          103

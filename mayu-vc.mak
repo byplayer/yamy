@@ -44,7 +44,10 @@ LDFLAGS_2	=						\
 LDFLAGS_4	=						\
 		$(guilflags)					\
 		/PDB:$(TARGET_4).pdb				\
-		/LIBPATH:$(BOOST_DIR)/libs/regex/build/$(MAYU_REGEX_VC)0	\
+
+LDFLAGS_5	=						\
+		$(guilflags)					\
+		/PDB:$(TARGET_5).pdb				\
 
 $(TARGET_1):	$(OBJS_1) $(RES_1) $(EXTRADEP_1)
 	$(link) -out:$@ $(ldebug) $(LDFLAGS_1) $(OBJS_1) $(LIBS_1) $(RES_1)
@@ -57,6 +60,9 @@ $(TARGET_3):	$(DLL_3)
 !if "$(MAYU_ARCH)" == "32"
 $(TARGET_4):	$(OBJS_4) $(EXTRADEP_4)
 	$(link) -out:$@ $(ldebug) $(LDFLAGS_4) $(OBJS_4) $(LIBS_4)
+
+$(TARGET_5):	$(OBJS_5) $(EXTRADEP_5)
+	$(link) -out:$@ $(ldebug) $(LDFLAGS_5) $(OBJS_5) $(LIBS_5) $(RES_5)
 !endif
 
 REGEXPP_XCFLAGS	= $(REGEXPP_XCFLAGS) XCFLAGS=-D_WCTYPE_INLINE_DEFINED

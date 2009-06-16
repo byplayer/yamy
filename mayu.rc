@@ -243,6 +243,7 @@ BEGIN
     IDS_mayuFile            "YAMYファイル"
     IDS_mayuShellOpen       "notepad.exe ""%1"""
     IDS_readFromHomeDirectory "(ホームディレクトリから)"
+    IDS_cannotInvoke        "%s を起動できません(0x%08x)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -486,6 +487,7 @@ BEGIN
     IDS_mayuFile            "YAMY file"
     IDS_mayuShellOpen       "notepad.exe ""%1"""
     IDS_readFromHomeDirectory "(from home directory)"
+    IDS_cannotInvoke        "can't invoke %s(0x%08x)"
 END
 
 STRINGTABLE DISCARDABLE 

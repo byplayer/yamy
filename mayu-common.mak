@@ -28,9 +28,9 @@ COMMON_DEFINES	= -DSTRICT -D_WIN32_IE=0x0500 $(OS_SPECIFIC_DEFINES)
 BOOST_DIR	= ../boost_$(BOOST_VER)_0($(MAYU_ARCH))
 
 
-# yamy.exe	###############################################################
+# yamy		###############################################################
 
-TARGET_1	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).exe
+TARGET_1	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH)
 OBJS_1		=					\
 		$(OUT_DIR)\compiler_specific_func.obj	\
 		$(OUT_DIR)\dlgeditsetting.obj		\
@@ -112,6 +112,18 @@ LIBS_4		= user32.lib $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 EXTRADEP_4	= $(OUT_DIR_EXE)\yamy$(MAYU_ARCH).lib
 !endif
 
+# yamy.exe	###############################################################
+
+!if "$(MAYU_ARCH)" == "32"
+TARGET_5	= $(OUT_DIR_EXE)\yamy.exe
+OBJS_5		= $(OUT_DIR)\yamy.obj
+
+SRCS_5		= yamy.cpp
+LIBS_5		= user32.lib
+
+RES_5		= $(OUT_DIR)\mayu.res
+!endif
+
 # distribution	###############################################################
 
 DISTRIB_SETTINGS =			\
@@ -165,6 +177,7 @@ DISTRIB		=			\
 		$(TARGET_1)		\
 		$(TARGET_2)		\
 		$(TARGET_4)		\
+		$(TARGET_5)		\
 		s\$(OUT_DIR)\setup.exe	\
 		$(DISTRIB_SETTINGS)	\
 		$(DISTRIB_MANUAL)	\
@@ -186,7 +199,7 @@ GENIEXPRESS	= perl tools/geniexpress
 
 # rules		###############################################################
 
-all:		boost $(OUT_DIR) $(OUT_DIR_EXE) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4)
+all:		boost $(OUT_DIR) $(OUT_DIR_EXE) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4) $(TARGET_5)
 
 $(OUT_DIR):
 		if not exist "$(OUT_DIR)\\" $(MKDIR) $(OUT_DIR)
@@ -198,7 +211,7 @@ functions.h:	engine.h tools/makefunc
 		$(MAKEFUNC) < engine.h > functions.h
 
 clean::
-		-$(RM) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4)
+		-$(RM) $(TARGET_1) $(TARGET_2) $(TARGET_3) $(TARGET_4) $(TARGET_5)
 		-$(RM) $(OUT_DIR)\*.obj
 		-$(RM) $(OUT_DIR)\*.res $(OUT_DIR_EXE)\*.exp
 		-$(RM) mayu.aps mayu.opt $(OUT_DIR_EXE)\*.pdb
@@ -212,9 +225,9 @@ depend::
 distrib:
 		-@echo "we need cygwin tool"
 		-rm -f yamy-$(VERSION).zip
-		zip yamy-$(VERSION).zip 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu yamy.ini
+		zip yamy-$(VERSION).zip yamy.ini 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu workaround.mayu
 		cd $(OUT_DIR_EXE)
-		zip ../yamy-$(VERSION).zip yamy32.exe yamy64.exe yamy32.dll yamy64.dll yamyd32
+		zip ../yamy-$(VERSION).zip yamy.exe yamy32 yamy64 yamy32.dll yamy64.dll yamyd32
 		cd ..
 
 srcdesc::
