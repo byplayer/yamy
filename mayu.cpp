@@ -928,7 +928,27 @@ public:
     ZeroMemory(&m_si,sizeof(m_si));
     m_si.cb=sizeof(m_si);
 #ifdef _WIN64
-    result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
+    result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE,
+			   NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
+    if (result == FALSE)
+    {
+      TCHAR buf[1024];
+      TCHAR text[1024];
+      TCHAR title[1024];
+
+      LoadString(GetModuleHandle(NULL), IDS_cannotInvoke,
+		 text, sizeof(text)/sizeof(text[0]));
+      LoadString(GetModuleHandle(NULL), IDS_mayu,
+		 title, sizeof(title)/sizeof(title[0]));
+      _stprintf_s(buf, sizeof(buf)/sizeof(buf[0]),
+		  text, _T("yamyd32"), GetLastError());
+      MessageBox((HWND)NULL, buf, title, MB_OK | MB_ICONSTOP);
+    }
+    else
+    {
+      CloseHandle(m_pi.hThread);
+      CloseHandle(m_pi.hProcess);
+    }
 #endif // _WIN64
   }
 
