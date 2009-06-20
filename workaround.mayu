@@ -1,0 +1,46 @@
+def key E0RightShift E0RShift		= E0-0x36
+mod shift += E0RShift
+key *E0RShift = *RShift
+
+if ( KBD109 )
+  def key E0”¼Šp/‘SŠp E0Š¿š E0Kanji	= E0-0x29 # ”¼Šp/‘SŠp Š¿š
+  def key E0‰p” E0Eisuu		= E0-0x3a # ‰p” CapsLock Š¿š”Ô†
+  def key E0‚Ğ‚ç‚ª‚È E0Hiragana		= E0-0x70 # ‚Ğ‚ç‚ª‚È ƒJƒ^ƒJƒi ƒ[ƒ}š
+
+  if ( KBD104on109 )
+    def subst ~S-*E0”¼Šp/‘SŠp		= $GRAVE_ACCENT
+    def subst  S-*E0”¼Šp/‘SŠp		= $TILDE
+    def subst  A-E0”¼Šp/‘SŠp		= $ToggleIME
+    def subst    *E0‚Ğ‚ç‚ª‚È		= *Space
+    def subst    *E0‰p”		= S-*‰p”
+  endif
+endif
+
+keymap Global
+ if ( KBD109 ) and ( ! KBD104on109 )
+   key *E0”¼Šp/‘SŠp	= *Esc			# Esc ‚Æ”¼Šp/‘SŠp‚Ì“ü‚ê‘Ö‚¦
+ endif
+ if ( KBD109 )
+   mod control += E0‰p”			# ‰p”‚ğ Control ‚É
+   key *E0‰p”		= *LControl		#	V
+ endif
+
+keymap	KeymapDefault = &Default
+ if ( KBD109 )
+   mod control += E0‰p”			# ‰p”‚ğ Control ‚É
+   key *E0‰p”		= *LControl		#	V
+ endif
+
+keymap Emacsen : Global
+ if ( MAP-ESCAPE-TO-META )			# ESC ‚ª M- ‚É‚È‚é‚Ì‚ğ‘j~‚·‚é
+   if ( KBD109 ) and ( ! KBD104on109 )
+     key *E0”¼Šp/‘SŠp	= *Esc
+   endif
+ endif
+
+keymap2	EmacsMark
+ if ( MAP-ESCAPE-TO-META )
+   if ( KBD109 ) and ( ! KBD104on109 )
+     key E0”¼Šp/‘SŠp	= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
+   endif
+ endif

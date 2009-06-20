@@ -76,12 +76,15 @@ keymap Global
 
  if ( KBD109 ) and ( ! KBD104on109 )
    key *”¼Šp/‘SŠp	= *Esc			# Esc ‚Æ”¼Šp/‘SŠp‚Ì“ü‚ê‘Ö‚¦
+   key *E0”¼Šp/‘SŠp	= *Esc			# Esc ‚Æ”¼Šp/‘SŠp‚Ì“ü‚ê‘Ö‚¦
    key *Esc		= *”¼Šp/‘SŠp		#	V
  endif
 
  if ( KBD109 )
    mod control += ‰p”				# ‰p”‚ğ Control ‚É
    key *‰p”		= *LControl		#	V
+   mod control += E0‰p”				# ‰p”‚ğ Control ‚É
+   key *E0‰p”		= *LControl		#	V
  else
    mod control += CapsLock			# CapsLock ‚ğ Control ‚É
    key *CapsLock	= *LControl		#	V
@@ -124,6 +127,8 @@ keymap	KeymapDefault = &Default
  if ( KBD109 )
    mod control += ‰p”				# ‰p”‚ğ Control ‚É
    key *‰p”		= *LControl		#	V
+   mod control += E0‰p”				# ‰p”‚ğ Control ‚É
+   key *E0‰p”		= *LControl		#	V
  else
    mod control += CapsLock			# CapsLock ‚ğ Control ‚É
    key *CapsLock	= *LControl		#	V
@@ -273,6 +278,7 @@ keymap Emacsen : Global
  if ( MAP-ESCAPE-TO-META )			# ESC ‚ª M- ‚É‚È‚é‚Ì‚ğ‘j~‚·‚é
    if ( KBD109 ) and ( ! KBD104on109 )
      key *”¼Šp/‘SŠp	= *Esc
+     key *E0”¼Šp/‘SŠp	= *Esc
      key *Esc		= *”¼Šp/‘SŠp
    else
      key Escape		= &Default

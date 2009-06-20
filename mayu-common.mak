@@ -225,7 +225,7 @@ depend::
 distrib:
 		-@echo "we need cygwin tool"
 		-rm -f yamy-$(VERSION).zip
-		zip yamy-$(VERSION).zip yamy.ini 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu workaround.mayu
+		zip yamy-$(VERSION).zip yamy.ini 104.mayu 109.mayu default.mayu emacsedit.mayu 104on109.mayu 109on104.mayu dot.mayu workaround.mayu workaround.reg readme.txt
 		cd $(OUT_DIR_EXE)
 		zip ../yamy-$(VERSION).zip yamy.exe yamy32 yamy64 yamy32.dll yamy64.dll yamyd32
 		cd ..

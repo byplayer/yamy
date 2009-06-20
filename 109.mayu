@@ -56,6 +56,7 @@ def key L				=    0x26
 def key Semicolon			=    0x27 # ;+
 def key Colon				=    0x28 # :*
 def key ”¼Šp/‘SŠp Š¿š Kanji		=    0x29 # ”¼Šp/‘SŠp Š¿š
+def key E0”¼Šp/‘SŠp E0Š¿š E0Kanji	= E0-0x29 # ”¼Šp/‘SŠp Š¿š
 def key LeftShift LShift		=    0x2a
 def key RightSquareBracket CloseBracket	=    0x2b # ]}
 def key Z				=    0x2c
@@ -74,6 +75,7 @@ def key NumAsterisk NumMultiply		=    0x37 # ƒeƒ“ƒL[ *
 def key LeftAlt LAlt LMenu		=    0x38
 def key Space				=    0x39
 def key ‰p” Eisuu			=    0x3a # ‰p” CapsLock Š¿š”Ô†
+def key E0‰p” E0Eisuu			= E0-0x3a # ‰p” CapsLock Š¿š”Ô†
 def key F1				=    0x3b
 def key F2				=    0x3c
 def key F3				=    0x3d
@@ -106,6 +108,7 @@ def key F11				=    0x57
 def key F12				=    0x58
 
 def key ‚Ğ‚ç‚ª‚È Hiragana		=    0x70 # ‚Ğ‚ç‚ª‚È ƒJƒ^ƒJƒi ƒ[ƒ}š
+def key E0‚Ğ‚ç‚ª‚È E0Hiragana		= E0-0x70 # ‚Ğ‚ç‚ª‚È ƒJƒ^ƒJƒi ƒ[ƒ}š
 
 def key ReverseSolidus BackSlash	=    0x73 # __
 

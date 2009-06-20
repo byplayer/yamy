@@ -8,6 +8,9 @@ define KBD104on109
 def subst ~S-*”¼Šp/‘SŠp		= $GRAVE_ACCENT
 def subst  S-*”¼Šp/‘SŠp		= $TILDE
 def subst  A-”¼Šp/‘SŠp		= $ToggleIME
+def subst ~S-*E0”¼Šp/‘SŠp	= $GRAVE_ACCENT
+def subst  S-*E0”¼Šp/‘SŠp	= $TILDE
+def subst  A-E0”¼Šp/‘SŠp	= $ToggleIME
 def subst  S-*_2		= $COMMERCIAL_AT
 def subst  S-*_6		= $CIRCUMFLEX_ACCENT
 def subst  S-*_7		= $AMPERSAND
@@ -30,6 +33,8 @@ def subst    *–³•ÏŠ·		= *Space
 def subst    *•ÏŠ·		= *Space
 def subst    *‚Ğ‚ç‚ª‚È		= *Space
 def subst    *‰p”		= S-*‰p”
+def subst    *E0‚Ğ‚ç‚ª‚È	= *Space
+def subst    *E0‰p”		= S-*‰p”
 def subst *ReverseSolidus	= *RightShift
 
 keymap Global

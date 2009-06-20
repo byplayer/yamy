@@ -146,6 +146,7 @@ keymap2	EmacsMark
    key Escape		= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
    if ( KBD109 ) and ( ! KBD104on109 )
      key ”¼Šp/‘SŠp	= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
+     key E0”¼Šp/‘SŠp	= &Prefix(EmacsMarkEscape) &EditNextModifier(M-)
    endif
  endif
 
