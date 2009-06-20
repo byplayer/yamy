@@ -86,16 +86,16 @@ BEGIN
                     WS_TABSTOP,149,47,39,10
 END
 
-IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 150
+IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 244, 180
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "バージョン情報 - YAMY"
 FONT 9, "MS UI Gothic"
 BEGIN
-    DEFPUSHBUTTON   "閉じる",IDOK,136,120,50,14
+    DEFPUSHBUTTON   "閉じる",IDOK,136,160,50,14
     PUSHBUTTON      "最新バージョンのダウンロード(&D)",IDC_BUTTON_download,
-                    32,120,100,14
+                    32,160,100,14
     ICON            IDI_ICON_mayu,IDC_STATIC_mayuIcon,8,20,20,20
-    EDITTEXT        IDC_EDIT_builtBy,32,8,164,104,ES_MULTILINE | 
+    EDITTEXT        IDC_EDIT_builtBy,32,8,204,144,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER
 END
 
@@ -260,7 +260,7 @@ BEGIN
     IDS_mayuPathName        "名前"
     IDS_mayuPath            "設定ファイル名"
     IDS_mayuSymbols         "シンボル"
-    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\nCopyright (C) 2009,\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
+    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 2009,\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n\r\nThis program derived from\r\n  窓使いの憂鬱\r\n    http://mayu.sourceforge.net/\r\n  Copyright (C) 1999-2005,  \r\n    TAGA Nayuta <nayuta@users.sourceforge.net>"
     IDS_homepage            "http://yamy.sourceforge.jp/"
 END
 
@@ -339,16 +339,16 @@ BEGIN
                     WS_TABSTOP,149,147,39,10
 END
 
-IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 204, 150
+IDD_DIALOG_version DIALOG DISCARDABLE  0, 0, 244, 180
 STYLE DS_CENTERMOUSE | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Version - YAMY"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "&Close",IDOK,136,120,50,14
+    DEFPUSHBUTTON   "&Close",IDOK,136,160,50,14
     PUSHBUTTON      "&Download The Latest Version",IDC_BUTTON_download,32,
-                    120,100,14
+                    160,100,14
     ICON            IDI_ICON_mayu,IDC_STATIC_mayuIcon,8,20,20,20
-    EDITTEXT        IDC_EDIT_builtBy,32,8,164,104,ES_MULTILINE | 
+    EDITTEXT        IDC_EDIT_builtBy,32,8,204,144,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER
 END
 
@@ -504,7 +504,7 @@ BEGIN
     IDS_mayuPathName        "Name"
     IDS_mayuPath            "Setting Filename"
     IDS_mayuSymbols         "Symbols"
-    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 1999-2005,\r\n  TAGA Nayuta <nayuta@users.sourceforge.net>\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n"
+    IDS_version             "YAMY %s\r\n  %s\r\n\r\nCopyright (C) 2009,\r\n  KOBAYASHI Yoshiaki <gimy@users.sourceforge.jp>\r\n\r\nbuilt by %s\r\n  %s\r\n  %s\r\n\r\n  %s\r\n\r\nThis program derived from\r\n  MADO TSUKAI NO YUUTSU\r\n    http://mayu.sourceforge.net/\r\n  Copyright (C) 1999-2005,  \r\n    TAGA Nayuta <nayuta@users.sourceforge.net>"
     IDS_homepage            "http://yamy.sourceforge.jp/"
 END
 
