@@ -1,4 +1,4 @@
-◎Yet Another Mado tsukai no Yuutsu(YAMY) ver.0.01
+Yet Another Mado tsukai no Yuutsu(YAMY) ver.0.01
 
 1. 概要
 
@@ -198,7 +198,10 @@ YAMYが利用しているBoostライブラリのライセンスは以下の通りです:
 
 7. 履歴
 
-2009/06/?? ver.0.01
+2009/06/28 ver.0.01
+
+初リリース
+以下は「窓使いの憂鬱」の最終版からの変更点
 
 * キー入力置換をドライバからユーザモードに変更(NO_DRIVERマクロ)
   - ドライバへのアクセスを排除
