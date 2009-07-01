@@ -163,7 +163,6 @@ private:
   HANDLE m_threadHandle;
   unsigned m_threadId;
   tstring m_mayudVersion;			/// version of mayud.sys
-#if defined(_WINNT)
 #ifdef NO_DRIVER
   std::deque<KEYBOARD_INPUT_DATA> m_kidq;
   CriticalSection m_cskidq;
@@ -178,7 +177,6 @@ private:
   HANDLE m_hookPipe;				/// named pipe for &SetImeString
   HMODULE m_sts4mayu;				/// DLL module for ThumbSense
   HMODULE m_cts4mayu;				/// DLL module for ThumbSense
-#endif // _WINNT
   bool volatile m_doForceTerminate;		/// terminate engine thread
   bool volatile m_isLogMode;			/// is logging mode ?
   bool volatile m_isEnabled;			/// is enabled  ?

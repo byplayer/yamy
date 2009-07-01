@@ -867,13 +867,7 @@ void Engine::funcSync(FunctionParam *i_param)
   g_hookData->m_syncKey = sc->m_scan;
   g_hookData->m_syncKeyIsExtended = !!(sc->m_flags & ScanCode::E0E1);
   m_isSynchronizing = true;
-#if defined(_WINNT)
   generateKeyEvent(sync, false, false);
-#elif defined(_WIN95)
-  generateKeyEvent(sync, true, false);
-#else
-#  error
-#endif
   
   m_cs.release();
   DWORD r = WaitForSingleObject(m_eSync, 5000);
@@ -1201,7 +1195,6 @@ void Engine::funcVK(FunctionParam *i_param, VKey i_vkey)
     mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
   else if (vkey == VK_RBUTTON && isUp)
     mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-#if(_WIN32_WINNT >= 0x0500)
   else if (vkey == VK_XBUTTON1 && isDown)
     mouse_event(MOUSEEVENTF_XDOWN, 0, 0, XBUTTON1, 0);
   else if (vkey == VK_XBUTTON1 && isUp)
@@ -1210,7 +1203,6 @@ void Engine::funcVK(FunctionParam *i_param, VKey i_vkey)
     mouse_event(MOUSEEVENTF_XDOWN, 0, 0, XBUTTON2, 0);
   else if (vkey == VK_XBUTTON2 && isUp)
     mouse_event(MOUSEEVENTF_XUP, 0, 0, XBUTTON2, 0);
-#endif /* _WIN32_WINNT >= 0x0500 */
   else if (isUp || isDown)
     keybd_event(vkey,
 		static_cast<BYTE>(MapVirtualKey(vkey, 0)),
@@ -1705,7 +1697,6 @@ void Engine::funcWindowIdentify(FunctionParam *i_param)
 // set alpha blending parameter to the window
 void Engine::funcWindowSetAlpha(FunctionParam *i_param, int i_alpha)
 {
-#if defined(_WINNT)
   HWND hwnd;
   if (!getSuitableWindow(i_param, &hwnd))
     return;
@@ -1772,7 +1763,6 @@ void Engine::funcWindowSetAlpha(FunctionParam *i_param, int i_alpha)
     RedrawWindow(hwnd, NULL, NULL,
 		 RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN);
   }
-#endif // _WINNT
 }
 
 
@@ -1973,7 +1963,6 @@ void Engine::funcSetImeStatus(FunctionParam *i_param, ToggleType i_toggle)
 // set IME open status
 void Engine::funcSetImeString(FunctionParam *i_param, const StrExprArg &i_data)
 {
-#if defined(_WINNT)
   if (!i_param->m_isPressed)
     return;
   if (m_hwndFocus)
@@ -1992,10 +1981,6 @@ void Engine::funcSetImeString(FunctionParam *i_param, const StrExprArg &i_data)
 
     //FlushFileBuffers(m_hookPipe);
   }
-#else
-  Acquire a(&m_log);
-  m_log << _T("supported on only Windows NT/2000/XP") << std::endl;
-#endif
 }
 
 // Direct SSTP Server

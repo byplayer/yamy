@@ -520,7 +520,6 @@ static void funcSetImeStatus(HWND i_hwnd, int i_status)
 // &SetImeString
 static void funcSetImeString(HWND i_hwnd, int i_size)
 {
-#if defined(_WINNT)
   _TCHAR *buf = new _TCHAR(i_size);
   DWORD len = 0;
   _TCHAR ImeDesc[GANA_MAX_ATOM_LENGTH];
@@ -550,7 +549,6 @@ static void funcSetImeString(HWND i_hwnd, int i_size)
   if (!status)
     ImmSetOpenStatus(hIMC, status);
   ImmReleaseContext(i_hwnd, hIMC);
-#endif // _WINNT
 }
 
 /// notify lock state

@@ -313,7 +313,6 @@ void Engine::generateKeyEvent(Key *i_key, bool i_doPress, bool i_isByAssign)
 	kid.Flags = sc[i].m_flags;
 	if (!i_doPress)
 	  kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
-#if defined(_WINNT)
 #ifdef NO_DRIVER
 	injectInput(&kid, NULL);
 #else // !NO_DRIVER
@@ -321,11 +320,6 @@ void Engine::generateKeyEvent(Key *i_key, bool i_doPress, bool i_isByAssign)
 	WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
 	CHECK_TRUE( GetOverlappedResult(m_device, &m_ol, &len, TRUE) );
 #endif // !NO_DRIVER
-#elif defined(_WIN95)
-	DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
-#else
-#  error
-#endif
       }
       
       m_lastGeneratedKey = i_doPress ? i_key : NULL;
@@ -764,7 +758,6 @@ void Engine::keyboardHandler()
 #ifndef NO_DRIVER
     DWORD len;
 #endif // !NO_DRIVER
-#if defined(_WINNT)
     {
       Acquire a(&m_log, 1);
       m_log << _T("begin ReadFile();") << std::endl;
@@ -881,14 +874,6 @@ void Engine::keyboardHandler()
       Acquire a(&m_log, 1);
       m_log << _T("end ReadFile();") << std::endl;
     }
-#elif defined(_WIN95)
-    if (!DeviceIoControl(m_device, 1, NULL, 0, &kid, sizeof(kid), &len, NULL))
-    {
-      continue; // TODO
-    }
-#else
-#  error
-#endif
 
     checkFocusWindow();
 
@@ -903,18 +888,12 @@ void Engine::keyboardHandler()
       }
       else
       {
-#if defined(_WINNT)
 #ifdef NO_DRIVER
 	injectInput(&kid, NULL);
 #else // !NO_DRIVER
 	WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
 	GetOverlappedResult(m_device, &m_ol, &len, TRUE);
 #endif // !NO_DRIVER
-#elif defined(_WIN95)
-	DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
-#else
-#  error
-#endif
       }
       updateLastPressedKey(NULL);
       continue;
@@ -925,16 +904,10 @@ void Engine::keyboardHandler()
     if (!m_currentFocusOfThread ||
 	!m_currentKeymap)
     {
-#if defined(_WINNT)
 #ifndef NO_DRIVER
       WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
       GetOverlappedResult(m_device, &m_ol, &len, TRUE);
 #endif // !NO_DRIVER
-#elif defined(_WIN95)
-      DeviceIoControl(m_device, 2, &kid, sizeof(kid), NULL, 0, &len, NULL);
-#else
-#  error
-#endif
       Acquire a(&m_log, 0);
       if (!m_currentFocusOfThread)
 	m_log << _T("internal error: m_currentFocusOfThread == NULL")
@@ -1078,9 +1051,7 @@ void Engine::keyboardHandler()
     key.initialize();
     updateLastPressedKey(isPhysicallyPressed ? c.m_mkey.m_key : NULL);
   }
-#if defined(_WINNT)
   break_while:
-#endif
   CHECK_TRUE( SetEvent(m_threadEvent) );
 }
   
@@ -1092,12 +1063,10 @@ Engine::Engine(tomsgstream &i_log)
     m_didMayuStartDevice(false),
     m_threadEvent(NULL),
     m_mayudVersion(_T("unknown")),
-#if defined(_WINNT)
     m_readEvent(NULL),
     m_interruptThreadEvent(NULL),
     m_sts4mayu(NULL),
     m_cts4mayu(NULL),
-#endif // _WINNT
     m_doForceTerminate(false),
     m_isLogMode(false),
     m_isEnabled(true),
@@ -1145,13 +1114,11 @@ Engine::Engine(tomsgstream &i_log)
 #endif // !NO_DRIVER
   // create event for sync
   CHECK_TRUE( m_eSync = CreateEvent(NULL, FALSE, FALSE, NULL) );
-#if defined(_WINNT)
   // create named pipe for &SetImeString
   m_hookPipe = CreateNamedPipe(addSessionId(HOOK_PIPE_NAME).c_str(),
 			       PIPE_ACCESS_OUTBOUND,
 			       PIPE_TYPE_BYTE, 1,
 			       0, 0, 0, NULL);
-#endif // _WINNT
   StrExprArg::setEngine(this);
 }
 
@@ -1160,24 +1127,16 @@ Engine::Engine(tomsgstream &i_log)
 bool Engine::open()
 {
   // open mayu m_device
-#if defined(_WINNT)
 #ifndef NO_DRIVER
   m_device = CreateFile(MAYU_DEVICE_FILE_NAME, GENERIC_READ | GENERIC_WRITE,
 			0, NULL, OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
 #endif // !NO_DRIVER
-#elif defined(_WIN95)
-  m_device = CreateFile(MAYU_DEVICE_FILE_NAME, 0,
-			0, NULL, CREATE_NEW, FILE_FLAG_DELETE_ON_CLOSE, NULL);
-#else
-#  error
-#endif
 
   if (m_device != INVALID_HANDLE_VALUE) {
     return true;
   }
 
-#if defined(_WINNT)
 #ifndef NO_DRIVER
   // start mayud
   SC_HANDLE hscm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
@@ -1198,7 +1157,6 @@ bool Engine::open()
 			0, NULL, OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
 #endif // !NO_DRIVER
-#endif // _WINNT
   return (m_device != INVALID_HANDLE_VALUE);
 }
 
@@ -1220,13 +1178,11 @@ void Engine::start()
 {
   CHECK_TRUE( m_threadEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
   
-#if defined(_WINNT)
   CHECK_TRUE( m_readEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
   CHECK_TRUE( m_interruptThreadEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
   m_ol.Offset = 0;
   m_ol.OffsetHigh = 0;
   m_ol.hEvent = m_readEvent;
-#endif // _WINNT
   
   CHECK_TRUE( m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, keyboardHandler, this, 0, &m_threadId) );
   CHECK( WAIT_OBJECT_0 ==, WaitForSingleObject(m_threadEvent, INFINITE) );
@@ -1241,12 +1197,8 @@ void Engine::stop()
     m_doForceTerminate = true;
     do
     {
-#if defined(_WINNT)
       m_interruptThreadReason = InterruptThreadReason_Terminate;
       SetEvent(m_interruptThreadEvent);
-#elif defined(_WIN95)
-      DeviceIoControl(m_device, 3, NULL, 0, NULL, 0, NULL, NULL);
-#endif
       //DWORD buf;
       //M_DeviceIoControl(m_device, IOCTL_MAYU_DETOUR_CANCEL,
       //                &buf, sizeof(buf), &buf, sizeof(buf), &buf, NULL);
@@ -1259,7 +1211,6 @@ void Engine::stop()
     CHECK_TRUE( CloseHandle(m_threadHandle) );
     m_threadHandle = NULL;
 
-#if defined(_WINNT)
     // stop mayud
     if (m_didMayuStartDevice)
     {
@@ -1281,13 +1232,11 @@ void Engine::stop()
     m_readEvent = NULL;
     CHECK_TRUE( CloseHandle(m_interruptThreadEvent) );
     m_interruptThreadEvent = NULL;
-#endif // _WINNT
   }
 }
 
 bool Engine::pause()
 {
-#if defined(_WINNT)
   if (m_device != INVALID_HANDLE_VALUE) {
     do {
       m_interruptThreadReason = InterruptThreadReason_Pause;
@@ -1297,14 +1246,12 @@ bool Engine::pause()
     close();
 #endif // !NO_DRIVER
   }
-#endif // _WINNT
   return true;
 }
 
 
 bool Engine::resume()
 {
-#if defined(_WINNT)
   if (m_device == INVALID_HANDLE_VALUE) {
 #ifndef NO_DRIVER
     if (!open()) {
@@ -1316,7 +1263,6 @@ bool Engine::resume()
       SetEvent(m_interruptThreadEvent);
     } while (WaitForSingleObject(m_threadEvent, 100) != WAIT_OBJECT_0);
   }
-#endif // _WINNT
   return true;
 }
 
@@ -1341,14 +1287,12 @@ Engine::~Engine()
 #ifndef NO_DRIVER
   close();
 #endif // !NO_DRIVER
-#if defined(_WINNT)
   // destroy named pipe for &SetImeString
   if (m_hookPipe && m_hookPipe != INVALID_HANDLE_VALUE)
   {
     DisconnectNamedPipe(m_hookPipe);
     CHECK_TRUE( CloseHandle(m_hookPipe) );
   }
-#endif // _WINNT
 }
 
 
