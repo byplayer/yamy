@@ -966,7 +966,7 @@ public:
     // stop notify from mayu.dll
     g_hookData->m_hwndTaskTray = NULL;
     CHECK_FALSE( uninstallHooks() );
-	SendMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+	PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
     
     // destroy windows
     CHECK_TRUE( DestroyWindow(m_hwndVersion) );
