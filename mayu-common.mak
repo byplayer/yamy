@@ -6,7 +6,7 @@
 
 
 !if "$(VERSION)" == ""
-VERSION		= 0.01
+VERSION		= 0.02
 !endif
 
 !if "$(TARGETOS)" == "WINNT"
