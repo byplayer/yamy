@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="yamy32"
+	>
+	<UserMacro
+		Name="CPUBIT"
+		Value="32"
+	/>
+</VisualStudioPropertySheet>

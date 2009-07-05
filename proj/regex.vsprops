@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="regex"
+	>
+	<Tool
+		Name="VCCustomBuildTool"
+		CommandLine="..\tools\makeregex.bat $(ConfigurationName) $(BOOST_MAJOR) $(BOOST_MINOR)"
+		Outputs="ext_lib$(CPUBIT)\$(ConfigurationName)\libboost_regex-mt-s-$(BOOST_MAJOR).lib"
+	/>
+</VisualStudioPropertySheet>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="yamy"
+	OutputDirectory="..\$(ConfigurationName)"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="../../boost_$(BOOST_MAJOR)_$(BOOST_MINOR)"
+		PreprocessorDefinitions="VERSION=\&quot;$(VERSION)\&quot;;LOGNAME=\&quot;$(USERNAME)\&quot;;COMPUTERNAME=\&quot;$(COMPUTERNAME)\&quot;;_CRT_SECURE_NO_WARNINGS;MAYU64;NO_DRIVER;USE_MAILSLOT;USE_INI"
+	/>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalLibraryDirectories="&quot;ext_lib$(CPUBIT)\$(ConfigurationName)&quot;"
+		ProgramDatabaseFile="$(TargetDir)$(TargetFileName).pdb"
+	/>
+	<UserMacro
+		Name="VERSION"
+		Value="0.02"
+		PerformEnvironmentSet="true"
+	/>
+	<UserMacro
+		Name="BOOST_MAJOR"
+		Value="1_38"
+		PerformEnvironmentSet="true"
+	/>
+	<UserMacro
+		Name="BOOST_MINOR"
+		Value="0"
+		PerformEnvironmentSet="true"
+	/>
+</VisualStudioPropertySheet>

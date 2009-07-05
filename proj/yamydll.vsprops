@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="yamydll"
+	>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="imm32.lib"
+		OutputFile="$(OutDir)\yamy$(CPUBIT).dll"
+	/>
+</VisualStudioPropertySheet>

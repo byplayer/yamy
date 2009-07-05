@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="shift_jis"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="yamyexe"
+	>
+	<Tool
+		Name="VCLinkerTool"
+		AdditionalDependencies="comctl32.lib"
+		OutputFile="$(OutDir)\$(ProjectName)"
+	/>
+</VisualStudioPropertySheet>
