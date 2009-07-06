@@ -13,14 +13,16 @@ set REGEX_VC=VC_VERSION
 
 if "%CONFIG%" == "Debug" set GD=gd
 
+set REGEX=libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%
+
 pushd %BOOST_DIR%\libs\regex\build
 
-nmake -f %REGEX_VC%.mak libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%_clean
-nmake -f %REGEX_VC%.mak XCFLAGS=-D_WCTYPE_INLINE_DEFINED main_dir libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%_dir ./%REGEX_VC%0/libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.lib
+if exist %REGEX_VC%0\%REGEX%.lib nmake -f %REGEX_VC%.mak %REGEX%_clean
+nmake -f %REGEX_VC%.mak XCFLAGS=-D_WCTYPE_INLINE_DEFINED main_dir %REGEX%_dir ./%REGEX_VC%0/%REGEX%.lib
 
 popd
 
-copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.lib ..\proj\ext_lib%CPUBIT%\%CONFIG%\libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.lib
-copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.lib ..\proj\ext_lib%CPUBIT%\%CONFIG%\libboost_regex-mt-s%GD%-%BOOST_MAJOR%.lib
+copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\%REGEX%.lib ..\proj\ext_lib%CPUBIT%\%CONFIG%\%REGEX%.lib
+copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\%REGEX%.lib ..\proj\ext_lib%CPUBIT%\%CONFIG%\libboost_regex-mt-s%GD%-%BOOST_MAJOR%.lib
 
-if "%CONFIG%" == "Debug" copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.pdb ..\proj\ext_lib%CPUBIT%\%CONFIG%\libboost_regex-%REGEX_VC%0-mt-s%GD%-%BOOST_MAJOR%.pdb
+if "%CONFIG%" == "Debug" copy /Y %BOOST_DIR%\libs\regex\build\%REGEX_VC%0\%REGEX%.pdb ..\proj\ext_lib%CPUBIT%\%CONFIG%\%REGEX%.pdb
