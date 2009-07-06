@@ -1,5 +1,4 @@
-var shares = new Array("yamy.ini", "104.mayu", "109.mayu", "default.mayu", "emacsedit.mayu", "104on109.mayu", "109on104.mayu", "dot.mayu", "workaround.mayu", "workaround.reg", "readme.txt");
-var binaries = new Array("yamy.exe", "yamy32", "yamy32.dll", "yamyd32", "yamy64", "yamy64.dll");
+var files = new Array("yamy.ini", "104.mayu", "109.mayu", "default.mayu", "emacsedit.mayu", "104on109.mayu", "109on104.mayu", "dot.mayu", "workaround.mayu", "workaround.reg", "readme.txt", "yamy.exe", "yamy32", "yamy32.dll", "yamyd32", "yamy64", "yamy64.dll");
 
 var config = WScript.Arguments.Item(0); // "Debug" or "Release"
 var version = WScript.Arguments.Item(1); // x.yz
@@ -23,11 +22,6 @@ var RemoveFile = function(dir, name) {
     }
 };
 
-var AssembleFile = function(dir, name) {
-    var path =  dir + name;
-    fso.CopyFile(path, targetDir + name, true);
-};
-
 var fso = WScript.CreateObject("Scripting.FileSystemObject");
 if (fso == null) {
 	throw new Error("can't create File System Object!");
@@ -42,19 +36,20 @@ if (fso.FolderExists(targetDir) == false) {
     fso.CreateFolder(targetDir);
 }
 
-ProcessFiles(targetDir, shares, RemoveFile);
 RemoveFile(targetDir, pkgFile);
 
 var file = fso.CreateTextFile(targetDir + pkgFile, true);
 file.Write("PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
 file.Close();
 
-ProcessFiles("..\\", shares, AssembleFile);
-
 var targetZip = shell.NameSpace(fso.GetAbsolutePathName(targetDir + pkgFile));
 
 var PackFile = function(dir, name) {
     var path =  dir + name;
+    if (fso.FileExists(path) == false) {
+	RemoveFile(targetDir, pkgFile);
+	throw new Error("can't pack " + path + "!");
+    }
     var item = shell.NameSpace(fso.GetAbsolutePathName(path) + "\\..\\").ParseName(name);
     var count = targetZip.Items().Count;
     targetZip.CopyHere(item);
@@ -63,5 +58,4 @@ var PackFile = function(dir, name) {
     }
 };
 
-ProcessFiles("..\\", shares, PackFile);
-ProcessFiles(targetDir, binaries, PackFile);
+ProcessFiles(targetDir, files, PackFile);
