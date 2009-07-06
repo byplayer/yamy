@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets=".\yamy.vsprops"
+			InheritedPropertySheets=".\yamy.vsprops;.\yamy32.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -91,7 +91,7 @@
 			Name="Release|Win32"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets=".\yamy.vsprops"
+			InheritedPropertySheets=".\yamy.vsprops;.\yamy32.vsprops"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
