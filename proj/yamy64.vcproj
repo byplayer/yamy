@@ -291,24 +291,6 @@
 			<File
 				RelativePath="..\engine.h"
 				>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="CScript.exe $(InputDir)tools\makefunc.js $(InputPath) $(InputDir)functions.h&#x0D;&#x0A;"
-						Outputs="$(InputDir)functions.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="CScript.exe $(InputDir)tools\makefunc.js $(InputPath) $(InputDir)functions.h&#x0D;&#x0A;"
-						Outputs="$(InputDir)functions.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\errormessage.h"
