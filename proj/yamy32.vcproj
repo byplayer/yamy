@@ -18,7 +18,6 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets=".\yamyexe.vsprops;.\yamy.vsprops;.\yamy32.vsprops"
 			CharacterSet="1"
@@ -89,7 +88,6 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			InheritedPropertySheets=".\yamyexe.vsprops;.\yamy.vsprops;.\yamy32.vsprops"
 			CharacterSet="1"

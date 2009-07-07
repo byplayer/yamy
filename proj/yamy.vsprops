@@ -4,13 +4,12 @@
 	Version="8.00"
 	Name="yamy"
 	OutputDirectory="..\$(ConfigurationName)"
-	BuildLogFile="$(IntDir)\BuildLog_$(ProjectName).htm"
+	IntermediateDirectory="$(ConfigurationName)\$(ProjectName)"
 	>
 	<Tool
 		Name="VCCLCompilerTool"
 		AdditionalIncludeDirectories="../../boost_$(BOOST_MAJOR)_$(BOOST_MINOR)"
 		PreprocessorDefinitions="VERSION=\&quot;$(VERSION)\&quot;;LOGNAME=\&quot;$(USERNAME)\&quot;;COMPUTERNAME=\&quot;$(COMPUTERNAME)\&quot;;_CRT_SECURE_NO_WARNINGS;MAYU64;NO_DRIVER;USE_MAILSLOT;USE_INI"
-		ProgramDataBaseFileName="$(IntDir)\vc90_$(ProjectName).pdb"
 	/>
 	<Tool
 		Name="VCLinkerTool"

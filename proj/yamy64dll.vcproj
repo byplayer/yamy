@@ -18,7 +18,6 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|x64"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets=".\yamydll.vsprops;.\yamy.vsprops;.\yamy64.vsprops"
 			CharacterSet="1"
@@ -90,7 +89,6 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets=".\yamydll.vsprops;.\yamy.vsprops;.\yamy64.vsprops"
 			CharacterSet="1"
