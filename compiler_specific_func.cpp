@@ -13,12 +13,12 @@
 // get compiler version string
 tstring getCompilerVersionString()
 {
-  TCHAR buf[200];
-  _sntprintf(buf, NUMBER_OF(buf),
-	     _T("Microsoft (R) 32-bit C/C++ Optimizing Compiler Version %d.%02d"),
-	     _MSC_VER / 100,
-	     _MSC_VER % 100);
-  return tstring(buf);
+	TCHAR buf[200];
+	_sntprintf(buf, NUMBER_OF(buf),
+			   _T("Microsoft (R) 32-bit C/C++ Optimizing Compiler Version %d.%02d"),
+			   _MSC_VER / 100,
+			   _MSC_VER % 100);
+	return tstring(buf);
 }
 
 
@@ -30,12 +30,12 @@ tstring getCompilerVersionString()
 // get compiler version string
 tstring getCompilerVersionString()
 {
-  TCHAR buf[100];
-  _sntprintf(buf, NUMBER_OF(buf), _T("Borland C++ %d.%d.%d"),
-	     __BORLANDC__ / 0x100,
-	     __BORLANDC__ / 0x10 % 0x10,
-	     __BORLANDC__ % 0x10);
-  return tstring(buf);
+	TCHAR buf[100];
+	_sntprintf(buf, NUMBER_OF(buf), _T("Borland C++ %d.%d.%d"),
+			   __BORLANDC__ / 0x100,
+			   __BORLANDC__ / 0x10 % 0x10,
+			   __BORLANDC__ % 0x10);
+	return tstring(buf);
 }
 
 

@@ -12,10 +12,9 @@
 extern ATOM Register_target();
 
 ///
-enum
-{
-  ///
-  WM_APP_targetNotify = WM_APP + 102,
+enum {
+	///
+	WM_APP_targetNotify = WM_APP + 102,
 };
 
 

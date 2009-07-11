@@ -23,108 +23,96 @@ _T("\\\\.\\mailslot\\GANAware\\mayu\\{330F7914-EB5B-49be-ACCE-D2B8DF585B32}") _T
 #  define WM_MAYU_MESSAGE_NAME _T("GANAware\\mayu\\WM_MAYU_MESSAGE")
 
 ///
-enum MayuMessage
-{
-  MayuMessage_notifyName,
-  MayuMessage_funcRecenter,
-  MayuMessage_funcSetImeStatus,
-  MayuMessage_funcSetImeString,
+enum MayuMessage {
+	MayuMessage_notifyName,
+	MayuMessage_funcRecenter,
+	MayuMessage_funcSetImeStatus,
+	MayuMessage_funcSetImeString,
 };
 
 
 ///
-struct Notify
-{
-  ///
-  enum Type
-  {
-    Type_setFocus,				/// NotifySetFocus
-    Type_name,					/// NotifySetFocus
-    Type_lockState,				/// NotifyLockState
-    Type_sync,					/// Notify
-    Type_threadDetach,				/// NotifyThreadDetach
-    Type_command,				/// NotifyThreadDetach
-    Type_show,					/// NotifyShow
-    Type_log,					/// NotifyLog
-  };
-  Type m_type;					///
-  DWORD m_debugParam;				/// (for debug)
+struct Notify {
+	///
+	enum Type {
+		Type_setFocus,				/// NotifySetFocus
+		Type_name,					/// NotifySetFocus
+		Type_lockState,				/// NotifyLockState
+		Type_sync,					/// Notify
+		Type_threadDetach,				/// NotifyThreadDetach
+		Type_command,				/// NotifyThreadDetach
+		Type_show,					/// NotifyShow
+		Type_log,					/// NotifyLog
+	};
+	Type m_type;					///
+	DWORD m_debugParam;				/// (for debug)
 };
 
 
 ///
-struct NotifySetFocus : public Notify
-{
-  DWORD m_threadId;				///
-  DWORD m_hwnd;				///
-  _TCHAR m_className[GANA_MAX_PATH];		///
-  _TCHAR m_titleName[GANA_MAX_PATH];		///
+struct NotifySetFocus : public Notify {
+	DWORD m_threadId;				///
+	DWORD m_hwnd;				///
+	_TCHAR m_className[GANA_MAX_PATH];		///
+	_TCHAR m_titleName[GANA_MAX_PATH];		///
 };
 
 
 ///
-struct NotifyLockState : public Notify
-{
-  bool m_isNumLockToggled;			///
-  bool m_isCapsLockToggled;			///
-  bool m_isScrollLockToggled;			///
-  bool m_isKanaLockToggled;			///
-  bool m_isImeLockToggled;			///
-  bool m_isImeCompToggled;			///
+struct NotifyLockState : public Notify {
+	bool m_isNumLockToggled;			///
+	bool m_isCapsLockToggled;			///
+	bool m_isScrollLockToggled;			///
+	bool m_isKanaLockToggled;			///
+	bool m_isImeLockToggled;			///
+	bool m_isImeCompToggled;			///
 };
 
 
 ///
-struct NotifyThreadDetach : public Notify
-{
-  DWORD m_threadId;				///
+struct NotifyThreadDetach : public Notify {
+	DWORD m_threadId;				///
 };
 
 
 ///
-struct NotifyCommand : public Notify
-{
-  HWND m_hwnd;					///
-  UINT m_message;				///
-  WPARAM m_wParam;				///
-  LPARAM m_lParam;				///
+struct NotifyCommand : public Notify {
+	HWND m_hwnd;					///
+	UINT m_message;				///
+	WPARAM m_wParam;				///
+	LPARAM m_lParam;				///
 };
 
 
-enum
-{
-  NOTIFY_MESSAGE_SIZE = sizeof(NotifySetFocus),	///
-};
-
-
-///
-struct NotifyShow : public Notify
-{
-  ///
-  enum Show
-  {
-    Show_Normal,
-    Show_Maximized,
-    Show_Minimized,
-  };
-  Show m_show;					///
-  bool m_isMDI;					///
+enum {
+	NOTIFY_MESSAGE_SIZE = sizeof(NotifySetFocus),	///
 };
 
 
 ///
-struct NotifyLog : public Notify
-{
-  _TCHAR m_msg[GANA_MAX_PATH];			///
+struct NotifyShow : public Notify {
+	///
+	enum Show {
+		Show_Normal,
+		Show_Maximized,
+		Show_Minimized,
+	};
+	Show m_show;					///
+	bool m_isMDI;					///
 };
 
 
 ///
-enum MouseHookType
-{
-  MouseHookType_None = 0,				/// none
-  MouseHookType_Wheel = 1 << 0,			/// wheel
-  MouseHookType_WindowMove = 1 << 1,		/// window move
+struct NotifyLog : public Notify {
+	_TCHAR m_msg[GANA_MAX_PATH];			///
+};
+
+
+///
+enum MouseHookType {
+	MouseHookType_None = 0,				/// none
+	MouseHookType_Wheel = 1 << 0,			/// wheel
+	MouseHookType_WindowMove = 1 << 1,		/// window move
 };
 
 #ifdef NO_DRIVER
@@ -136,15 +124,15 @@ typedef unsigned int (WINAPI *KEYBOARD_DETOUR)(Engine *i_engine, KBDLLHOOKSTRUCT
 class HookData
 {
 public:
-  USHORT m_syncKey;				///
-  bool m_syncKeyIsExtended;			///
-  bool m_doesNotifyCommand;			///
-  DWORD m_hwndTaskTray;				///
-  bool m_correctKanaLockHandling;		/// does use KL- ?
-  MouseHookType m_mouseHookType;		///
-  int m_mouseHookParam;			///
-  DWORD m_hwndMouseHookTarget;		///
-  POINT m_mousePos;				///
+	USHORT m_syncKey;				///
+	bool m_syncKeyIsExtended;			///
+	bool m_doesNotifyCommand;			///
+	DWORD m_hwndTaskTray;				///
+	bool m_correctKanaLockHandling;		/// does use KL- ?
+	MouseHookType m_mouseHookType;		///
+	int m_mouseHookParam;			///
+	DWORD m_hwndMouseHookTarget;		///
+	POINT m_mousePos;				///
 };
 
 

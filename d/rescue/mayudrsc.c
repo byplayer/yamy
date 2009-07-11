@@ -25,32 +25,32 @@ NTSTATUS mayuGenericDispatch (IN PDEVICE_OBJECT, IN PIRP);
 
 // initialize driver
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT driverObject,
-		     IN PUNICODE_STRING registryPath)
+					 IN PUNICODE_STRING registryPath)
 {
-  ULONG i;
-  UNREFERENCED_PARAMETER(registryPath);
+	ULONG i;
+	UNREFERENCED_PARAMETER(registryPath);
 
-  // set major functions
-  driverObject->DriverUnload = mayuUnloadDriver;
-  driverObject->DriverExtension->AddDevice = mayuAddDevice;
-  for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++)
-    driverObject->MajorFunction[i] = mayuGenericDispatch;
-  driverObject->MajorFunction[IRP_MJ_PNP] = mayuGenericDispatch;
-  return STATUS_SUCCESS;
+	// set major functions
+	driverObject->DriverUnload = mayuUnloadDriver;
+	driverObject->DriverExtension->AddDevice = mayuAddDevice;
+	for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++)
+		driverObject->MajorFunction[i] = mayuGenericDispatch;
+	driverObject->MajorFunction[IRP_MJ_PNP] = mayuGenericDispatch;
+	return STATUS_SUCCESS;
 }
 
 NTSTATUS mayuAddDevice(IN PDRIVER_OBJECT driverObject,
-		       IN PDEVICE_OBJECT kbdClassDevObj)
+					   IN PDEVICE_OBJECT kbdClassDevObj)
 {
-  UNREFERENCED_PARAMETER(driverObject);
-  UNREFERENCED_PARAMETER(kbdClassDevObj);
-  return STATUS_SUCCESS;
+	UNREFERENCED_PARAMETER(driverObject);
+	UNREFERENCED_PARAMETER(kbdClassDevObj);
+	return STATUS_SUCCESS;
 }
 
 // unload driver
 VOID mayuUnloadDriver(IN PDRIVER_OBJECT driverObject)
 {
-  UNREFERENCED_PARAMETER(driverObject);
+	UNREFERENCED_PARAMETER(driverObject);
 }
 
 
@@ -61,7 +61,7 @@ VOID mayuUnloadDriver(IN PDRIVER_OBJECT driverObject)
 // Generic Dispatcher
 NTSTATUS mayuGenericDispatch(IN PDEVICE_OBJECT deviceObject, IN PIRP irp)
 {
-  UNREFERENCED_PARAMETER(deviceObject);
-  UNREFERENCED_PARAMETER(irp);
-  return STATUS_SUCCESS;
+	UNREFERENCED_PARAMETER(deviceObject);
+	UNREFERENCED_PARAMETER(irp);
+	return STATUS_SUCCESS;
 }

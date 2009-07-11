@@ -11,10 +11,9 @@
 ///
 extern ATOM Register_focus();
 
-enum
-{
-  WM_APP_notifyFocus = WM_APP + 103,
-  WM_APP_notifyVKey  = WM_APP + 104,
+enum {
+	WM_APP_notifyFocus = WM_APP + 103,
+	WM_APP_notifyVKey  = WM_APP + 104,
 };
 
 
