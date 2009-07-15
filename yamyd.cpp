@@ -10,13 +10,13 @@ int WINAPI _tWinMain(HINSTANCE /* i_hInstance */, HINSTANCE /* i_hPrevInstance *
 {
 	HANDLE mutex = OpenMutex(SYNCHRONIZE, FALSE, MUTEX_MAYU_EXCLUSIVE_RUNNING);
 	if (mutex != NULL) {
-		CHECK_FALSE( installHooks(NULL, NULL) );
+		CHECK_FALSE( installMessageHook() );
 
 		// wait for master process exit
 		WaitForSingleObject(mutex, INFINITE);
 		ReleaseMutex(mutex);
 
-		CHECK_FALSE( uninstallHooks() );
+		CHECK_FALSE( uninstallMessageHook() );
 		SendMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 	}
 

@@ -975,6 +975,8 @@ Engine::Engine(tomsgstream &i_log)
 		m_didMayuStartDevice(false),
 		m_threadEvent(NULL),
 		m_mayudVersion(_T("unknown")),
+		m_keyboardHandler(installKeyboardHook),
+		m_mouseHandler(installMouseHook),
 		m_readEvent(NULL),
 		m_interruptThreadEvent(NULL),
 		m_sts4mayu(NULL),
@@ -1082,6 +1084,8 @@ void Engine::close() {
 
 // start keyboard handler thread
 void Engine::start() {
+	m_keyboardHandler.start(this);
+	m_mouseHandler.start(this);
 	CHECK_TRUE( m_threadEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
 
 	CHECK_TRUE( m_readEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
@@ -1133,6 +1137,8 @@ void Engine::stop() {
 		CHECK_TRUE( CloseHandle(m_interruptThreadEvent) );
 		m_interruptThreadEvent = NULL;
 	}
+	m_mouseHandler.stop();
+	m_keyboardHandler.stop();
 }
 
 bool Engine::pause() {
@@ -1556,4 +1562,54 @@ void Engine::commandNotify(
 	m_log << _T("wNotifyCode = ") << HIWORD(i_wParam) << _T(", ")
 	<< _T("wID = ") << LOWORD(i_wParam) << _T(", ")
 	<< _T("hwndCtrl = 0x") << std::hex << i_lParam << std::dec << std::endl;
+}
+
+unsigned int WINAPI Engine::InputHandler::run(void *i_this)
+{
+	reinterpret_cast<InputHandler*>(i_this)->run();
+	_endthreadex(0);
+	return 0;
+}
+
+Engine::InputHandler::InputHandler(INSTALL_HOOK i_installHook) : m_installHook(i_installHook)
+{
+	CHECK_TRUE(m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL));
+	CHECK_TRUE(m_hThread = (HANDLE)_beginthreadex(NULL, 0, run, this, CREATE_SUSPENDED, &m_threadId));
+}
+
+Engine::InputHandler::~InputHandler()
+{
+	CloseHandle(m_hEvent);
+}
+
+void Engine::InputHandler::run()
+{
+	MSG msg;
+
+	CHECK_FALSE(m_installHook(Engine::keyboardDetour, m_engine, true));
+	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+	SetEvent(m_hEvent);
+
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		// nothing to do...
+	}
+
+	CHECK_FALSE(m_installHook(Engine::keyboardDetour, m_engine, false));
+
+	return;
+}
+
+int Engine::InputHandler::start(Engine *i_engine)
+{
+	m_engine = i_engine;
+	ResumeThread(m_hThread);
+	WaitForSingleObject(m_hEvent, INFINITE);
+	return 0;
+}
+
+int Engine::InputHandler::stop()
+{
+	PostThreadMessage(m_threadId, WM_QUIT, 0, 0);
+	WaitForSingleObject(m_hThread, INFINITE);
+	return 0;
 }

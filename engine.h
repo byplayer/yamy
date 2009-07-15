@@ -8,6 +8,7 @@
 #  include "multithread.h"
 #  include "setting.h"
 #  include "msgstream.h"
+#  include "hook.h"
 #  include <set>
 #  include <queue>
 
@@ -143,6 +144,31 @@ private:
 		InterruptThreadReason_Resume,
 	};
 
+	///
+	class InputHandler {
+	public:
+		typedef int (*INSTALL_HOOK)(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
+
+		static unsigned int WINAPI run(void *i_this);
+
+		InputHandler(INSTALL_HOOK i_installHook);
+
+		~InputHandler();
+
+		void run();
+
+		int start(Engine *i_engine);
+
+		int stop();
+
+	private:
+		unsigned m_threadId;
+		HANDLE m_hThread;
+		HANDLE m_hEvent; 
+		INSTALL_HOOK m_installHook;
+		Engine *m_engine;
+	};
+
 private:
 	CriticalSection m_cs;				/// criticalSection
 
@@ -163,6 +189,8 @@ private:
 #ifdef NO_DRIVER
 	std::deque<KEYBOARD_INPUT_DATA> m_kidq;
 	CriticalSection m_cskidq;
+	InputHandler m_keyboardHandler;
+	InputHandler m_mouseHandler;
 #endif // NO_DRIVER
 	HANDLE m_readEvent;				/** reading from mayu device
                                                     has been completed */

@@ -789,7 +789,7 @@ public:
 #ifndef USE_MAILSLOT
 		g_hookData->m_hwndTaskTray = reinterpret_cast<DWORD>(m_hwndTaskTray);
 #endif // !USE_MAILSLOT
-		CHECK_FALSE( installHooks(Engine::keyboardDetour, &m_engine) );
+		CHECK_FALSE( installMessageHook() );
 		m_usingSN = wtsRegisterSessionNotification(m_hwndTaskTray,
 					NOTIFY_FOR_THIS_SESSION);
 
@@ -900,7 +900,7 @@ public:
 
 		// stop notify from mayu.dll
 		g_hookData->m_hwndTaskTray = NULL;
-		CHECK_FALSE( uninstallHooks() );
+		CHECK_FALSE( uninstallMessageHook() );
 		PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 
 		// destroy windows

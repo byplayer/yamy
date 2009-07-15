@@ -826,8 +826,8 @@ through:
 #endif // NO_DRIVER
 
 
-/// install hooks
-DllExport int installHooks(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine)
+/// install message hook
+DllExport int installMessageHook()
 {
 	if (!g.m_isInitialized)
 		initialize();
@@ -838,25 +838,12 @@ DllExport int installHooks(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine)
 						 g.m_hInstDLL, 0);
 	s_hookDataArch->m_hHookCallWndProc =
 		SetWindowsHookEx(WH_CALLWNDPROC, (HOOKPROC)callWndProc, g.m_hInstDLL, 0);
-	g_hookData->m_mouseHookType = MouseHookType_None;
-	if (i_engine != NULL) {
-#ifdef NO_DRIVER
-		g.m_keyboardDetour = i_keyboardDetour;
-		g.m_engine = i_engine;
-		g.m_hHookKeyboardProc =
-			SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)lowLevelKeyboardProc,
-							 g.m_hInstDLL, 0);
-#endif // NO_DRIVER
-		g.m_hHookMouseProc =
-			SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)lowLevelMouseProc,
-							 g.m_hInstDLL, 0);
-	}
 	return 0;
 }
 
 
-/// uninstall hooks
-DllExport int uninstallHooks()
+/// uninstall message hook
+DllExport int uninstallMessageHook()
 {
 	if (s_hookDataArch->m_hHookGetMessage)
 		UnhookWindowsHookEx(s_hookDataArch->m_hHookGetMessage);
@@ -864,14 +851,49 @@ DllExport int uninstallHooks()
 	if (s_hookDataArch->m_hHookCallWndProc)
 		UnhookWindowsHookEx(s_hookDataArch->m_hHookCallWndProc);
 	s_hookDataArch->m_hHookCallWndProc = NULL;
-	if (g.m_hHookMouseProc)
-		UnhookWindowsHookEx(g.m_hHookMouseProc);
-	g.m_hHookMouseProc = NULL;
-#ifdef NO_DRIVER
-	if (g.m_hHookKeyboardProc)
-		UnhookWindowsHookEx(g.m_hHookKeyboardProc);
-	g.m_hHookKeyboardProc = NULL;
-#endif // NO_DRIVER
 	g.m_hwndTaskTray = 0;
+	return 0;
+}
+
+
+/// install keyboard hook
+DllExport int installKeyboardHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
+{
+#ifdef NO_DRIVER
+	if (i_install) {
+		if (!g.m_isInitialized)
+			initialize();
+
+		g.m_keyboardDetour = i_keyboardDetour;
+		g.m_engine = i_engine;
+		g.m_hHookKeyboardProc =
+			SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)lowLevelKeyboardProc,
+							 g.m_hInstDLL, 0);
+	} else {
+		if (g.m_hHookKeyboardProc)
+			UnhookWindowsHookEx(g.m_hHookKeyboardProc);
+		g.m_hHookKeyboardProc = NULL;
+	}
+#endif // NO_DRIVER
+	return 0;
+}
+
+
+/// install mouse hook
+DllExport int installMouseHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
+{
+	if (i_install) {
+		if (!g.m_isInitialized)
+			initialize();
+
+		g_hookData->m_mouseHookType = MouseHookType_None;
+		g.m_hHookMouseProc =
+			SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)lowLevelMouseProc,
+							 g.m_hInstDLL, 0);
+	} else {
+		if (g.m_hHookMouseProc)
+			UnhookWindowsHookEx(g.m_hHookMouseProc);
+		g.m_hHookMouseProc = NULL;
+	}
 	return 0;
 }

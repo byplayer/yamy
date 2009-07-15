@@ -144,8 +144,10 @@ public:
 
 #  ifndef _HOOK_CPP
 extern DllImport HookData *g_hookData;
-extern DllImport int installHooks(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine);
-extern DllImport int uninstallHooks();
+extern DllImport int installMessageHook();
+extern DllImport int uninstallMessageHook();
+extern DllImport int installKeyboardHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
+extern DllImport int installMouseHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
 extern DllImport bool notify(void *data, size_t sizeof_data);
 extern DllImport void notifyLockState();
 #  endif // !_HOOK_CPP
