@@ -17,7 +17,7 @@ int WINAPI _tWinMain(HINSTANCE /* i_hInstance */, HINSTANCE /* i_hPrevInstance *
 		ReleaseMutex(mutex);
 
 		CHECK_FALSE( uninstallMessageHook() );
-		SendMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+		PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 	}
 
 	return 0;
