@@ -302,14 +302,9 @@ private:
 #endif
 				case WTS_CONSOLE_CONNECT:
 					m = "WTS_CONSOLE_CONNECT";
-					if (!This->m_engine.resume()) {
-						This->m_engine.prepairQuit();
-						PostQuitMessage(0);
-					}
 					break;
 				case WTS_CONSOLE_DISCONNECT:
 					m = "WTS_CONSOLE_DISCONNECT";
-					This->m_engine.pause();
 					break;
 				case WTS_REMOTE_CONNECT:
 					m = "WTS_REMOTE_CONNECT";
@@ -1077,16 +1072,6 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 			PostMessage(reinterpret_cast<HWND>(g_hookData->m_hwndTaskTray),
 						WM_TaskbarRestart, 0, 0);
 		}
-		MessageBox((HWND)NULL, text.c_str(), title.c_str(), MB_OK | MB_ICONSTOP);
-		return 1;
-	}
-
-	// check remote desktop
-	DWORD sessionId;
-	if (!ProcessIdToSessionId(GetCurrentProcessId(), &sessionId) ||
-			wtsGetActiveConsoleSessionId() != sessionId) {
-		tstring text = loadString(IDS_executedInRemoteDesktop);
-		tstring title = loadString(IDS_mayu);
 		MessageBox((HWND)NULL, text.c_str(), title.c_str(), MB_OK | MB_ICONSTOP);
 		return 1;
 	}
