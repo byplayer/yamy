@@ -610,17 +610,72 @@ void Engine::beginGeneratingKeyboardEvents(
 unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw)
 {
 	INPUT kid;
-	kid.type = INPUT_KEYBOARD;
-	kid.ki.wVk = 0;
-	kid.ki.wScan = i_kid->MakeCode;
-	kid.ki.dwFlags = KEYEVENTF_SCANCODE;
-	kid.ki.time = i_kidRaw ? i_kidRaw->time : 0;
-	kid.ki.dwExtraInfo = i_kidRaw ? i_kidRaw->dwExtraInfo : 0;
-	if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-		kid.ki.dwFlags |= KEYEVENTF_KEYUP;
-	}
-	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E0) {
-		kid.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
+		kid.type = INPUT_MOUSE;
+		{
+			Acquire a(&m_cskidq);
+			kid.mi.dx = m_msllHookCurrent.pt.x;
+			kid.mi.dy = m_msllHookCurrent.pt.y;
+			kid.mi.time = m_msllHookCurrent.time;
+		}
+		kid.mi.mouseData = 0;
+		kid.mi.dwExtraInfo = 0;
+		kid.mi.dwFlags = MOUSEEVENTF_ABSOLUTE;
+		switch (i_kid->MakeCode) {
+		case 1:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid.mi.dwFlags |= MOUSEEVENTF_LEFTUP;
+			} else {
+				kid.mi.dwFlags |= MOUSEEVENTF_LEFTDOWN;
+			}
+			break;
+		case 2:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid.mi.dwFlags |= MOUSEEVENTF_RIGHTUP;
+			} else {
+				kid.mi.dwFlags |= MOUSEEVENTF_RIGHTDOWN;
+			}
+			break;
+		case 3:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid.mi.dwFlags |= MOUSEEVENTF_MIDDLEUP;
+			} else {
+				kid.mi.dwFlags |= MOUSEEVENTF_MIDDLEDOWN;
+			}
+			break;
+		case 4:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid.mi.mouseData = WHEEL_DELTA;
+				kid.mi.dwFlags |= MOUSEEVENTF_WHEEL;
+			}
+			break;
+		case 5:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid.mi.mouseData = -WHEEL_DELTA;
+				kid.mi.dwFlags |= MOUSEEVENTF_WHEEL;
+			}
+			break;
+		default:
+			return 1;
+			break;
+		}
+	} else {
+		kid.type = INPUT_KEYBOARD;
+		kid.ki.wVk = 0;
+		kid.ki.wScan = i_kid->MakeCode;
+		kid.ki.dwFlags = KEYEVENTF_SCANCODE;
+		kid.ki.time = i_kidRaw ? i_kidRaw->time : 0;
+		kid.ki.dwExtraInfo = i_kidRaw ? i_kidRaw->dwExtraInfo : 0;
+		if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+			kid.ki.dwFlags |= KEYEVENTF_KEYUP;
+		}
+		if (i_kid->Flags & KEYBOARD_INPUT_DATA::E0) {
+			kid.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+		}
 	}
 	SendInput(1, &kid, sizeof(kid));
 	return 1;
@@ -640,9 +695,9 @@ void Engine::keyboardResetOnWin32()
 
 
 #ifdef NO_DRIVER
-unsigned int WINAPI Engine::keyboardDetour(Engine *i_this, KBDLLHOOKSTRUCT *i_kid)
+unsigned int WINAPI Engine::keyboardDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam)
 {
-	return i_this->keyboardDetour(i_kid);
+	return i_this->keyboardDetour(reinterpret_cast<KBDLLHOOKSTRUCT*>(i_lParam));
 }
 
 unsigned int Engine::keyboardDetour(KBDLLHOOKSTRUCT *i_kid)
@@ -675,6 +730,74 @@ unsigned int Engine::keyboardDetour(KBDLLHOOKSTRUCT *i_kid)
 		Acquire a(&m_cskidq);
 		m_kidq.push_back(kid);
 		SetEvent(m_readEvent);
+		return 1;
+	}
+}
+
+unsigned int WINAPI Engine::mouseDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam)
+{
+	return i_this->mouseDetour(i_wParam, reinterpret_cast<MSLLHOOKSTRUCT*>(i_lParam));
+}
+
+unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
+{
+	if (i_mid->flags & LLMHF_INJECTED || !m_setting->m_mouseEvent) {
+		return 0;
+	} else {
+		KEYBOARD_INPUT_DATA kid;
+
+		kid.UnitId = 0;
+		kid.Flags = KEYBOARD_INPUT_DATA::E1;
+		kid.Reserved = 0;
+		kid.ExtraInformation = 0;
+		switch (i_message) {
+		case WM_LBUTTONUP:
+			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+		case WM_LBUTTONDOWN:
+			kid.MakeCode = 1;
+			break;
+		case WM_RBUTTONUP:
+			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+		case WM_RBUTTONDOWN:
+			kid.MakeCode = 2;
+			break;
+		case WM_MBUTTONUP:
+			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+		case WM_MBUTTONDOWN:
+			kid.MakeCode = 3;
+			break;
+		case WM_MOUSEWHEEL:
+			if (i_mid->mouseData & (1<<31)) {
+				kid.MakeCode = 5;
+			} else {
+				kid.MakeCode = 4;
+			}
+			break;
+		case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONDBLCLK:
+		case WM_MBUTTONDBLCLK:
+		case WM_MOUSEHWHEEL:
+		case WM_XBUTTONDOWN:
+		case WM_XBUTTONUP:
+		case WM_XBUTTONDBLCLK:
+		case WM_MOUSEMOVE:
+		default:
+			return 0;
+			break;
+		}
+
+		Acquire a(&m_cskidq);
+
+		m_msllHookCurrent.pt.x = i_mid->pt.x;
+		m_msllHookCurrent.pt.y = i_mid->pt.y;
+		m_msllHookCurrent.mouseData = i_mid->mouseData;
+		m_msllHookCurrent.flags = i_mid->flags;
+		m_msllHookCurrent.time = i_mid->time;
+		m_msllHookCurrent.dwExtraInfo = i_mid->dwExtraInfo;
+
+		m_kidq.push_back(kid);
+		SetEvent(m_readEvent);
+
 		return 1;
 	}
 }
@@ -884,9 +1007,13 @@ rewait:
 			}
 		}
 
-		if (m_isLogMode)
+		if (m_isLogMode) {
 			outputToLog(&key, c.m_mkey, 0);
-		else if (am == Keymap::AM_true) {
+			if (kid.Flags & KEYBOARD_INPUT_DATA::E1) {
+				// through mouse event even if log mode
+				injectInput(&kid, NULL);
+			}
+		} else if (am == Keymap::AM_true) {
 			{
 				Acquire a(&m_log, 1);
 				m_log << _T("* true modifier") << std::endl;
@@ -975,8 +1102,8 @@ Engine::Engine(tomsgstream &i_log)
 		m_didMayuStartDevice(false),
 		m_threadEvent(NULL),
 		m_mayudVersion(_T("unknown")),
-		m_keyboardHandler(installKeyboardHook),
-		m_mouseHandler(installMouseHook),
+		m_keyboardHandler(installKeyboardHook, Engine::keyboardDetour),
+		m_mouseHandler(installMouseHook, Engine::mouseDetour),
 		m_readEvent(NULL),
 		m_interruptThreadEvent(NULL),
 		m_sts4mayu(NULL),
@@ -1033,6 +1160,13 @@ Engine::Engine(tomsgstream &i_log)
 								 PIPE_TYPE_BYTE, 1,
 								 0, 0, 0, NULL);
 	StrExprArg::setEngine(this);
+
+	m_msllHookCurrent.pt.x = 0;
+	m_msllHookCurrent.pt.y = 0;
+	m_msllHookCurrent.mouseData = 0;
+	m_msllHookCurrent.flags = 0;
+	m_msllHookCurrent.time = 0;
+	m_msllHookCurrent.dwExtraInfo = 0;
 }
 
 
@@ -1571,7 +1705,8 @@ unsigned int WINAPI Engine::InputHandler::run(void *i_this)
 	return 0;
 }
 
-Engine::InputHandler::InputHandler(INSTALL_HOOK i_installHook) : m_installHook(i_installHook)
+Engine::InputHandler::InputHandler(INSTALL_HOOK i_installHook, INPUT_DETOUR i_inputDetour)
+	: m_installHook(i_installHook), m_inputDetour(i_inputDetour)
 {
 	CHECK_TRUE(m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL));
 	CHECK_TRUE(m_hThread = (HANDLE)_beginthreadex(NULL, 0, run, this, CREATE_SUSPENDED, &m_threadId));
@@ -1586,7 +1721,7 @@ void Engine::InputHandler::run()
 {
 	MSG msg;
 
-	CHECK_FALSE(m_installHook(Engine::keyboardDetour, m_engine, true));
+	CHECK_FALSE(m_installHook(m_inputDetour, m_engine, true));
 	PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 	SetEvent(m_hEvent);
 
@@ -1594,7 +1729,7 @@ void Engine::InputHandler::run()
 		// nothing to do...
 	}
 
-	CHECK_FALSE(m_installHook(Engine::keyboardDetour, m_engine, false));
+	CHECK_FALSE(m_installHook(m_inputDetour, m_engine, false));
 
 	return;
 }

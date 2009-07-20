@@ -147,11 +147,11 @@ private:
 	///
 	class InputHandler {
 	public:
-		typedef int (*INSTALL_HOOK)(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
+		typedef int (*INSTALL_HOOK)(INPUT_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
 
 		static unsigned int WINAPI run(void *i_this);
 
-		InputHandler(INSTALL_HOOK i_installHook);
+		InputHandler(INSTALL_HOOK i_installHook, INPUT_DETOUR i_inputDetour);
 
 		~InputHandler();
 
@@ -166,6 +166,7 @@ private:
 		HANDLE m_hThread;
 		HANDLE m_hEvent; 
 		INSTALL_HOOK m_installHook;
+		INPUT_DETOUR m_inputDetour;
 		Engine *m_engine;
 	};
 
@@ -189,6 +190,7 @@ private:
 #ifdef NO_DRIVER
 	std::deque<KEYBOARD_INPUT_DATA> m_kidq;
 	CriticalSection m_cskidq;
+	MSLLHOOKSTRUCT m_msllHookCurrent;
 	InputHandler m_keyboardHandler;
 	InputHandler m_mouseHandler;
 #endif // NO_DRIVER
@@ -265,10 +267,14 @@ public:
 public:
 #ifdef NO_DRIVER
 	/// keyboard handler thread
-	static unsigned int WINAPI keyboardDetour(Engine *i_this, KBDLLHOOKSTRUCT *i_kid);
+	static unsigned int WINAPI keyboardDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam);
+	/// mouse handler thread
+	static unsigned int WINAPI mouseDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam);
 private:
 	///
 	unsigned int keyboardDetour(KBDLLHOOKSTRUCT *i_kid);
+	///
+	unsigned int mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid);
 	///
 	unsigned int injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw);
 #endif // NO_DRIVER

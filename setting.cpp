@@ -362,6 +362,14 @@ void SettingLoader::load_DEFINE_OPTION()
 
 		load_ARGUMENT(&m_setting->m_cts4mayu);
 
+	} else if (*t == _T("mouse-event")) {
+		if (*getToken() != _T("=")) {
+			throw ErrorMessage()
+			<< _T("there must be `=' after `def option mouse-event'.");
+		}
+
+		load_ARGUMENT(&m_setting->m_mouseEvent);
+
 	} else {
 		throw ErrorMessage() << _T("syntax error `def option ") << *t << _T("'.");
 	}

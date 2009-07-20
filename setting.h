@@ -27,6 +27,7 @@ public:
 	bool m_correctKanaLockHandling;		///
 	bool m_sts4mayu;				///
 	bool m_cts4mayu;				///
+	bool m_mouseEvent;				///
 	unsigned int m_oneShotRepeatableDelay;	///
 
 public:
@@ -34,6 +35,7 @@ public:
 			: m_correctKanaLockHandling(false),
 			m_sts4mayu(false),
 			m_cts4mayu(false),
+			m_mouseEvent(false),
 			m_oneShotRepeatableDelay(0) { }
 };
 

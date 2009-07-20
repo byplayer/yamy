@@ -33,10 +33,16 @@
 #define HOOK_RPT0(msg)
 #define HOOK_RPT1(msg, arg1)
 #define HOOK_RPT2(msg, arg1, arg2)
+#define HOOK_RPT3(msg, arg1, arg2, arg3)
+#define HOOK_RPT4(msg, arg1, arg2, arg3, arg4)
+#define HOOK_RPT5(msg, arg1, arg2, arg3, arg4, arg5)
 #else
 #define HOOK_RPT0(msg) if (g.m_isLogging) { _RPT0(_CRT_WARN, msg); }
 #define HOOK_RPT1(msg, arg1) if (g.m_isLogging) { _RPT1(_CRT_WARN, msg, arg1); }
 #define HOOK_RPT2(msg, arg1, arg2) if (g.m_isLogging) { _RPT2(_CRT_WARN, msg, arg1, arg2); }
+#define HOOK_RPT3(msg, arg1, arg2, arg3) if (g.m_isLogging) { _RPT3(_CRT_WARN, msg, arg1, arg2, arg3); }
+#define HOOK_RPT4(msg, arg1, arg2, arg3, arg4) if (g.m_isLogging) { _RPT4(_CRT_WARN, msg, arg1, arg2, arg3, arg4); }
+#define HOOK_RPT5(msg, arg1, arg2, arg3, arg4, arg5) if (g.m_isLogging) { _RPT5(_CRT_WARN, msg, arg1, arg2, arg3, arg4, arg5); }
 #endif
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,7 +73,8 @@ struct Globals {
 	HHOOK m_hHookMouseProc;			///
 #ifdef NO_DRIVER
 	HHOOK m_hHookKeyboardProc;			///
-	KEYBOARD_DETOUR m_keyboardDetour;
+	INPUT_DETOUR m_keyboardDetour;
+	INPUT_DETOUR m_mouseDetour;
 	Engine *m_engine;
 #endif // NO_DRIVER
 	DWORD m_hwndTaskTray;				///
@@ -749,8 +756,20 @@ static LRESULT CALLBACK lowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPara
 	if (!g.m_isInitialized)
 		initialize();
 
-	if (!g_hookData || nCode < 0 || wParam != WM_MOUSEMOVE)
+	if (!g_hookData || nCode < 0)
 		goto through;
+
+	if (wParam != WM_MOUSEMOVE) {
+		if (g.m_mouseDetour && g.m_engine) {
+			unsigned int result;
+			result = g.m_mouseDetour(g.m_engine, wParam, lParam);
+			if (result) {
+				return 1;
+			}
+		}
+
+		goto through;
+	}
 
 	switch (g_hookData->m_mouseHookType) {
 	case MouseHookType_Wheel:
@@ -814,7 +833,7 @@ static LRESULT CALLBACK lowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
 
 	if (g.m_keyboardDetour && g.m_engine) {
 		unsigned int result;
-		result = g.m_keyboardDetour(g.m_engine, pKbll);
+		result = g.m_keyboardDetour(g.m_engine, wParam, lParam);
 		if (result) {
 			return 1;
 		}
@@ -857,7 +876,7 @@ DllExport int uninstallMessageHook()
 
 
 /// install keyboard hook
-DllExport int installKeyboardHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
+DllExport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
 {
 #ifdef NO_DRIVER
 	if (i_install) {
@@ -880,12 +899,14 @@ DllExport int installKeyboardHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_en
 
 
 /// install mouse hook
-DllExport int installMouseHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
+DllExport int installMouseHook(INPUT_DETOUR i_mouseDetour, Engine *i_engine, bool i_install)
 {
 	if (i_install) {
 		if (!g.m_isInitialized)
 			initialize();
 
+		g.m_mouseDetour = i_mouseDetour;
+		g.m_engine = i_engine;
 		g_hookData->m_mouseHookType = MouseHookType_None;
 		g.m_hHookMouseProc =
 			SetWindowsHookEx(WH_MOUSE_LL, (HOOKPROC)lowLevelMouseProc,

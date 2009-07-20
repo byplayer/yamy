@@ -15,6 +15,11 @@ define KBD112
 # 109 日本語キーボード定義
 #
 
+def key LButton				= E1-0x01
+def key RButton				= E1-0x02
+def key MButton				= E1-0x03
+def key WheelForward			= E1-0x04
+def key WheelBackward			= E1-0x05
 def key Esc Escape			=    0x01
 def key _1				=    0x02 # 1!
 def key _2				=    0x03 # 2"

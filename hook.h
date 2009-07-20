@@ -117,7 +117,7 @@ enum MouseHookType {
 
 #ifdef NO_DRIVER
 class Engine;
-typedef unsigned int (WINAPI *KEYBOARD_DETOUR)(Engine *i_engine, KBDLLHOOKSTRUCT *i_kid);
+typedef unsigned int (WINAPI *INPUT_DETOUR)(Engine *i_engine, WPARAM i_wParam, LPARAM i_lParam);
 #endif // NO_DRIVER
 
 ///
@@ -146,8 +146,8 @@ public:
 extern DllImport HookData *g_hookData;
 extern DllImport int installMessageHook();
 extern DllImport int uninstallMessageHook();
-extern DllImport int installKeyboardHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
-extern DllImport int installMouseHook(KEYBOARD_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
+extern DllImport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
+extern DllImport int installMouseHook(INPUT_DETOUR i_mouseDetour, Engine *i_engine, bool i_install);
 extern DllImport bool notify(void *data, size_t sizeof_data);
 extern DllImport void notifyLockState();
 #  endif // !_HOOK_CPP
