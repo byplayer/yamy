@@ -525,6 +525,8 @@ private:
 	void funcSetImeString(FunctionParam *i_param, const StrExprArg &i_data);
 	/// enter to mouse event hook mode
 	void funcMouseHook(FunctionParam *i_param, MouseHookType i_hookType, int i_hookParam);
+	/// cancel prefix
+	void funcCancelPrefix(FunctionParam *i_param);
 
 	// END OF FUNCTION DEFINITION
 #  define FUNCTION_FRIEND

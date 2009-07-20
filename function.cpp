@@ -2250,6 +2250,12 @@ void Engine::funcMouseHook(FunctionParam *i_param,
 }
 
 
+// cancel prefix
+void Engine::funcCancelPrefix(FunctionParam *i_param)
+{
+	m_isPrefix = false;
+}
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // StrExpr
 class StrExpr
