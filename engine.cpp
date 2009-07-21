@@ -609,61 +609,73 @@ void Engine::beginGeneratingKeyboardEvents(
 #ifdef NO_DRIVER
 unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw)
 {
-	INPUT kid;
 	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
-		kid.type = INPUT_MOUSE;
-		{
-			Acquire a(&m_cskidq);
-			kid.mi.dx = m_msllHookCurrent.pt.x;
-			kid.mi.dy = m_msllHookCurrent.pt.y;
-			kid.mi.time = m_msllHookCurrent.time;
+		Acquire a(&m_cskidq);
+		INPUT kid[2];
+		int i = 0;
+
+		if (m_dragging && !(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK)) {
+			kid[i].type = INPUT_MOUSE;
+			kid[i].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
+			kid[i].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
+			kid[i].mi.time = m_msllHookCurrent.time;
+			kid[i].mi.mouseData = 0;
+			kid[i].mi.dwExtraInfo = 0;
+			kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
+			i++;
 		}
-		kid.mi.mouseData = 0;
-		kid.mi.dwExtraInfo = 0;
-		kid.mi.dwFlags = MOUSEEVENTF_ABSOLUTE;
+		kid[i].type = INPUT_MOUSE;
+		kid[i].mi.dx = 0;
+		kid[i].mi.dy = 0;
+		kid[i].mi.time = m_msllHookCurrent.time;
+		kid[i].mi.mouseData = 0;
+		kid[i].mi.dwExtraInfo = 0;
 		switch (i_kid->MakeCode) {
 		case 1:
 			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid.mi.dwFlags |= MOUSEEVENTF_LEFTUP;
+				kid[i].mi.dwFlags = MOUSEEVENTF_LEFTUP;
 			} else {
-				kid.mi.dwFlags |= MOUSEEVENTF_LEFTDOWN;
+				kid[i].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
 			}
 			break;
 		case 2:
 			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid.mi.dwFlags |= MOUSEEVENTF_RIGHTUP;
+				kid[i].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
 			} else {
-				kid.mi.dwFlags |= MOUSEEVENTF_RIGHTDOWN;
+				kid[i].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
 			}
 			break;
 		case 3:
 			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid.mi.dwFlags |= MOUSEEVENTF_MIDDLEUP;
+				kid[i].mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
 			} else {
-				kid.mi.dwFlags |= MOUSEEVENTF_MIDDLEDOWN;
+				kid[i].mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
 			}
 			break;
 		case 4:
 			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
 				return 1;
 			} else {
-				kid.mi.mouseData = WHEEL_DELTA;
-				kid.mi.dwFlags |= MOUSEEVENTF_WHEEL;
+				kid[i].mi.mouseData = WHEEL_DELTA;
+				kid[i].mi.dwFlags = MOUSEEVENTF_WHEEL;
 			}
 			break;
 		case 5:
 			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
 				return 1;
 			} else {
-				kid.mi.mouseData = -WHEEL_DELTA;
-				kid.mi.dwFlags |= MOUSEEVENTF_WHEEL;
+				kid[i].mi.mouseData = -WHEEL_DELTA;
+				kid[i].mi.dwFlags = MOUSEEVENTF_WHEEL;
 			}
 			break;
 		default:
 			return 1;
 			break;
 		}
+		SendInput(i + 1, &kid[0], sizeof(kid[0]));
 	} else {
+		INPUT kid;
+
 		kid.type = INPUT_KEYBOARD;
 		kid.ki.wVk = 0;
 		kid.ki.wScan = i_kid->MakeCode;
@@ -676,8 +688,8 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 		if (i_kid->Flags & KEYBOARD_INPUT_DATA::E0) {
 			kid.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
 		}
+		SendInput(1, &kid, sizeof(kid));
 	}
-	SendInput(1, &kid, sizeof(kid));
 	return 1;
 }
 #endif // NO_DRIVER
@@ -741,7 +753,7 @@ unsigned int WINAPI Engine::mouseDetour(Engine *i_this, WPARAM i_wParam, LPARAM 
 
 unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 {
-	if (i_mid->flags & LLMHF_INJECTED || !m_setting->m_mouseEvent) {
+	if (i_mid->flags & LLMHF_INJECTED || !m_setting || !m_setting->m_mouseEvent) {
 		return 0;
 	} else {
 		KEYBOARD_INPUT_DATA kid;
@@ -773,6 +785,66 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				kid.MakeCode = 4;
 			}
 			break;
+		case WM_MOUSEMOVE: {
+			LONG dx = i_mid->pt.x - g_hookData->m_mousePos.x;
+			LONG dy = i_mid->pt.y - g_hookData->m_mousePos.y;
+			HWND target = reinterpret_cast<HWND>(g_hookData->m_hwndMouseHookTarget);
+
+			LONG dr = 0;
+			dr += (i_mid->pt.x - m_msllHookCurrent.pt.x) * (i_mid->pt.x - m_msllHookCurrent.pt.x);
+			dr += (i_mid->pt.y - m_msllHookCurrent.pt.y) * (i_mid->pt.y - m_msllHookCurrent.pt.y);
+			if (m_buttonPressed && !m_dragging && (30 * 30 < dr)) {
+				Acquire a(&m_cskidq);
+
+				m_dragging = true;
+				kid.MakeCode = 0;
+				m_kidq.push_back(kid);
+				SetEvent(m_readEvent);
+			}
+
+			switch (g_hookData->m_mouseHookType) {
+			case MouseHookType_Wheel:
+				// For this type, g_hookData->m_mouseHookParam means
+				// translate rate mouse move to wheel.
+				mouse_event(MOUSEEVENTF_WHEEL, 0, 0,
+							g_hookData->m_mouseHookParam * dy, 0);
+				return 1;
+				break;
+			case MouseHookType_WindowMove: {
+				RECT curRect;
+
+				if (!GetWindowRect(target, &curRect))
+					return 0;
+
+				// g_hookData->m_mouseHookParam < 0 means
+				// target window to move is MDI.
+				if (g_hookData->m_mouseHookParam < 0) {
+					HWND parent = GetParent(target);
+					POINT p = {curRect.left, curRect.top};
+
+					if (parent == NULL || !ScreenToClient(parent, &p))
+						return 0;
+
+					curRect.left = p.x;
+					curRect.top = p.y;
+				}
+
+				SetWindowPos(target, NULL,
+							 curRect.left + dx,
+							 curRect.top + dy,
+							 0, 0,
+							 SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE |
+							 SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
+				g_hookData->m_mousePos = i_mid->pt;
+				return 0;
+				break;
+			}
+			case MouseHookType_None:
+			default:
+				return 0;
+				break;
+			}
+		}
 		case WM_LBUTTONDBLCLK:
 		case WM_RBUTTONDBLCLK:
 		case WM_MBUTTONDBLCLK:
@@ -780,7 +852,6 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 		case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP:
 		case WM_XBUTTONDBLCLK:
-		case WM_MOUSEMOVE:
 		default:
 			return 0;
 			break;
@@ -788,12 +859,25 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 
 		Acquire a(&m_cskidq);
 
-		m_msllHookCurrent.pt.x = i_mid->pt.x;
-		m_msllHookCurrent.pt.y = i_mid->pt.y;
-		m_msllHookCurrent.mouseData = i_mid->mouseData;
-		m_msllHookCurrent.flags = i_mid->flags;
-		m_msllHookCurrent.time = i_mid->time;
-		m_msllHookCurrent.dwExtraInfo = i_mid->dwExtraInfo;
+		if (kid.Flags & KEYBOARD_INPUT_DATA::BREAK) {
+			m_buttonPressed = false;
+			if (m_dragging) {
+				KEYBOARD_INPUT_DATA kid2;
+
+				m_dragging = false;
+				kid2.UnitId = 0;
+				kid2.Flags = KEYBOARD_INPUT_DATA::E1 | KEYBOARD_INPUT_DATA::BREAK;
+				kid2.Reserved = 0;
+				kid2.ExtraInformation = 0;
+				kid2.MakeCode = 0;
+				m_kidq.push_back(kid2);
+				SetEvent(m_readEvent);
+			}
+		} else {
+			m_buttonPressed = true;
+		}
+
+		m_msllHookCurrent = *i_mid;
 
 		m_kidq.push_back(kid);
 		SetEvent(m_readEvent);
@@ -1102,6 +1186,8 @@ Engine::Engine(tomsgstream &i_log)
 		m_didMayuStartDevice(false),
 		m_threadEvent(NULL),
 		m_mayudVersion(_T("unknown")),
+		m_buttonPressed(false),
+		m_dragging(false),
 		m_keyboardHandler(installKeyboardHook, Engine::keyboardDetour),
 		m_mouseHandler(installMouseHook, Engine::mouseDetour),
 		m_readEvent(NULL),

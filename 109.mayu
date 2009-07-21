@@ -15,6 +15,7 @@ define KBD112
 # 109 日本語キーボード定義
 #
 
+def key Drag				= E1-0x00
 def key LButton				= E1-0x01
 def key RButton				= E1-0x02
 def key MButton				= E1-0x03

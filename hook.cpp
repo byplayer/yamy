@@ -748,70 +748,18 @@ LRESULT CALLBACK callWndProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 
 static LRESULT CALLBACK lowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	MSLLHOOKSTRUCT *pMsll = (MSLLHOOKSTRUCT*)lParam;
-	LONG dx = pMsll->pt.x - g_hookData->m_mousePos.x;
-	LONG dy = pMsll->pt.y - g_hookData->m_mousePos.y;
-	HWND target = reinterpret_cast<HWND>(g_hookData->m_hwndMouseHookTarget);
-
 	if (!g.m_isInitialized)
 		initialize();
 
 	if (!g_hookData || nCode < 0)
 		goto through;
 
-	if (wParam != WM_MOUSEMOVE) {
-		if (g.m_mouseDetour && g.m_engine) {
-			unsigned int result;
-			result = g.m_mouseDetour(g.m_engine, wParam, lParam);
-			if (result) {
-				return 1;
-			}
+	if (g.m_mouseDetour && g.m_engine) {
+		unsigned int result;
+		result = g.m_mouseDetour(g.m_engine, wParam, lParam);
+		if (result) {
+			return 1;
 		}
-
-		goto through;
-	}
-
-	switch (g_hookData->m_mouseHookType) {
-	case MouseHookType_Wheel:
-		// For this type, g_hookData->m_mouseHookParam means
-		// translate rate mouse move to wheel.
-		mouse_event(MOUSEEVENTF_WHEEL, 0, 0,
-					g_hookData->m_mouseHookParam * dy, 0);
-		return 1;
-		break;
-	case MouseHookType_WindowMove: {
-		RECT curRect;
-
-		if (!GetWindowRect(target, &curRect))
-			goto through;
-
-		// g_hookData->m_mouseHookParam < 0 means
-		// target window to move is MDI.
-		if (g_hookData->m_mouseHookParam < 0) {
-			HWND parent = GetParent(target);
-			POINT p = {curRect.left, curRect.top};
-
-			if (parent == NULL || !ScreenToClient(parent, &p))
-				goto through;
-
-			curRect.left = p.x;
-			curRect.top = p.y;
-		}
-
-		SetWindowPos(target, NULL,
-					 curRect.left + dx,
-					 curRect.top + dy,
-					 0, 0,
-					 SWP_ASYNCWINDOWPOS | SWP_NOACTIVATE |
-					 SWP_NOOWNERZORDER | SWP_NOSIZE | SWP_NOZORDER);
-		g_hookData->m_mousePos = pMsll->pt;
-		goto through;
-		break;
-	}
-	case MouseHookType_None:
-	default:
-		goto through;
-		break;
 	}
 
 through:

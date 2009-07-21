@@ -191,6 +191,8 @@ private:
 	std::deque<KEYBOARD_INPUT_DATA> m_kidq;
 	CriticalSection m_cskidq;
 	MSLLHOOKSTRUCT m_msllHookCurrent;
+	bool m_buttonPressed;
+	bool m_dragging;
 	InputHandler m_keyboardHandler;
 	InputHandler m_mouseHandler;
 #endif // NO_DRIVER
