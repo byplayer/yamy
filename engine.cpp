@@ -618,7 +618,7 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 			kid[i].type = INPUT_MOUSE;
 			kid[i].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
 			kid[i].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
-			kid[i].mi.time = m_msllHookCurrent.time;
+			kid[i].mi.time = 0;
 			kid[i].mi.mouseData = 0;
 			kid[i].mi.dwExtraInfo = 0;
 			kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
@@ -627,7 +627,7 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 		kid[i].type = INPUT_MOUSE;
 		kid[i].mi.dx = 0;
 		kid[i].mi.dy = 0;
-		kid[i].mi.time = m_msllHookCurrent.time;
+		kid[i].mi.time = 0;
 		kid[i].mi.mouseData = 0;
 		kid[i].mi.dwExtraInfo = 0;
 		switch (i_kid->MakeCode) {
@@ -904,9 +904,8 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 			}
 		} else if (!(kid.Flags & WM_MOUSEWHEEL)) {
 			m_buttonPressed = true;
+			m_msllHookCurrent = *i_mid;
 		}
-
-		m_msllHookCurrent = *i_mid;
 
 		m_kidq.push_back(kid);
 		SetEvent(m_readEvent);
