@@ -611,7 +611,7 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 {
 	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
 		Acquire a(&m_cskidq);
-		INPUT kid[2];
+		INPUT kid[3];
 		int i = 0;
 
 		if (m_dragging && !(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK)) {
@@ -687,6 +687,18 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 		default:
 			return 1;
 			break;
+		}
+		if (i == 1) {
+			POINT pt;
+			GetCursorPos(&pt);
+			i++;
+			kid[i].type = INPUT_MOUSE;
+			kid[i].mi.dx = 65535 * pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
+			kid[i].mi.dy = 65535 * pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
+			kid[i].mi.time = 0;
+			kid[i].mi.mouseData = 0;
+			kid[i].mi.dwExtraInfo = 0;
+			kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
 		}
 		SendInput(i + 1, &kid[0], sizeof(kid[0]));
 	} else {
