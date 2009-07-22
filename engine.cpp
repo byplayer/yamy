@@ -668,6 +668,22 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 				kid[i].mi.dwFlags = MOUSEEVENTF_WHEEL;
 			}
 			break;
+		case 6:
+			kid[i].mi.mouseData = XBUTTON1;
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[i].mi.dwFlags = MOUSEEVENTF_XUP;
+			} else {
+				kid[i].mi.dwFlags = MOUSEEVENTF_XDOWN;
+			}
+			break;
+		case 7:
+			kid[i].mi.mouseData = XBUTTON2;
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[i].mi.dwFlags = MOUSEEVENTF_XUP;
+			} else {
+				kid[i].mi.dwFlags = MOUSEEVENTF_XDOWN;
+			}
+			break;
 		default:
 			return 1;
 			break;
@@ -785,6 +801,21 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				kid.MakeCode = 4;
 			}
 			break;
+		case WM_XBUTTONUP:
+			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+		case WM_XBUTTONDOWN:
+			switch ((i_mid->mouseData >> 16) & 0xFFFFU) {
+			case XBUTTON1:
+				kid.MakeCode = 6;
+				break;
+			case XBUTTON2:
+				kid.MakeCode = 7;
+				break;
+			default:
+				return 0;
+				break;
+			}
+			break;
 		case WM_MOUSEMOVE: {
 			LONG dx = i_mid->pt.x - g_hookData->m_mousePos.x;
 			LONG dy = i_mid->pt.y - g_hookData->m_mousePos.y;
@@ -849,8 +880,6 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 		case WM_RBUTTONDBLCLK:
 		case WM_MBUTTONDBLCLK:
 		case WM_MOUSEHWHEEL:
-		case WM_XBUTTONDOWN:
-		case WM_XBUTTONUP:
 		case WM_XBUTTONDBLCLK:
 		default:
 			return 0;
