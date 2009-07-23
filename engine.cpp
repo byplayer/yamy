@@ -611,15 +611,79 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 {
 	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
 		Acquire a(&m_cskidq);
-		INPUT kid[3];
-		int i = 0;
-		POINT pt;
-		GetCursorPos(&pt);
+		INPUT kid[2];
+		int count = 1;
 
+		kid[0].type = INPUT_MOUSE;
+		kid[0].mi.dx = 0;
+		kid[0].mi.dy = 0;
+		kid[0].mi.time = 0;
+		kid[0].mi.mouseData = 0;
+		kid[0].mi.dwExtraInfo = 0;
+		switch (i_kid->MakeCode) {
+		case 1:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+			} else {
+				kid[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+			}
+			break;
+		case 2:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[0].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+			} else {
+				kid[0].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+			}
+			break;
+		case 3:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[0].mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+			} else {
+				kid[0].mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+			}
+			break;
+		case 4:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid[0].mi.mouseData = WHEEL_DELTA;
+				kid[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
+			}
+			break;
+		case 5:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid[0].mi.mouseData = -WHEEL_DELTA;
+				kid[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
+			}
+			break;
+		case 6:
+			kid[0].mi.mouseData = XBUTTON1;
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[0].mi.dwFlags = MOUSEEVENTF_XUP;
+			} else {
+				kid[0].mi.dwFlags = MOUSEEVENTF_XDOWN;
+			}
+			break;
+		case 7:
+			kid[0].mi.mouseData = XBUTTON2;
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				kid[0].mi.dwFlags = MOUSEEVENTF_XUP;
+			} else {
+				kid[0].mi.dwFlags = MOUSEEVENTF_XDOWN;
+			}
+			break;
+		default:
+			return 1;
+			break;
+		}
 		if (!(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) &&
 			i_kid->MakeCode != 4 && i_kid->MakeCode != 5) {
-			HWND hwnd = WindowFromPoint(pt);
-			if (hwnd != NULL) {
+			HWND hwnd;
+			POINT pt;
+
+			if (GetCursorPos(&pt) && (hwnd = WindowFromPoint(pt))) {
 				_TCHAR className[GANA_MAX_ATOM_LENGTH];
 				if (GetClassName(hwnd, className, NUMBER_OF(className))) {
 					if (_tcsicmp(className, _T("ConsoleWindowClass")) == 0) {
@@ -628,91 +692,22 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 				}
 			}
 			if (m_dragging) {
-				kid[i].type = INPUT_MOUSE;
-				kid[i].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
-				kid[i].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
-				kid[i].mi.time = 0;
-				kid[i].mi.mouseData = 0;
-				kid[i].mi.dwExtraInfo = 0;
-				kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
-				i++;
+				kid[0].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
+				kid[0].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
+				kid[0].mi.dwFlags |= MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
+
+				kid[1].type = INPUT_MOUSE;
+				kid[1].mi.dx = 65535 * pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
+				kid[1].mi.dy = 65535 * pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
+				kid[1].mi.time = 0;
+				kid[1].mi.mouseData = 0;
+				kid[1].mi.dwExtraInfo = 0;
+				kid[1].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
+
+				count = 2;
 			}
 		}
-		kid[i].type = INPUT_MOUSE;
-		kid[i].mi.dx = 0;
-		kid[i].mi.dy = 0;
-		kid[i].mi.time = 0;
-		kid[i].mi.mouseData = 0;
-		kid[i].mi.dwExtraInfo = 0;
-		switch (i_kid->MakeCode) {
-		case 1:
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid[i].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-			} else {
-				kid[i].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-			}
-			break;
-		case 2:
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid[i].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-			} else {
-				kid[i].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-			}
-			break;
-		case 3:
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid[i].mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
-			} else {
-				kid[i].mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
-			}
-			break;
-		case 4:
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				return 1;
-			} else {
-				kid[i].mi.mouseData = WHEEL_DELTA;
-				kid[i].mi.dwFlags = MOUSEEVENTF_WHEEL;
-			}
-			break;
-		case 5:
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				return 1;
-			} else {
-				kid[i].mi.mouseData = -WHEEL_DELTA;
-				kid[i].mi.dwFlags = MOUSEEVENTF_WHEEL;
-			}
-			break;
-		case 6:
-			kid[i].mi.mouseData = XBUTTON1;
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid[i].mi.dwFlags = MOUSEEVENTF_XUP;
-			} else {
-				kid[i].mi.dwFlags = MOUSEEVENTF_XDOWN;
-			}
-			break;
-		case 7:
-			kid[i].mi.mouseData = XBUTTON2;
-			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
-				kid[i].mi.dwFlags = MOUSEEVENTF_XUP;
-			} else {
-				kid[i].mi.dwFlags = MOUSEEVENTF_XDOWN;
-			}
-			break;
-		default:
-			return 1;
-			break;
-		}
-		if (i == 1) {
-			i++;
-			kid[i].type = INPUT_MOUSE;
-			kid[i].mi.dx = 65535 * pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
-			kid[i].mi.dy = 65535 * pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
-			kid[i].mi.time = 0;
-			kid[i].mi.mouseData = 0;
-			kid[i].mi.dwExtraInfo = 0;
-			kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
-		}
-		SendInput(i + 1, &kid[0], sizeof(kid[0]));
+		SendInput(count, &kid[0], sizeof(kid[0]));
 	} else {
 		INPUT kid;
 
