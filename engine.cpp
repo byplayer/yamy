@@ -613,16 +613,30 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 		Acquire a(&m_cskidq);
 		INPUT kid[3];
 		int i = 0;
+		POINT pt;
+		GetCursorPos(&pt);
 
-		if (m_dragging && !(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK)) {
-			kid[i].type = INPUT_MOUSE;
-			kid[i].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
-			kid[i].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
-			kid[i].mi.time = 0;
-			kid[i].mi.mouseData = 0;
-			kid[i].mi.dwExtraInfo = 0;
-			kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
-			i++;
+		if (!(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) &&
+			i_kid->MakeCode != 4 && i_kid->MakeCode != 5) {
+			HWND hwnd = WindowFromPoint(pt);
+			if (hwnd != NULL) {
+				_TCHAR className[GANA_MAX_ATOM_LENGTH];
+				if (GetClassName(hwnd, className, NUMBER_OF(className))) {
+					if (_tcsicmp(className, _T("ConsoleWindowClass")) == 0) {
+						SetForegroundWindow(hwnd);
+					}
+				}
+			}
+			if (m_dragging) {
+				kid[i].type = INPUT_MOUSE;
+				kid[i].mi.dx = 65535 * m_msllHookCurrent.pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
+				kid[i].mi.dy = 65535 * m_msllHookCurrent.pt.y / GetSystemMetrics(SM_CYVIRTUALSCREEN);
+				kid[i].mi.time = 0;
+				kid[i].mi.mouseData = 0;
+				kid[i].mi.dwExtraInfo = 0;
+				kid[i].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK;
+				i++;
+			}
 		}
 		kid[i].type = INPUT_MOUSE;
 		kid[i].mi.dx = 0;
@@ -689,8 +703,6 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 			break;
 		}
 		if (i == 1) {
-			POINT pt;
-			GetCursorPos(&pt);
 			i++;
 			kid[i].type = INPUT_MOUSE;
 			kid[i].mi.dx = 65535 * pt.x / GetSystemMetrics(SM_CXVIRTUALSCREEN);
