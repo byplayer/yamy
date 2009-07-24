@@ -921,7 +921,7 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				m_kidq.push_back(kid2);
 				SetEvent(m_readEvent);
 			}
-		} else if (!(kid.Flags & WM_MOUSEWHEEL)) {
+		} else if (i_message != WM_MOUSEWHEEL) {
 			m_buttonPressed = true;
 			m_msllHookCurrent = *i_mid;
 		}
