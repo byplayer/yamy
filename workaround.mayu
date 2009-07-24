@@ -1,6 +1,6 @@
 def key E0RightShift E0RShift		= E0-0x36
 mod shift += E0RShift
-key *E0RShift = *RShift
+key *E0RShift = *LShift
 
 if ( KBD109 )
   def key E0”¼Šp/‘SŠp E0Š¿Žš E0Kanji	= E0-0x29 # ”¼Šp/‘SŠp Š¿Žš

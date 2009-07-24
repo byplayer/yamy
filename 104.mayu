@@ -169,7 +169,7 @@ def mod Alt	= LAlt RAlt
 def mod Control	= LControl RControl
 def mod Windows	= LWindows RWindows
 mod shift += E0RShift
-key *E0RShift = *RShift
+key *E0RShift = *LShift
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
