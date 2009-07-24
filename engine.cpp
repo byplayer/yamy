@@ -674,12 +674,29 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 				kid[0].mi.dwFlags = MOUSEEVENTF_XDOWN;
 			}
 			break;
+		case 8:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid[0].mi.mouseData = WHEEL_DELTA;
+				kid[0].mi.dwFlags = MOUSEEVENTF_HWHEEL;
+			}
+			break;
+		case 9:
+			if (i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) {
+				return 1;
+			} else {
+				kid[0].mi.mouseData = -WHEEL_DELTA;
+				kid[0].mi.dwFlags = MOUSEEVENTF_HWHEEL;
+			}
+			break;
 		default:
 			return 1;
 			break;
 		}
 		if (!(i_kid->Flags & KEYBOARD_INPUT_DATA::BREAK) &&
-			i_kid->MakeCode != 4 && i_kid->MakeCode != 5) {
+			i_kid->MakeCode != 4 && i_kid->MakeCode != 5 &&
+			i_kid->MakeCode != 8 && i_kid->MakeCode != 9) {
 			HWND hwnd;
 			POINT pt;
 
@@ -835,6 +852,13 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				break;
 			}
 			break;
+		case WM_MOUSEHWHEEL:
+			if (i_mid->mouseData & (1<<31)) {
+				kid.MakeCode = 9;
+			} else {
+				kid.MakeCode = 8;
+			}
+			break;
 		case WM_MOUSEMOVE: {
 			LONG dx = i_mid->pt.x - g_hookData->m_mousePos.x;
 			LONG dy = i_mid->pt.y - g_hookData->m_mousePos.y;
@@ -898,7 +922,6 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 		case WM_LBUTTONDBLCLK:
 		case WM_RBUTTONDBLCLK:
 		case WM_MBUTTONDBLCLK:
-		case WM_MOUSEHWHEEL:
 		case WM_XBUTTONDBLCLK:
 		default:
 			return 0;
@@ -921,7 +944,7 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				m_kidq.push_back(kid2);
 				SetEvent(m_readEvent);
 			}
-		} else if (i_message != WM_MOUSEWHEEL) {
+		} else if (i_message != WM_MOUSEWHEEL && i_message != WM_MOUSEHWHEEL) {
 			m_buttonPressed = true;
 			m_msllHookCurrent = *i_mid;
 		}
