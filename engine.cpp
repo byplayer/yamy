@@ -952,6 +952,15 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 		m_kidq.push_back(kid);
 		SetEvent(m_readEvent);
 
+		if (i_message == WM_MOUSEWHEEL || i_message == WM_MOUSEHWHEEL) {
+			kid.UnitId = 0;
+			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
+			kid.Reserved = 0;
+			kid.ExtraInformation = 0;
+			m_kidq.push_back(kid);
+			SetEvent(m_readEvent);
+		}
+
 		return 1;
 	}
 }
