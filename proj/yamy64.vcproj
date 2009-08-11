@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\fixscancodemap.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\focus.cpp"
 				>
 			</File>
@@ -294,6 +298,10 @@
 			</File>
 			<File
 				RelativePath="..\errormessage.h"
+				>
+			</File>
+			<File
+				RelativePath="..\fixscancodemap.h"
 				>
 			</File>
 			<File
