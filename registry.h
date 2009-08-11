@@ -32,15 +32,18 @@ public:
 	/// set registry root and path
 	void setRoot(HKEY i_root, const tstring &i_path) {
 		m_root = i_root;
-		m_path = i_path;
-		_TCHAR exePath[GANA_MAX_PATH];
-		_TCHAR exeDrive[GANA_MAX_PATH];
-		_TCHAR exeDir[GANA_MAX_PATH];
-		GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
-		_tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
-		m_path = exeDrive;
-		m_path += exeDir;
-		m_path += _T("yamy.ini");
+		if (m_root) {
+			m_path = i_path;
+		} else {
+			_TCHAR exePath[GANA_MAX_PATH];
+			_TCHAR exeDrive[GANA_MAX_PATH];
+			_TCHAR exeDir[GANA_MAX_PATH];
+			GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
+			_tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
+			m_path = exeDrive;
+			m_path += exeDir;
+			m_path += _T("yamy.ini");
+		}
 	}
 
 	/// remvoe
@@ -83,9 +86,10 @@ public:
 	bool write(const tstring &i_name, const tstrings &i_value) const {
 		return write(m_root, m_path, i_name, i_value);
 	}
+#endif //!USE_INI
 
 	/// read binary data
-	bool read(const tstring &i_name, BYTE *o_value, DWORD i_valueSize,
+	bool read(const tstring &i_name, BYTE *o_value, DWORD *i_valueSize,
 			  const BYTE *i_defaultValue = NULL, DWORD i_defaultValueSize = 0)
 	const {
 		return read(m_root, m_path, i_name, o_value, i_valueSize, i_defaultValue,
@@ -96,7 +100,6 @@ public:
 			   DWORD i_valueSize) const {
 		return write(m_root, m_path, i_name, i_value, i_valueSize);
 	}
-#endif //!USE_INI
 
 public:
 	/// remove
@@ -127,16 +130,16 @@ public:
 	/// write list of tstring
 	static bool write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					  const tstrings &i_value);
+#endif //!USE_INI
 
 	/// read binary data
 	static bool read(HKEY i_root, const tstring &i_path, const tstring &i_name,
-					 BYTE *o_value, DWORD i_valueSize,
+					 BYTE *o_value, DWORD *i_valueSize,
 					 const BYTE *i_defaultValue = NULL,
 					 DWORD i_defaultValueSize = 0);
 	/// write binary data
 	static bool write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					  const BYTE *i_value, DWORD i_valueSize);
-#endif //!USE_INI
 	/// read LOGFONT
 	static bool read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					 LOGFONT *o_value, const tstring &i_defaultStringValue);

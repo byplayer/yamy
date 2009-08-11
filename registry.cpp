@@ -12,38 +12,36 @@
 bool Registry::remove(HKEY i_root, const tstring &i_path,
 					  const tstring &i_name)
 {
-#ifdef USE_INI
-	return false;
-	if (i_name.empty())
+	if (i_root) {
+		if (i_name.empty())
+			return RegDeleteKey(i_root, i_path.c_str()) == ERROR_SUCCESS;
+		HKEY hkey;
+		if (ERROR_SUCCESS != RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_SET_VALUE, &hkey))
+			return false;
+		LONG r = RegDeleteValue(hkey, i_name.c_str());
+		RegCloseKey(hkey);
+		return r == ERROR_SUCCESS;
+	} else {
 		return false;
-	return WritePrivateProfileString(_T("yamy"), i_name.c_str(), NULL, i_path.c_str()) == TRUE;
-#else // !USE_INI
-	if (i_name.empty())
-		return RegDeleteKey(i_root, i_path.c_str()) == ERROR_SUCCESS;
-	HKEY hkey;
-	if (ERROR_SUCCESS !=
-			RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_SET_VALUE, &hkey))
-		return false;
-	LONG r = RegDeleteValue(hkey, i_name.c_str());
-	RegCloseKey(hkey);
-	return r == ERROR_SUCCESS;
-#endif // !USE_INI
+		if (i_name.empty())
+			return false;
+		return WritePrivateProfileString(_T("yamy"), i_name.c_str(), NULL, i_path.c_str()) == TRUE;
+	}
 }
 
 
 // does exist the key ?
 bool Registry::doesExist(HKEY i_root, const tstring &i_path)
 {
-#ifdef USE_INI
-	return true;
-#else // !USE_INI
-	HKEY hkey;
-	if (ERROR_SUCCESS !=
-			RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey))
-		return false;
-	RegCloseKey(hkey);
-	return true;
-#endif // !USE_INI
+	if (i_root) {
+		HKEY hkey;
+		if (ERROR_SUCCESS != RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey))
+			return false;
+		RegCloseKey(hkey);
+		return true;
+	} else {
+		return true;
+	}
 }
 
 
@@ -51,25 +49,22 @@ bool Registry::doesExist(HKEY i_root, const tstring &i_path)
 bool Registry::read(HKEY i_root, const tstring &i_path,
 					const tstring &i_name, int *o_value, int i_defaultValue)
 {
-#ifdef USE_INI
-	*o_value =
-		GetPrivateProfileInt(_T("yamy"), i_name.c_str(), i_defaultValue, i_path.c_str());
-	return true;
-#else // !USE_INI
-	HKEY hkey;
-	if (ERROR_SUCCESS ==
-			RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
-		DWORD type = REG_DWORD;
-		DWORD size = sizeof(*o_value);
-		LONG r = RegQueryValueEx(hkey, i_name.c_str(), NULL,
-								 &type, (BYTE *)o_value, &size);
-		RegCloseKey(hkey);
-		if (r == ERROR_SUCCESS)
-			return true;
+	if (i_root) {
+		HKEY hkey;
+		if (ERROR_SUCCESS == RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
+			DWORD type = REG_DWORD;
+			DWORD size = sizeof(*o_value);
+			LONG r = RegQueryValueEx(hkey, i_name.c_str(), NULL, &type, (BYTE *)o_value, &size);
+			RegCloseKey(hkey);
+			if (r == ERROR_SUCCESS)
+				return true;
+		}
+		*o_value = i_defaultValue;
+		return false;
+	} else {
+		*o_value = GetPrivateProfileInt(_T("yamy"), i_name.c_str(), i_defaultValue, i_path.c_str());
+		return true;
 	}
-	*o_value = i_defaultValue;
-	return false;
-#endif // !USE_INI
 }
 
 
@@ -77,27 +72,27 @@ bool Registry::read(HKEY i_root, const tstring &i_path,
 bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					 int i_value)
 {
-#ifdef USE_INI
-	DWORD ret;
-	_TCHAR buf[GANA_MAX_PATH];
-
-	_stprintf(buf, _T("%d"), i_value);
-	ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
-									 buf, i_path.c_str());
-	return ret != 0;
-#else // !USE_INI
-	HKEY hkey;
-	DWORD disposition;
-	if (ERROR_SUCCESS !=
+	if (i_root) {
+		HKEY hkey;
+		DWORD disposition;
+		if (ERROR_SUCCESS !=
 			RegCreateKeyEx(i_root, i_path.c_str(), 0, _T(""),
 						   REG_OPTION_NON_VOLATILE,
 						   KEY_ALL_ACCESS, NULL, &hkey, &disposition))
-		return false;
-	LONG r = RegSetValueEx(hkey, i_name.c_str(), NULL, REG_DWORD,
-						   (BYTE *)&i_value, sizeof(i_value));
-	RegCloseKey(hkey);
-	return r == ERROR_SUCCESS;
-#endif // !USE_INI
+			return false;
+		LONG r = RegSetValueEx(hkey, i_name.c_str(), NULL, REG_DWORD,
+							   (BYTE *)&i_value, sizeof(i_value));
+		RegCloseKey(hkey);
+		return r == ERROR_SUCCESS;
+	} else {
+		DWORD ret;
+		_TCHAR buf[GANA_MAX_PATH];
+
+		_stprintf(buf, _T("%d"), i_value);
+		ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
+										 buf, i_path.c_str());
+		return ret != 0;
+	}
 }
 
 
@@ -105,44 +100,44 @@ bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					tstring *o_value, const tstring &i_defaultValue)
 {
-#ifdef USE_INI
-	_TCHAR buf[GANA_MAX_PATH];
-	DWORD len;
-	len = GetPrivateProfileString(_T("yamy"), i_name.c_str(), _T(""),
-								  buf, sizeof(buf) / sizeof(buf[0]), i_path.c_str());
-	if (len > 0) {
-		*o_value = buf;
-		return true;
-	}
-	if (!i_defaultValue.empty())
-		*o_value = i_defaultValue;
-	return false;
-#else // !USE_INI
-	HKEY hkey;
-	if (ERROR_SUCCESS ==
-			RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
-		DWORD type = REG_SZ;
-		DWORD size = 0;
-		BYTE dummy;
-		if (ERROR_MORE_DATA ==
-				RegQueryValueEx(hkey, i_name.c_str(), NULL, &type, &dummy, &size)) {
-			if (0 < size) {
-				Array<BYTE> buf(size);
-				if (ERROR_SUCCESS == RegQueryValueEx(hkey, i_name.c_str(),
-													 NULL, &type, buf.get(), &size)) {
-					buf.back() = 0;
-					*o_value = reinterpret_cast<_TCHAR *>(buf.get());
-					RegCloseKey(hkey);
-					return true;
+	if (i_root) {
+		HKEY hkey;
+		if (ERROR_SUCCESS ==
+				RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
+			DWORD type = REG_SZ;
+			DWORD size = 0;
+			BYTE dummy;
+			if (ERROR_MORE_DATA ==
+					RegQueryValueEx(hkey, i_name.c_str(), NULL, &type, &dummy, &size)) {
+				if (0 < size) {
+					Array<BYTE> buf(size);
+					if (ERROR_SUCCESS == RegQueryValueEx(hkey, i_name.c_str(),
+														 NULL, &type, buf.get(), &size)) {
+						buf.back() = 0;
+						*o_value = reinterpret_cast<_TCHAR *>(buf.get());
+						RegCloseKey(hkey);
+						return true;
+					}
 				}
 			}
+			RegCloseKey(hkey);
 		}
-		RegCloseKey(hkey);
+		if (!i_defaultValue.empty())
+			*o_value = i_defaultValue;
+		return false;
+	} else {
+		_TCHAR buf[GANA_MAX_PATH];
+		DWORD len;
+		len = GetPrivateProfileString(_T("yamy"), i_name.c_str(), _T(""),
+									  buf, sizeof(buf) / sizeof(buf[0]), i_path.c_str());
+		if (len > 0) {
+			*o_value = buf;
+			return true;
+		}
+		if (!i_defaultValue.empty())
+			*o_value = i_defaultValue;
+		return false;
 	}
-	if (!i_defaultValue.empty())
-		*o_value = i_defaultValue;
-	return false;
-#endif // !USE_INI
 }
 
 
@@ -150,26 +145,26 @@ bool Registry::read(HKEY i_root, const tstring &i_path, const tstring &i_name,
 bool Registry::write(HKEY i_root, const tstring &i_path,
 					 const tstring &i_name, const tstring &i_value)
 {
-#ifdef USE_INI
-	DWORD ret;
+	if (i_root) {
+		HKEY hkey;
+		DWORD disposition;
+		if (ERROR_SUCCESS !=
+				RegCreateKeyEx(i_root, i_path.c_str(), 0, _T(""),
+							   REG_OPTION_NON_VOLATILE,
+							   KEY_ALL_ACCESS, NULL, &hkey, &disposition))
+			return false;
+		RegSetValueEx(hkey, i_name.c_str(), NULL, REG_SZ,
+					  (BYTE *)i_value.c_str(),
+					  (i_value.size() + 1) * sizeof(tstring::value_type));
+		RegCloseKey(hkey);
+		return true;
+	} else {
+		DWORD ret;
 
-	ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
-									 i_value.c_str(), i_path.c_str());
-	return ret != 0;
-#else // !USE_INI
-	HKEY hkey;
-	DWORD disposition;
-	if (ERROR_SUCCESS !=
-			RegCreateKeyEx(i_root, i_path.c_str(), 0, _T(""),
-						   REG_OPTION_NON_VOLATILE,
-						   KEY_ALL_ACCESS, NULL, &hkey, &disposition))
-		return false;
-	RegSetValueEx(hkey, i_name.c_str(), NULL, REG_SZ,
-				  (BYTE *)i_value.c_str(),
-				  (i_value.size() + 1) * sizeof(tstring::value_type));
-	RegCloseKey(hkey);
-	return true;
-#endif // !USE_INI
+		ret =  WritePrivateProfileString(_T("yamy"), i_name.c_str(),
+										 i_value.c_str(), i_path.c_str());
+		return ret != 0;
+	}
 }
 
 
@@ -233,29 +228,34 @@ bool Registry::write(HKEY i_root, const tstring &i_path,
 	RegCloseKey(hkey);
 	return true;
 }
+#endif //!USE_INI
 
 
 // read binary
 bool Registry::read(HKEY i_root, const tstring &i_path,
-					const tstring &i_name, BYTE *o_value, DWORD i_valueSize,
+					const tstring &i_name, BYTE *o_value, DWORD *i_valueSize,
 					const BYTE *i_defaultValue, DWORD i_defaultValueSize)
 {
-	if (o_value && 0 < i_valueSize) {
-		HKEY hkey;
-		if (ERROR_SUCCESS ==
-				RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
-			DWORD type = REG_BINARY;
-			LONG r = RegQueryValueEx(hkey, i_name.c_str(), NULL, &type,
-									 (BYTE *)o_value, &i_valueSize);
-			RegCloseKey(hkey);
-			if (r == ERROR_SUCCESS)
-				return true;
+	if (i_root) {
+		if (i_valueSize) {
+			HKEY hkey;
+			if (ERROR_SUCCESS ==
+					RegOpenKeyEx(i_root, i_path.c_str(), 0, KEY_READ, &hkey)) {
+				DWORD type = REG_BINARY;
+				LONG r = RegQueryValueEx(hkey, i_name.c_str(), NULL, &type,
+										 (BYTE *)o_value, i_valueSize);
+				RegCloseKey(hkey);
+				if (r == ERROR_SUCCESS)
+					return true;
+			}
 		}
+		if (i_defaultValue)
+			CopyMemory(o_value, i_defaultValue,
+					   MIN(i_defaultValueSize, *i_valueSize));
+		return false;
+	} else {
+		return false;
 	}
-	if (i_defaultValue)
-		CopyMemory(o_value, i_defaultValue,
-				   MIN(i_defaultValueSize, i_valueSize));
-	return false;
 }
 
 
@@ -263,20 +263,23 @@ bool Registry::read(HKEY i_root, const tstring &i_path,
 bool Registry::write(HKEY i_root, const tstring &i_path, const tstring &i_name,
 					 const BYTE *i_value, DWORD i_valueSize)
 {
-	if (!i_value)
+	if (i_root) {
+		if (!i_value)
+			return false;
+		HKEY hkey;
+		DWORD disposition;
+		if (ERROR_SUCCESS !=
+				RegCreateKeyEx(i_root, i_path.c_str(), 0, _T(""),
+							   REG_OPTION_NON_VOLATILE,
+							   KEY_ALL_ACCESS, NULL, &hkey, &disposition))
+			return false;
+		RegSetValueEx(hkey, i_name.c_str(), NULL, REG_BINARY, i_value, i_valueSize);
+		RegCloseKey(hkey);
+		return true;
+	} else {
 		return false;
-	HKEY hkey;
-	DWORD disposition;
-	if (ERROR_SUCCESS !=
-			RegCreateKeyEx(i_root, i_path.c_str(), 0, _T(""),
-						   REG_OPTION_NON_VOLATILE,
-						   KEY_ALL_ACCESS, NULL, &hkey, &disposition))
-		return false;
-	RegSetValueEx(hkey, i_name.c_str(), NULL, REG_BINARY, i_value, i_valueSize);
-	RegCloseKey(hkey);
-	return true;
+	}
 }
-#endif //!USE_INI
 
 
 //

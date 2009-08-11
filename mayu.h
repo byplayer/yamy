@@ -7,7 +7,11 @@
 
 
 ///
-#  define MAYU_REGISTRY_ROOT HKEY_CURRENT_USER, _T("Software\\GANAware\\mayu")
+#ifdef USE_INI
+#  define MAYU_REGISTRY_ROOT 0, _T("yamy")
+#else // !USE_INI
+#  define MAYU_REGISTRY_ROOT HKEY_CURRENT_USER, _T("Software\\gimy.net\\yamy")
+#endif // !USE_INI
 
 ///
 #  define MUTEX_MAYU_EXCLUSIVE_RUNNING		\
