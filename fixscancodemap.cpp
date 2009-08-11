@@ -117,6 +117,11 @@ exit:
 DWORD FixScancodeMap::getWinLogonPid()
 {
     DWORD pid = 0;
+	DWORD mySessionId = 0;
+
+	if (ProcessIdToSessionId(GetCurrentProcessId(), &mySessionId) == FALSE) {
+		return 0;
+	}
 
 	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnap == INVALID_HANDLE_VALUE) {
@@ -129,7 +134,17 @@ DWORD FixScancodeMap::getWinLogonPid()
     BOOL bResult = Process32First(hSnap, &pe);
 	while (bResult){
 		if (!_tcscmp(pe.szExeFile, _T("winlogon.exe"))) {
-			pid = pe.th32ProcessID;
+			DWORD sessionId;
+
+			if (ProcessIdToSessionId(pe.th32ProcessID, &sessionId) == FALSE) {
+				pid = 0;
+				break;
+			}
+
+			if (sessionId == mySessionId) {
+				pid = pe.th32ProcessID;
+				break;
+			}
 		}
 		bResult = Process32Next(hSnap, &pe);
 	}
