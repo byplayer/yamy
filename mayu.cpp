@@ -24,16 +24,19 @@
 #include "setting.h"
 #include "target.h"
 #include "windowstool.h"
+#include "fixscancodemap.h"
 #include "vk2tchar.h"
 #include <process.h>
 #include <time.h>
 #include <commctrl.h>
 #include <wtsapi32.h>
+#include <aclapi.h>
 
 
 ///
 #define ID_MENUITEM_reloadBegin _APS_NEXT_COMMAND_VALUE
 
+//#define ENABLE_FIX_SCANCODE_MAP
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Mayu
@@ -91,8 +94,10 @@ private:
 	static VOID CALLBACK mailslotProc(DWORD i_code, DWORD i_len, LPOVERLAPPED i_ol) {
 		Mayu *pThis;
 
-		pThis = reinterpret_cast<Mayu*>(CONTAINING_RECORD(i_ol, Mayu, m_olNotify));
-		pThis->mailslotHandler(i_code, i_len);
+		if (i_code == ERROR_SUCCESS) {
+			pThis = reinterpret_cast<Mayu*>(CONTAINING_RECORD(i_ol, Mayu, m_olNotify));
+			pThis->mailslotHandler(i_code, i_len);
+		}
 		return;
 	}
 
@@ -318,12 +323,22 @@ private:
 				case WTS_SESSION_LOGOFF:
 					m = "WTS_SESSION_LOGOFF";
 					break;
-				case WTS_SESSION_LOCK:
+				case WTS_SESSION_LOCK: {
+#ifdef ENABLE_FIX_SCANCODE_MAP
+					FixScancodeMap fixScancodeMap;
+					fixScancodeMap.restore();
+#endif //ENABLE_FIX_SCANCODE_MAP
 					m = "WTS_SESSION_LOCK";
 					break;
-				case WTS_SESSION_UNLOCK:
+			   }
+				case WTS_SESSION_UNLOCK: {
+#ifdef ENABLE_FIX_SCANCODE_MAP
+					FixScancodeMap fixScancodeMap;
+					fixScancodeMap.fix();
+#endif //ENABLE_FIX_SCANCODE_MAP
 					m = "WTS_SESSION_UNLOCK";
 					break;
+				}
 					//case WTS_SESSION_REMOTE_CONTROL: m = "WTS_SESSION_REMOTE_CONTROL"; break;
 				}
 				This->m_log << _T("WM_WTSESSION_CHANGE(")
@@ -733,6 +748,146 @@ private:
 		}
 	}
 
+	bool enableToWriteByUser(HANDLE hdl)
+	{
+		TCHAR userName[GANA_MAX_ATOM_LENGTH];
+		DWORD userNameSize = NUMBER_OF(userName);
+
+		SID_NAME_USE sidType;
+		PSID pSid = NULL;
+		DWORD sidSize = 0;
+		TCHAR *pDomain = NULL;
+		DWORD domainSize = 0;
+
+		PSECURITY_DESCRIPTOR pSd;
+		PACL pOrigDacl;
+		ACL_SIZE_INFORMATION aclInfo;
+
+		PACL pNewDacl;
+		DWORD newDaclSize;
+
+		DWORD aceIndex;
+		DWORD newAceIndex = 0;
+
+		BOOL ret;
+
+		ret = GetUserName(userName, &userNameSize);
+		if (ret == FALSE) {
+			return false;
+		}
+
+		// get buffer size for pSid (and pDomain)
+		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
+		if (ret != FALSE || GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+			// above call should fail by ERROR_INSUFFICIENT_BUFFER
+			return false;
+		}
+
+		pSid = reinterpret_cast<PSID>(LocalAlloc(LPTR, sidSize));
+		pDomain = reinterpret_cast<TCHAR*>(LocalAlloc(LPTR, domainSize * sizeof(TCHAR)));
+		if (pSid == NULL || pDomain == NULL) {
+			LocalFree(pSid);
+			LocalFree(pDomain);
+			return false;
+		}
+
+		// get SID (and Domain) for logoned user
+		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
+		if (ret == FALSE) {
+			// LookupAccountName() should success in this time
+			LocalFree(pSid);
+			LocalFree(pDomain);
+			return false;
+		}
+
+		// get DACL for hdl
+		ret = GetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pOrigDacl, NULL, &pSd);
+		if (ret != ERROR_SUCCESS) {
+			return false;
+		}
+
+		// get size for original DACL
+		ret = GetAclInformation(pOrigDacl, &aclInfo, sizeof(aclInfo), AclSizeInformation);
+		if (ret == FALSE) {
+			return false;
+		}
+
+		// compute size for new DACL
+		newDaclSize = aclInfo.AclBytesInUse + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(pSid) - sizeof(DWORD);
+
+		// allocate memory for new DACL
+		pNewDacl = reinterpret_cast<PACL>(LocalAlloc(LPTR, newDaclSize));
+		if (pNewDacl == NULL) {
+			LocalFree(pSid);
+			LocalFree(pDomain);
+			return false;
+		}
+
+		// initialize new DACL
+		ret = InitializeAcl(pNewDacl, newDaclSize, ACL_REVISION);
+		if (ret == FALSE) {
+			return false;
+		}
+
+		// copy original DACL to new DACL
+		for (aceIndex = 0; aceIndex < aclInfo.AceCount; aceIndex++) {
+			LPVOID pAce;
+
+			ret = GetAce(pOrigDacl, aceIndex, &pAce);
+			if (ret == FALSE) {
+				return false;
+			}
+
+			if ((reinterpret_cast<ACCESS_ALLOWED_ACE*>(pAce))->Header.AceFlags & INHERITED_ACE) {
+				break;
+			}
+
+			if (EqualSid(pSid, &(reinterpret_cast<ACCESS_ALLOWED_ACE*>(pAce))->SidStart) != FALSE) {
+				continue;
+			}
+
+			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
+			if (ret == FALSE) {
+				return false;
+			}
+
+			newAceIndex++;
+		}
+
+		ret = AddAccessAllowedAce(pNewDacl, ACL_REVISION, GENERIC_ALL, pSid);
+		if (ret == FALSE) {
+			return false;
+		}
+
+		// copy the rest of inherited ACEs
+		for (; aceIndex < aclInfo.AceCount; aceIndex++) {
+			LPVOID pAce;
+
+			ret = GetAce(pOrigDacl, aceIndex, &pAce);
+			if (ret == FALSE) {
+				return false;
+			}
+
+			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
+			if (ret == FALSE) {
+				return false;
+			}
+		}
+
+		ret = SetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewDacl, NULL);
+		if (ret != ERROR_SUCCESS) {
+			DWORD err = GetLastError();
+			return false;
+		}
+
+		LocalFree(pSd);
+		LocalFree(pSid);
+		LocalFree(pDomain);
+		LocalFree(pNewDacl);
+
+		return true;
+	}
+
 public:
 	///
 	Mayu(HANDLE i_mutex)
@@ -750,6 +905,8 @@ public:
 #ifdef USE_MAILSLOT
 		m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
 		ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
+		enableToWriteByUser(m_hNotifyMailslot);
+
 		m_hNotifyEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 		ASSERT(m_hNotifyEvent);
 		m_olNotify.Offset = 0;
@@ -885,6 +1042,12 @@ public:
 
 	///
 	~Mayu() {
+#ifdef USE_MAILSLOT
+		CancelIo(m_hNotifyMailslot);
+		SleepEx(0, TRUE);
+		CloseHandle(m_hNotifyMailslot);
+		CloseHandle(m_hNotifyEvent);
+#endif // USE_MAILSLOT
 		ReleaseMutex(m_mutex);
 		WaitForSingleObject(m_mutex, INFINITE);
 		// first, detach log from edit control to avoid deadlock
@@ -917,11 +1080,6 @@ public:
 
 		// remove setting;
 		delete m_setting;
-
-#ifdef USE_MAILSLOT
-		CloseHandle(m_hNotifyEvent);
-		CloseHandle(m_hNotifyMailslot);
-#endif // USE_MAILSLOT
 	}
 
 	/// message loop
@@ -1076,6 +1234,10 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 		return 1;
 	}
 
+#ifdef ENABLE_FIX_SCANCODE_MAP
+	FixScancodeMap fixScancodeMap;
+	fixScancodeMap.fix();
+#endif //ENABLE_FIX_SCANCODE_MAP
 	try {
 		Mayu(mutex).messageLoop();
 	} catch (ErrorMessage &i_e) {
@@ -1083,6 +1245,9 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 		MessageBox((HWND)NULL, i_e.getMessage().c_str(), title.c_str(),
 				   MB_OK | MB_ICONSTOP);
 	}
+#ifdef ENABLE_FIX_SCANCODE_MAP
+	fixScancodeMap.restore();
+#endif //ENABLE_FIX_SCANCODE_MAP
 
 	CHECK_TRUE( CloseHandle(mutex) );
 	return 0;
