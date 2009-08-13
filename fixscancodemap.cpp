@@ -13,10 +13,7 @@ typedef BOOL (WINAPI *FpImpersonateLoggedOnUser)(HANDLE);
 typedef BOOL (WINAPI *FpRevertToSelf)(VOID);
 typedef BOOL (WINAPI *FpCloseHandle)(HANDLE);
 
-typedef BOOL (WINAPI *FpRegisterShellHook)(HWND, DWORD);
-
 typedef struct {
-	DWORD retval_;
 	DWORD pid_;
 	TCHAR advapi32_[64];
 	CHAR impersonateLoggedOnUser_[32];
@@ -39,8 +36,6 @@ static DWORD invokeFunc(InjectInfo *info)
 	FpRevertToSelf pRevertToSelf;
 	FpOpenProcessToken pOpenProcessToken;
 
-	info->retval_ = 0;
-
 	hAdvapi32 = info->pGetModuleHandle(info->advapi32_);
 
 	pImpersonateLoggedOnUser = (FpImpersonateLoggedOnUser)info->pGetProcAddress(hAdvapi32, info->impersonateLoggedOnUser_);
@@ -49,28 +44,24 @@ static DWORD invokeFunc(InjectInfo *info)
 
 	HANDLE hProcess = info->pOpenProcess(PROCESS_QUERY_INFORMATION, FALSE, info->pid_);
 	if (hProcess == NULL) {
-		info->retval_ = 1;
-		return 0;
+		return 1;
 	}
 
 	ret = pOpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_DUPLICATE , &hToken);
 	if (ret == FALSE) {
-		info->retval_ = 2;
-		return 0;
+		return 2;
 	}
 
 	ret = pImpersonateLoggedOnUser(hToken);
 	if (ret == FALSE) {
-		info->retval_ = 3;
-		return 0;
+		return 3;
 	}
 
 	info->pUpdate(0, 1);
 
 	ret = pRevertToSelf();
 	if (ret == FALSE) {
-		info->retval_ = 4;
-		return 0;
+		return 4;
 	}
 
 	info->pCloseHandle(hToken);
@@ -91,7 +82,7 @@ int FixScancodeMap::acquirePrivileges()
 	}
 
 	LUID luid;
-	if (!LookupPrivilegeValue(NULL, _T("SeDebugPrivilege"), &luid)) {
+	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid)) {
 		ret = 2;
 		goto exit;
 	}
@@ -136,14 +127,11 @@ DWORD FixScancodeMap::getWinLogonPid()
 		if (!_tcscmp(pe.szExeFile, _T("winlogon.exe"))) {
 			DWORD sessionId;
 
-			if (ProcessIdToSessionId(pe.th32ProcessID, &sessionId) == FALSE) {
-				pid = 0;
-				break;
-			}
-
-			if (sessionId == mySessionId) {
-				pid = pe.th32ProcessID;
-				break;
+			if (ProcessIdToSessionId(pe.th32ProcessID, &sessionId) != FALSE) {
+				if (sessionId == mySessionId) {
+					pid = pe.th32ProcessID;
+					break;
+				}
 			}
 		}
 		bResult = Process32Next(hSnap, &pe);
@@ -266,6 +254,9 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 		ret = 5;
 		goto exit;
 	}
+	DWORD result = -1;
+	GetExitCodeThread(hThread, &result);
+	ret = result;
 	CloseHandle(hThread);
 
 exit:
@@ -319,6 +310,8 @@ int FixScancodeMap::fix()
 {
 	ScancodeMap *origMap, *fixMap;
 	Registry reg(HKEY_CURRENT_USER, _T("Keyboard Layout"));
+	// Windows7 RC not support Scancode Map on HKCU?
+	//Registry reg(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout"));
 	DWORD origSize, fixSize;
 	bool ret;
 	int result = 0;
