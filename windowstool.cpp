@@ -511,3 +511,20 @@ tstring pathRemoveFileSpec(const tstring &i_path)
 		return tstring(str, c + 1);
 	return i_path;
 }
+
+BOOL checkWindowsVersion(DWORD i_major, DWORD i_minor)
+{
+    DWORDLONG conditionMask = 0;
+    OSVERSIONINFOEX osvi;
+	memset(&osvi, 0, sizeof(OSVERSIONINFOEX));
+
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    osvi.dwMajorVersion = i_major;
+    osvi.dwMinorVersion = i_minor;
+
+    VER_SET_CONDITION(conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL);
+    VER_SET_CONDITION(conditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
+
+    // Perform the test.
+    return VerifyVersionInfo(&osvi, VER_MAJORVERSION | VER_MINORVERSION, conditionMask);
+}

@@ -175,5 +175,7 @@ extern WTSGetActiveConsoleSessionId_t wtsGetActiveConsoleSessionId;
 // PathRemoveFileSpec()
 tstring pathRemoveFileSpec(const tstring &i_path);
 
+// check Windows version i_major.i_minor or later
+BOOL checkWindowsVersion(DWORD i_major, DWORD i_minor);
 
 #endif // _WINDOWSTOOL_H

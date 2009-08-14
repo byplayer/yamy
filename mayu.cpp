@@ -960,9 +960,11 @@ public:
 		m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
 		ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
 		int err;
-		err = enableToWriteByUser(m_hNotifyMailslot);
-		if (err) {
-			errorDialogWithCode(IDS_cannotPermitStandardUser, err);
+		if (checkWindowsVersion(6, 0) != FALSE) { // enableToWriteByUser() is available only Vista or later
+			err = enableToWriteByUser(m_hNotifyMailslot);
+			if (err) {
+				errorDialogWithCode(IDS_cannotPermitStandardUser, err);
+			}
 		}
 
 		m_hNotifyEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
