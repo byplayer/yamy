@@ -28,6 +28,8 @@
 #define IDS_version                     28
 #define IDS_homepage                    29
 #define IDS_cannotInvoke                30
+#define IDS_cannotPermitStandardUser    31
+#define IDS_escapeNlsKeysFailed         32
 #define IDC_CURSOR_target               101
 #define IDD_DIALOG_editSetting          102
 #define IDD_DIALOG_investigate          103

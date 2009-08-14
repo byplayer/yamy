@@ -46,7 +46,14 @@ static DWORD invokeFunc(InjectInfo *info)
 	info->pCloseHandle(hProcess);
 	return 0;
 }
-static void afterFunc(void){}
+static int afterFunc(int arg)
+{
+	// dummy operation
+	// if this function empty, optimizer unify this with other empty functions.
+	// following code avoid it.
+	arg *= 710810; // non-sense operation
+	return arg;
+}
 #pragma runtime_checks( "", restore )
 
 const DWORD FixScancodeMap::s_fixEntryNum = 4;
@@ -63,13 +70,13 @@ int FixScancodeMap::acquirePrivileges()
 	HANDLE hToken = NULL;
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken)) {
-		ret = 1;
+		ret = 5;
 		goto exit;
 	}
 
 	LUID luid;
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid)) {
-		ret = 2;
+		ret = 6;
 		goto exit;
 	}
 
@@ -79,7 +86,7 @@ int FixScancodeMap::acquirePrivileges()
 	tk_priv.Privileges[0].Luid = luid;
 
 	if (!AdjustTokenPrivileges(hToken, FALSE, &tk_priv, 0, NULL, NULL)) {
-		ret = 3;
+		ret = 7;
 		goto exit;
 	}
 
@@ -142,33 +149,33 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	DWORD memSize =  afterFuncAddr - invokeFuncAddr;
 
 	if ((hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
-		ret = 1;
+		ret = 8;
 		goto exit;
 	}
 
 	remoteMem = VirtualAllocEx(hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (remoteMem == NULL) {
-		ret = 2;
+		ret = 9;
 		err = GetLastError();
 		goto exit;
 	}
 
 	wFlag = WriteProcessMemory(hProcess, remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 3;
+		ret = 10;
 		goto exit;
 	}
 
 	remoteInfo = VirtualAllocEx(hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
 	if (remoteInfo == NULL) {
-		ret = 2;
+		ret = 11;
 		err = GetLastError();
 		goto exit;
 	}
 
 	wFlag = WriteProcessMemory(hProcess, remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 3;
+		ret = 12;
 		goto exit;
 	}
 
@@ -192,12 +199,12 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, 
 		(LPTHREAD_START_ROUTINE)remoteMem, remoteInfo, 0, NULL);
 	if (hThread == NULL) {
-		ret = 4;
+		ret = 13;
 		goto exit;
 	}
 
 	if (WaitForSingleObject(hThread, 5000) == WAIT_TIMEOUT) {
-		ret = 5;
+		ret = 14;
 		goto exit;
 	}
 	DWORD result = -1;
@@ -226,14 +233,14 @@ int FixScancodeMap::update()
 	MINIMIZEDMETRICS mm;
 	int result = 0;
 
-	if (acquirePrivileges()) {
-		result = 1;
+	result = acquirePrivileges();
+	if (result) {
 		goto exit;
 	}
 
 	DWORD dwPID;
 	if ((dwPID = getWinLogonPid()) == 0) {
-		result = 1;
+		result = 15;
 		goto exit;
 	}
 
@@ -241,8 +248,8 @@ int FixScancodeMap::update()
 	mm.cbSize = sizeof(mm);
 	SystemParametersInfo(SPI_GETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
-	if (injectThread(dwPID)) {
-		result = 1;
+	result = injectThread(dwPID);
+	if (result) {
 		goto exit;
 	}
 
@@ -267,20 +274,20 @@ int FixScancodeMap::fix()
 	if (ret) {
 		origMap = reinterpret_cast<ScancodeMap*>(malloc(origSize));
 		if (origMap == NULL) {
-			result = 1;
+			result = 16;
 			goto exit;
 		}
 
 		ret = reg.read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
 		if (ret == false) {
-			result = 1;
+			result = 17;
 			goto exit;
 		}
 
 		fixSize = origSize;
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(origSize + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 1;
+			result = 18;
 			goto exit;
 		}
 
@@ -292,7 +299,7 @@ int FixScancodeMap::fix()
 		fixSize = sizeof(ScancodeMap);
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(sizeof(ScancodeMap) + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 1;
+			result = 19;
 			goto exit;
 		}
 
@@ -327,7 +334,7 @@ int FixScancodeMap::fix()
 
 	ret = reg.write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
 	if (ret == false) {
-		result = 1;
+		result = 20;
 		goto exit;
 	}
 
@@ -339,7 +346,7 @@ int FixScancodeMap::fix()
 		ret = reg.remove(_T("Scancode Map"));
 	}
 	if (ret == false) {
-		result = 1;
+		result = 21;
 		goto exit;
 	}
 

@@ -273,7 +273,11 @@ private:
 				This = reinterpret_cast<Mayu *>(
 						   reinterpret_cast<CREATESTRUCT *>(i_lParam)->lpCreateParams);
 				if (This->m_escapeNlsKeys) {
-					This->m_fixScancodeMap.fix();
+					int err;
+					err = This->m_fixScancodeMap.fix();
+					if (err) {
+						This->errorDialogWithCode(IDS_escapeNlsKeysFailed, err);
+					}
 				}
 #ifdef MAYU64
 				SetWindowLongPtr(i_hwnd, 0, (LONG_PTR)This);
@@ -776,7 +780,18 @@ private:
 		}
 	}
 
-	bool enableToWriteByUser(HANDLE hdl)
+	bool errorDialogWithCode(UINT ids, int code)
+	{
+		_TCHAR title[1024];
+		_TCHAR text[1024];
+
+		_sntprintf_s(title, NUMBER_OF(title), _TRUNCATE, loadString(IDS_mayu).c_str());
+		_sntprintf_s(text, NUMBER_OF(text), _TRUNCATE, loadString(ids).c_str(), code);
+ 		MessageBox((HWND)NULL, text, title, MB_OK | MB_ICONSTOP);
+		return true;
+	}
+
+	int enableToWriteByUser(HANDLE hdl)
 	{
 		TCHAR userName[GANA_MAX_ATOM_LENGTH];
 		DWORD userNameSize = NUMBER_OF(userName);
@@ -798,46 +813,49 @@ private:
 		DWORD newAceIndex = 0;
 
 		BOOL ret;
+		int err = 0;
 
 		ret = GetUserName(userName, &userNameSize);
 		if (ret == FALSE) {
-			return false;
+			err = 1;
+			goto exit;
 		}
 
 		// get buffer size for pSid (and pDomain)
 		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
 		if (ret != FALSE || GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
 			// above call should fail by ERROR_INSUFFICIENT_BUFFER
-			return false;
+			err = 2;
+			goto exit;
 		}
 
 		pSid = reinterpret_cast<PSID>(LocalAlloc(LPTR, sidSize));
 		pDomain = reinterpret_cast<TCHAR*>(LocalAlloc(LPTR, domainSize * sizeof(TCHAR)));
 		if (pSid == NULL || pDomain == NULL) {
-			LocalFree(pSid);
-			LocalFree(pDomain);
-			return false;
+			err = 3;
+			goto exit;
 		}
 
 		// get SID (and Domain) for logoned user
 		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
 		if (ret == FALSE) {
 			// LookupAccountName() should success in this time
-			LocalFree(pSid);
-			LocalFree(pDomain);
-			return false;
+			err = 4;
+			goto exit;
 		}
 
 		// get DACL for hdl
 		ret = GetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pOrigDacl, NULL, &pSd);
 		if (ret != ERROR_SUCCESS) {
-			return false;
+			err = 5;
+			goto exit;
 		}
 
 		// get size for original DACL
 		ret = GetAclInformation(pOrigDacl, &aclInfo, sizeof(aclInfo), AclSizeInformation);
 		if (ret == FALSE) {
-			return false;
+			err = 6;
+			goto exit;
 		}
 
 		// compute size for new DACL
@@ -846,15 +864,15 @@ private:
 		// allocate memory for new DACL
 		pNewDacl = reinterpret_cast<PACL>(LocalAlloc(LPTR, newDaclSize));
 		if (pNewDacl == NULL) {
-			LocalFree(pSid);
-			LocalFree(pDomain);
-			return false;
+			err = 7;
+			goto exit;
 		}
 
 		// initialize new DACL
 		ret = InitializeAcl(pNewDacl, newDaclSize, ACL_REVISION);
 		if (ret == FALSE) {
-			return false;
+			err = 8;
+			goto exit;
 		}
 
 		// copy original DACL to new DACL
@@ -863,7 +881,8 @@ private:
 
 			ret = GetAce(pOrigDacl, aceIndex, &pAce);
 			if (ret == FALSE) {
-				return false;
+				err = 9;
+				goto exit;
 			}
 
 			if ((reinterpret_cast<ACCESS_ALLOWED_ACE*>(pAce))->Header.AceFlags & INHERITED_ACE) {
@@ -876,7 +895,8 @@ private:
 
 			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
 			if (ret == FALSE) {
-				return false;
+				err = 10;
+				goto exit;
 			}
 
 			newAceIndex++;
@@ -884,7 +904,8 @@ private:
 
 		ret = AddAccessAllowedAce(pNewDacl, ACL_REVISION, GENERIC_ALL, pSid);
 		if (ret == FALSE) {
-			return false;
+			err = 11;
+			goto exit;
 		}
 
 		// copy the rest of inherited ACEs
@@ -893,27 +914,29 @@ private:
 
 			ret = GetAce(pOrigDacl, aceIndex, &pAce);
 			if (ret == FALSE) {
-				return false;
+				err = 12;
+				goto exit;
 			}
 
 			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
 			if (ret == FALSE) {
-				return false;
+				err = 13;
+				goto exit;
 			}
 		}
 
 		ret = SetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewDacl, NULL);
 		if (ret != ERROR_SUCCESS) {
-			DWORD err = GetLastError();
-			return false;
+			err = 14;
 		}
 
+exit:
 		LocalFree(pSd);
 		LocalFree(pSid);
 		LocalFree(pDomain);
 		LocalFree(pNewDacl);
 
-		return true;
+		return err;
 	}
 
 public:
@@ -936,7 +959,11 @@ public:
 #ifdef USE_MAILSLOT
 		m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
 		ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
-		enableToWriteByUser(m_hNotifyMailslot);
+		int err;
+		err = enableToWriteByUser(m_hNotifyMailslot);
+		if (err) {
+			errorDialogWithCode(IDS_cannotPermitStandardUser, err);
+		}
 
 		m_hNotifyEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 		ASSERT(m_hNotifyEvent);
@@ -1063,7 +1090,7 @@ public:
 					   title, sizeof(title)/sizeof(title[0]));
 			_stprintf_s(buf, sizeof(buf)/sizeof(buf[0]),
 						text, _T("yamyd32"), GetLastError());
-			MessageBox((HWND)NULL, buf, title, MB_OK | MB_ICONSTOP);
+	 		MessageBox((HWND)NULL, buf, title, MB_OK | MB_ICONSTOP);
 		} else {
 			CloseHandle(m_pi.hThread);
 			CloseHandle(m_pi.hProcess);
