@@ -36,7 +36,6 @@
 ///
 #define ID_MENUITEM_reloadBegin _APS_NEXT_COMMAND_VALUE
 
-//#define ENABLE_FIX_SCANCODE_MAP
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Mayu
@@ -74,6 +73,9 @@ class Mayu
 	OVERLAPPED m_olNotify;			///
 	BYTE m_notifyBuf[NOTIFY_MESSAGE_SIZE];
 #endif // USE_MAILSLOT
+	bool m_isConsoleConnected;
+	int m_escapeNlsKeys;
+	FixScancodeMap m_fixScancodeMap;
 
 	Setting *m_setting;				/// current setting
 	bool m_isSettingDialogOpened;			/// is setting dialog opened ?
@@ -270,6 +272,9 @@ private:
 			case WM_CREATE:
 				This = reinterpret_cast<Mayu *>(
 						   reinterpret_cast<CREATESTRUCT *>(i_lParam)->lpCreateParams);
+				if (This->m_escapeNlsKeys) {
+					This->m_fixScancodeMap.fix();
+				}
 #ifdef MAYU64
 				SetWindowLongPtr(i_hwnd, 0, (LONG_PTR)This);
 #else
@@ -305,10 +310,30 @@ private:
 #  define WTS_SESSION_LOCK                   0x7
 #  define WTS_SESSION_UNLOCK                 0x8
 #endif
+/*
+	order of WTS_* messages:
+	<case1>screen lock -> screen unlock
+	<case2>change of user -> logon by same user
+		(1)WTS_SESSION_LOCK			... restore Scancode Map
+		(2)WTS_SESSION_UNLOCK		... re-fix Scancode Map
+
+	<case3>change of user -> logon by another user -> change of user -> logon by previous user
+		(1)WTS_SESSION_LOCK			... restore Scancode Map
+		(2)WTS_CONSOLE_CONNECT		... mark disconnection(m_isConsoleConnected=false)
+		(3)WTS_SESSION_UNLOCK		... (re-fix Scancode Map is not effective here!)
+		(4)WTS_CONSOLE_DISCONNECT	... re-fix Scancode Map
+*/
 				case WTS_CONSOLE_CONNECT:
+					if (This->m_isConsoleConnected == false) {
+						This->m_isConsoleConnected = true;
+						if (This->m_escapeNlsKeys) {
+							This->m_fixScancodeMap.fix();
+						}
+					}
 					m = "WTS_CONSOLE_CONNECT";
 					break;
 				case WTS_CONSOLE_DISCONNECT:
+					This->m_isConsoleConnected = false;
 					m = "WTS_CONSOLE_DISCONNECT";
 					break;
 				case WTS_REMOTE_CONNECT:
@@ -324,18 +349,18 @@ private:
 					m = "WTS_SESSION_LOGOFF";
 					break;
 				case WTS_SESSION_LOCK: {
-#ifdef ENABLE_FIX_SCANCODE_MAP
-					FixScancodeMap fixScancodeMap;
-					fixScancodeMap.restore();
-#endif //ENABLE_FIX_SCANCODE_MAP
+					if (This->m_escapeNlsKeys) {
+						This->m_fixScancodeMap.restore();
+					}
 					m = "WTS_SESSION_LOCK";
 					break;
 			   }
 				case WTS_SESSION_UNLOCK: {
-#ifdef ENABLE_FIX_SCANCODE_MAP
-					FixScancodeMap fixScancodeMap;
-					fixScancodeMap.fix();
-#endif //ENABLE_FIX_SCANCODE_MAP
+					if (This->m_isConsoleConnected == true) {
+						if (This->m_escapeNlsKeys) {
+							This->m_fixScancodeMap.fix();
+						}
+					}
 					m = "WTS_SESSION_UNLOCK";
 					break;
 				}
@@ -603,6 +628,9 @@ private:
 				if (This->m_usingSN) {
 					wtsUnRegisterSessionNotification(i_hwnd);
 					This->m_usingSN = false;
+				}
+				if (This->m_escapeNlsKeys) {
+					This->m_fixScancodeMap.restore();
 				}
 				return 0;
 
@@ -901,7 +929,10 @@ public:
 			m_log(WM_APP_msgStreamNotify),
 			m_setting(NULL),
 			m_isSettingDialogOpened(false),
+			m_isConsoleConnected(true),
 			m_engine(m_log) {
+		Registry reg(MAYU_REGISTRY_ROOT);
+		reg.read(_T("escapeNLSKeys"), &m_escapeNlsKeys, 0);
 #ifdef USE_MAILSLOT
 		m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
 		ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
@@ -1234,10 +1265,6 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 		return 1;
 	}
 
-#ifdef ENABLE_FIX_SCANCODE_MAP
-	FixScancodeMap fixScancodeMap;
-	fixScancodeMap.fix();
-#endif //ENABLE_FIX_SCANCODE_MAP
 	try {
 		Mayu(mutex).messageLoop();
 	} catch (ErrorMessage &i_e) {
@@ -1245,9 +1272,6 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 		MessageBox((HWND)NULL, i_e.getMessage().c_str(), title.c_str(),
 				   MB_OK | MB_ICONSTOP);
 	}
-#ifdef ENABLE_FIX_SCANCODE_MAP
-	fixScancodeMap.restore();
-#endif //ENABLE_FIX_SCANCODE_MAP
 
 	CHECK_TRUE( CloseHandle(mutex) );
 	return 0;

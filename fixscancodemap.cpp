@@ -4,28 +4,6 @@
 #include <tchar.h>
 #include <tlhelp32.h>
 
-typedef HMODULE (WINAPI *FpGetModuleHandleW)(LPCWSTR);
-typedef FARPROC (WINAPI *FpGetProcAddress)(HMODULE, LPCSTR);
-typedef BOOL (WINAPI *FpUpdatePerUserSystemParameters)(DWORD, BOOL);
-typedef HANDLE (WINAPI *FpOpenProcess)(DWORD, BOOL, DWORD);
-typedef BOOL (WINAPI *FpOpenProcessToken)(HANDLE, DWORD, PHANDLE);
-typedef BOOL (WINAPI *FpImpersonateLoggedOnUser)(HANDLE);
-typedef BOOL (WINAPI *FpRevertToSelf)(VOID);
-typedef BOOL (WINAPI *FpCloseHandle)(HANDLE);
-
-typedef struct {
-	DWORD pid_;
-	TCHAR advapi32_[64];
-	CHAR impersonateLoggedOnUser_[32];
-	CHAR revertToSelf_[32];
-	CHAR openProcessToken_[32];
-	FpGetModuleHandleW pGetModuleHandle;
-	FpGetProcAddress pGetProcAddress;
-	FpUpdatePerUserSystemParameters pUpdate;
-	FpOpenProcess pOpenProcess;
-	FpCloseHandle pCloseHandle;
-} InjectInfo;
-
 #pragma runtime_checks( "", off )
 static DWORD invokeFunc(InjectInfo *info)
 {
@@ -70,6 +48,14 @@ static DWORD invokeFunc(InjectInfo *info)
 }
 static void afterFunc(void){}
 #pragma runtime_checks( "", restore )
+
+const DWORD FixScancodeMap::s_fixEntryNum = 4;
+const DWORD FixScancodeMap::s_fixEntry[] = {
+	0x003ae03a,
+	0x0029e029,
+	0x0070e070,
+	0x003b001e,
+};
 
 int FixScancodeMap::acquirePrivileges()
 {
@@ -154,46 +140,6 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	DWORD invokeFuncAddr = (DWORD)invokeFunc;
 	DWORD afterFuncAddr = (DWORD)afterFunc;
 	DWORD memSize =  afterFuncAddr - invokeFuncAddr;
-	InjectInfo info;
-	HMODULE hMod;
-
-	info.pid_ = GetCurrentProcessId();
-
-	memcpy(&info.advapi32_, _T("advapi32.dll"), sizeof(info.advapi32_));
-	memcpy(&info.impersonateLoggedOnUser_, "ImpersonateLoggedOnUser", sizeof(info.impersonateLoggedOnUser_));
-	memcpy(&info.revertToSelf_, "RevertToSelf", sizeof(info.revertToSelf_));
-	memcpy(&info.openProcessToken_, "OpenProcessToken", sizeof(info.openProcessToken_));
-
-	hMod = GetModuleHandle(_T("user32.dll"));
-	if (hMod != NULL) {
-		info.pUpdate = (FpUpdatePerUserSystemParameters)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
-		if (info.pUpdate == NULL) {
-			return 1;
-		}
-	}
-
-	hMod = GetModuleHandle(_T("kernel32.dll"));
-	if (hMod != NULL) {
-		info.pGetModuleHandle = (FpGetModuleHandleW)GetProcAddress(hMod, "GetModuleHandleW");
-		if (info.pGetModuleHandle == NULL) {
-			return 1;
-		}
-
-		info.pGetProcAddress = (FpGetProcAddress)GetProcAddress(hMod, "GetProcAddress");
-		if (info.pGetProcAddress == NULL) {
-			return 1;
-		}
-
-		info.pOpenProcess = (FpOpenProcess)GetProcAddress(hMod, "OpenProcess");
-		if (info.pOpenProcess == NULL) {
-			return 1;
-		}
-
-		info.pCloseHandle = (FpCloseHandle)GetProcAddress(hMod, "CloseHandle");
-		if (info.pCloseHandle == NULL) {
-			return 1;
-		}
-	}
 
 	if ((hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
 		ret = 1;
@@ -213,14 +159,14 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 		goto exit;
 	}
 
-	remoteInfo = VirtualAllocEx(hProcess, NULL, sizeof(info), MEM_COMMIT, PAGE_READWRITE);
+	remoteInfo = VirtualAllocEx(hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
 	if (remoteInfo == NULL) {
 		ret = 2;
 		err = GetLastError();
 		goto exit;
 	}
 
-	wFlag = WriteProcessMemory(hProcess, remoteInfo, (char*)&info, sizeof(info), (SIZE_T*)0);
+	wFlag = WriteProcessMemory(hProcess, remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
 	if (wFlag == FALSE) {
 		ret = 3;
 		goto exit;
@@ -238,7 +184,7 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 		_T("remoteInfo=0x%p(size: %d)\r\n"),
 		invokeFunc, afterFunc, memSize, remoteMem, remoteInfo, sizeof(info));
 	if (MessageBox((HWND)NULL, buf, _T("upusp"), MB_OKCANCEL | MB_ICONSTOP) == IDCANCEL) {
-		(info.pUpdate)(0, 1);
+		(m_info.pUpdate)(0, 1);
 		goto exit;
 	}
 #endif
@@ -412,11 +358,49 @@ int FixScancodeMap::restore()
 	return update();
 }
 
-const DWORD FixScancodeMap::s_fixEntryNum = 4;
-const DWORD FixScancodeMap::s_fixEntry[] = {
-	0x003ae03a,
-	0x0029e029,
-	0x0070e070,
-	0x003b001e,
-};
+FixScancodeMap::FixScancodeMap()
+{
+	HMODULE hMod;
 
+	m_info.pid_ = GetCurrentProcessId();
+
+	memcpy(&m_info.advapi32_, _T("advapi32.dll"), sizeof(m_info.advapi32_));
+	memcpy(&m_info.impersonateLoggedOnUser_, "ImpersonateLoggedOnUser", sizeof(m_info.impersonateLoggedOnUser_));
+	memcpy(&m_info.revertToSelf_, "RevertToSelf", sizeof(m_info.revertToSelf_));
+	memcpy(&m_info.openProcessToken_, "OpenProcessToken", sizeof(m_info.openProcessToken_));
+
+	hMod = GetModuleHandle(_T("user32.dll"));
+	if (hMod != NULL) {
+		m_info.pUpdate = (FpUpdatePerUserSystemParameters)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
+		if (m_info.pUpdate == NULL) {
+			return;
+		}
+	}
+
+	hMod = GetModuleHandle(_T("kernel32.dll"));
+	if (hMod != NULL) {
+		m_info.pGetModuleHandle = (FpGetModuleHandleW)GetProcAddress(hMod, "GetModuleHandleW");
+		if (m_info.pGetModuleHandle == NULL) {
+			return;
+		}
+
+		m_info.pGetProcAddress = (FpGetProcAddress)GetProcAddress(hMod, "GetProcAddress");
+		if (m_info.pGetProcAddress == NULL) {
+			return;
+		}
+
+		m_info.pOpenProcess = (FpOpenProcess)GetProcAddress(hMod, "OpenProcess");
+		if (m_info.pOpenProcess == NULL) {
+			return;
+		}
+
+		m_info.pCloseHandle = (FpCloseHandle)GetProcAddress(hMod, "CloseHandle");
+		if (m_info.pCloseHandle == NULL) {
+			return;
+		}
+	}
+}
+
+FixScancodeMap::~FixScancodeMap()
+{
+}
