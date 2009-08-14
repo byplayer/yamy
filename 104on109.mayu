@@ -30,10 +30,11 @@ def subst  S-*Semicolon		= $COLON
 def subst ~S-*Colon		= $APOSTROPHE
 def subst  S-*Colon		= $QUOTATION_MARK
 def subst    *–³•ÏŠ·		= *Space
+def subst    *E0–³•ÏŠ·		= *Space
 def subst    *•ÏŠ·		= *Space
 def subst    *‚Ğ‚ç‚ª‚È		= *Space
-def subst    *‰p”		= S-*‰p”
 def subst    *E0‚Ğ‚ç‚ª‚È	= *Space
+def subst    *‰p”		= S-*‰p”
 def subst    *E0‰p”		= S-*‰p”
 def subst *ReverseSolidus	= *RightShift
 

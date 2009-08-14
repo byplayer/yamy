@@ -75,6 +75,7 @@ def key L				=    0x26
 def key Semicolon			=    0x27 # ;:
 def key Apostrophe Quote		=    0x28 # '"
 def key GraveAccent BackQuote		=    0x29 # `~
+def key E0GraveAccent E0BackQuote	= E0-0x29 # `~
 def key LeftShift LShift		=    0x2a
 # def ignore				= E0-0x2a # what is this? (ignore)
 def key ReverseSolidus BackSlash	=    0x2b # \|
@@ -100,6 +101,7 @@ def key LeftAlt LAlt LMenu		=    0x38
 def key RightAlt RAlt RMenu		= E0-0x38
 def key Space				=    0x39
 def key CapsLock Capital Caps		=    0x3a # CapsLock
+def key E0CapsLock E0Capital E0Caps	= E0-0x3a # CapsLock
 def key F1				=    0x3b
 def key F2				=    0x3c
 def key F3				=    0x3d
@@ -170,6 +172,8 @@ def mod Control	= LControl RControl
 def mod Windows	= LWindows RWindows
 mod shift += E0RShift
 key *E0RShift = *LShift
+key *E0CapsLock = *CapsLock
+key *E0GraveAccent = *GraveAccent
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

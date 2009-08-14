@@ -88,13 +88,18 @@ keymap Global
  else
    mod control += CapsLock			# CapsLock ‚ğ Control ‚É
    key *CapsLock	= *LControl		#	V
+   mod control += E0CapsLock			# CapsLock ‚ğ Control ‚É
+   key *E0CapsLock	= *LControl		#	V
  endif
 
  if ( GANA )
    if ( KBD109 )
      mod alt += !!–³•ÏŠ·			# –³•ÏŠ·‚ğ Alt ‚É
+     mod alt += !!E0–³•ÏŠ·			# –³•ÏŠ·‚ğ Alt ‚É
      key *–³•ÏŠ·	= *–³•ÏŠ·		#	V
+     key *E0–³•ÏŠ·	= *–³•ÏŠ·		#	V
      key A-–³•ÏŠ·	= –³•ÏŠ·		#	V
+     key A-E0–³•ÏŠ·	= –³•ÏŠ·		#	V
      key IC-A-K		= –³•ÏŠ·		# IME ‚Å•ÏŠ·’†‚Ì A-K ‚Í–³•ÏŠ·
      key *IC-•ÏŠ·	= $ToggleIME		# IME ON/OFF ‚ğ‚·‚éƒL[‚Ìw’è
    endif
@@ -132,12 +137,17 @@ keymap	KeymapDefault = &Default
  else
    mod control += CapsLock			# CapsLock ‚ğ Control ‚É
    key *CapsLock	= *LControl		#	V
+   mod control += E0CapsLock			# CapsLock ‚ğ Control ‚É
+   key *E0CapsLock	= *LControl		#	V
  endif
  if ( GANA )
    if ( KBD109 )
      mod alt += !!–³•ÏŠ·			# –³•ÏŠ·‚ğ Alt ‚É
+     mod alt += !!E0–³•ÏŠ·			# –³•ÏŠ·‚ğ Alt ‚É
      key *–³•ÏŠ·	= *–³•ÏŠ·		#	V
+     key *E0–³•ÏŠ·	= *–³•ÏŠ·		#	V
      key A-–³•ÏŠ·	= –³•ÏŠ·		#	V
+     key A-E0–³•ÏŠ·	= –³•ÏŠ·		#	V
      key IC-A-K		= –³•ÏŠ·		# IME ‚Å•ÏŠ·’†‚Ì A-K ‚Í–³•ÏŠ·
    endif
  endif

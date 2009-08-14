@@ -125,6 +125,7 @@ def key ReverseSolidus BackSlash	=    0x73 # __
 def key •ÏŠ· Convert			=    0x79 # •ÏŠ·(ŸŒó•â) ‘OŒó•â ‘SŒó•â
 
 def key –³•ÏŠ· NonConvert		=    0x7b # –³•ÏŠ·
+def key E0–³•ÏŠ· E0NonConvert		= E0-0x7b # –³•ÏŠ·
 
 def key YenSign Yen			=    0x7d # \|
 
@@ -226,6 +227,10 @@ def mod Control	= LControl RControl
 def mod Windows	= LWindows RWindows
 mod shift += E0RShift
 key *E0RShift = *LShift
+key *E0‰p” = *‰p”
+key *E0”¼Šp/‘SŠp = *”¼Šp/‘SŠp
+key *E0‚Ğ‚ç‚ª‚È = *‚Ğ‚ç‚ª‚È
+key *E0–³•ÏŠ· = *–³•ÏŠ·
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
