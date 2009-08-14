@@ -1,4 +1,5 @@
 #include <windows.h>
+#include "registry.h"
 
 typedef HMODULE (WINAPI *FpGetModuleHandleW)(LPCWSTR);
 typedef FARPROC (WINAPI *FpGetProcAddress)(HMODULE, LPCSTR);
@@ -37,6 +38,9 @@ private:
 
 private:
 	InjectInfo m_info;
+	Registry m_regHKCU;
+	Registry m_regHKLM;
+	Registry *m_pReg;
 
 private:
 	int acquirePrivileges();

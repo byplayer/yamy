@@ -1,6 +1,6 @@
 #include "fixscancodemap.h"
-#include "registry.h"
 #include "misc.h"
+#include "windowstool.h"
 #include <tchar.h>
 #include <tlhelp32.h>
 
@@ -262,15 +262,12 @@ exit:
 int FixScancodeMap::fix()
 {
 	ScancodeMap *origMap, *fixMap;
-	Registry reg(HKEY_CURRENT_USER, _T("Keyboard Layout"));
-	// Windows7 RC not support Scancode Map on HKCU?
-	//Registry reg(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout"));
 	DWORD origSize, fixSize;
 	bool ret;
 	int result = 0;
 
 	// save original Scancode Map
-	ret = reg.read(_T("Scancode Map"), NULL, &origSize, NULL, 0);
+	ret = m_pReg->read(_T("Scancode Map"), NULL, &origSize, NULL, 0);
 	if (ret) {
 		origMap = reinterpret_cast<ScancodeMap*>(malloc(origSize));
 		if (origMap == NULL) {
@@ -278,7 +275,7 @@ int FixScancodeMap::fix()
 			goto exit;
 		}
 
-		ret = reg.read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
+		ret = m_pReg->read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
 		if (ret == false) {
 			result = 17;
 			goto exit;
@@ -332,7 +329,7 @@ int FixScancodeMap::fix()
 		fixSize += 4;
 	}
 
-	ret = reg.write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
+	ret = m_pReg->write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
 	if (ret == false) {
 		result = 20;
 		goto exit;
@@ -341,9 +338,9 @@ int FixScancodeMap::fix()
 	result = update();
 
 	if (origMap) {
-		ret = reg.write(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), origSize);
+		ret = m_pReg->write(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), origSize);
 	} else {
-		ret = reg.remove(_T("Scancode Map"));
+		ret = m_pReg->remove(_T("Scancode Map"));
 	}
 	if (ret == false) {
 		result = 21;
@@ -365,7 +362,10 @@ int FixScancodeMap::restore()
 	return update();
 }
 
-FixScancodeMap::FixScancodeMap()
+FixScancodeMap::FixScancodeMap() :
+	m_regHKCU(HKEY_CURRENT_USER, _T("Keyboard Layout")),
+	m_regHKLM(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout")),
+	m_pReg(NULL)
 {
 	HMODULE hMod;
 
@@ -405,6 +405,13 @@ FixScancodeMap::FixScancodeMap()
 		if (m_info.pCloseHandle == NULL) {
 			return;
 		}
+	}
+
+	// Windows7 RC not support Scancode Map on HKCU?
+	if (checkWindowsVersion(6, 1) == FALSE) {
+		m_pReg = &m_regHKCU; // Vista or earlier
+	} else {
+		m_pReg = &m_regHKLM; // Windows7 or later
 	}
 }
 
