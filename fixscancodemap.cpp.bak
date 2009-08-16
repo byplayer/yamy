@@ -1,8 +1,46 @@
 #include "fixscancodemap.h"
+#include "registry.h"
 #include "misc.h"
-#include "windowstool.h"
 #include <tchar.h>
 #include <tlhelp32.h>
+
+typedef HMODULE (WINAPI *FpGetModuleHandleW)(LPCWSTR);
+typedef FARPROC (WINAPI *FpGetProcAddress)(HMODULE, LPCSTR);
+typedef BOOL (WINAPI *FpUpdatePerUserSystemParameters)(DWORD, BOOL);
+typedef HANDLE (WINAPI *FpOpenProcess)(DWORD, BOOL, DWORD);
+typedef BOOL (WINAPI *FpOpenProcessToken)(HANDLE, DWORD, PHANDLE);
+typedef BOOL (WINAPI *FpImpersonateLoggedOnUser)(HANDLE);
+typedef BOOL (WINAPI *FpRevertToSelf)(VOID);
+typedef BOOL (WINAPI *FpCloseHandle)(HANDLE);
+
+typedef struct {
+	DWORD header1;
+	DWORD header2;
+	DWORD count;
+	DWORD entry[1];
+} ScancodeMap;
+
+typedef struct {
+	DWORD pid_;
+	TCHAR advapi32_[64];
+	CHAR impersonateLoggedOnUser_[32];
+	CHAR revertToSelf_[32];
+	CHAR openProcessToken_[32];
+	FpGetModuleHandleW pGetModuleHandle;
+	FpGetProcAddress pGetProcAddress;
+	FpUpdatePerUserSystemParameters pUpdate;
+	FpOpenProcess pOpenProcess;
+	FpCloseHandle pCloseHandle;
+} InjectInfo;
+
+
+static const DWORD s_fixEntryNum = 4;
+static const DWORD s_fixEntry[] = {
+	0x003ae03a,
+	0x0029e029,
+	0x0070e070,
+	0x003b001e,
+};
 
 #pragma runtime_checks( "", off )
 static DWORD invokeFunc(InjectInfo *info)
@@ -46,37 +84,22 @@ static DWORD invokeFunc(InjectInfo *info)
 	info->pCloseHandle(hProcess);
 	return 0;
 }
-static int afterFunc(int arg)
-{
-	// dummy operation
-	// if this function empty, optimizer unify this with other empty functions.
-	// following code avoid it.
-	arg *= 710810; // non-sense operation
-	return arg;
-}
+static void afterFunc(void){}
 #pragma runtime_checks( "", restore )
 
-const DWORD FixScancodeMap::s_fixEntryNum = 4;
-const DWORD FixScancodeMap::s_fixEntry[] = {
-	0x003ae03a,
-	0x0029e029,
-	0x0070e070,
-	0x003b001e,
-};
-
-int FixScancodeMap::acquirePrivileges()
+static int acquirePrivileges()
 {
 	int ret = 0;
 	HANDLE hToken = NULL;
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken)) {
-		ret = 5;
+		ret = 1;
 		goto exit;
 	}
 
 	LUID luid;
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid)) {
-		ret = 6;
+		ret = 2;
 		goto exit;
 	}
 
@@ -86,7 +109,7 @@ int FixScancodeMap::acquirePrivileges()
 	tk_priv.Privileges[0].Luid = luid;
 
 	if (!AdjustTokenPrivileges(hToken, FALSE, &tk_priv, 0, NULL, NULL)) {
-		ret = 7;
+		ret = 3;
 		goto exit;
 	}
 
@@ -98,7 +121,7 @@ exit:
 }
 
 
-DWORD FixScancodeMap::getWinLogonPid()
+static DWORD getWinLogonPid()
 {
     DWORD pid = 0;
 	DWORD mySessionId = 0;
@@ -135,85 +158,87 @@ DWORD FixScancodeMap::getWinLogonPid()
 }
 
 
-int FixScancodeMap::clean()
-{
-	int ret = 0;
-
-	if (WaitForSingleObject(m_hThread, 5000) == WAIT_TIMEOUT) {
-		ret = 15;
-		goto dirty_exit;
-	}
-	DWORD result = -1;
-	GetExitCodeThread(m_hThread, &result);
-	ret = result;
-	CloseHandle(m_hThread);
-	m_hThread = NULL;
-
-	if (m_remoteMem != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteMem, 0, MEM_RELEASE);
-		m_remoteMem = NULL;
-	}
-
-	if (m_remoteInfo != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteInfo, 0, MEM_RELEASE);
-		m_remoteInfo = NULL;
-	}
-
-	if (m_hProcess != NULL) {
-		CloseHandle(m_hProcess);
-		m_hProcess = NULL;
-	}
-
-dirty_exit:
-	return ret;
-}
-
-
-int FixScancodeMap::injectThread(DWORD dwPID)
+static int injectThread(DWORD dwPID)
 {
 	int ret = 0;
 	DWORD err = 0;
 	BOOL wFlag;
 
+	HANDLE hProcess = NULL;
+	LPVOID remoteMem = NULL;
+	LPVOID remoteInfo = NULL;
 	DWORD invokeFuncAddr = (DWORD)invokeFunc;
 	DWORD afterFuncAddr = (DWORD)afterFunc;
 	DWORD memSize =  afterFuncAddr - invokeFuncAddr;
+	InjectInfo info;
+	HMODULE hMod;
 
-	if (m_hThread != NULL) {
-		ret = clean();
-		if (ret) {
-			return ret;
+	info.pid_ = GetCurrentProcessId();
+
+	memcpy(&info.advapi32_, _T("advapi32.dll"), sizeof(info.advapi32_));
+	memcpy(&info.impersonateLoggedOnUser_, "ImpersonateLoggedOnUser", sizeof(info.impersonateLoggedOnUser_));
+	memcpy(&info.revertToSelf_, "RevertToSelf", sizeof(info.revertToSelf_));
+	memcpy(&info.openProcessToken_, "OpenProcessToken", sizeof(info.openProcessToken_));
+
+	hMod = GetModuleHandle(_T("user32.dll"));
+	if (hMod != NULL) {
+		info.pUpdate = (FpUpdatePerUserSystemParameters)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
+		if (info.pUpdate == NULL) {
+			return 1;
 		}
 	}
 
-	if ((m_hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
-		ret = 8;
+	hMod = GetModuleHandle(_T("kernel32.dll"));
+	if (hMod != NULL) {
+		info.pGetModuleHandle = (FpGetModuleHandleW)GetProcAddress(hMod, "GetModuleHandleW");
+		if (info.pGetModuleHandle == NULL) {
+			return 1;
+		}
+
+		info.pGetProcAddress = (FpGetProcAddress)GetProcAddress(hMod, "GetProcAddress");
+		if (info.pGetProcAddress == NULL) {
+			return 1;
+		}
+
+		info.pOpenProcess = (FpOpenProcess)GetProcAddress(hMod, "OpenProcess");
+		if (info.pOpenProcess == NULL) {
+			return 1;
+		}
+
+		info.pCloseHandle = (FpCloseHandle)GetProcAddress(hMod, "CloseHandle");
+		if (info.pCloseHandle == NULL) {
+			return 1;
+		}
+	}
+
+	if ((hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
+		ret = 1;
 		goto exit;
 	}
 
-	m_remoteMem = VirtualAllocEx(m_hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	if (m_remoteMem == NULL) {
-		ret = 9;
+	remoteMem = VirtualAllocEx(hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	if (remoteMem == NULL) {
+		ret = 2;
 		err = GetLastError();
 		goto exit;
 	}
 
-	wFlag = WriteProcessMemory(m_hProcess, m_remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
+	wFlag = WriteProcessMemory(hProcess, remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 10;
+		ret = 3;
 		goto exit;
 	}
 
-	m_remoteInfo = VirtualAllocEx(m_hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
-	if (m_remoteInfo == NULL) {
-		ret = 11;
+	remoteInfo = VirtualAllocEx(hProcess, NULL, sizeof(info), MEM_COMMIT, PAGE_READWRITE);
+	if (remoteInfo == NULL) {
+		ret = 2;
 		err = GetLastError();
 		goto exit;
 	}
 
-	wFlag = WriteProcessMemory(m_hProcess, m_remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
+	wFlag = WriteProcessMemory(hProcess, remoteInfo, (char*)&info, sizeof(info), (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 12;
+		ret = 3;
 		goto exit;
 	}
 
@@ -227,63 +252,58 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 		_T("afterFunc - invokeFunc=%d\r\n")
 		_T("remoteMem=0x%p\r\n")
 		_T("remoteInfo=0x%p(size: %d)\r\n"),
-		invokeFunc, afterFunc, memSize, m_remoteMem, m_remoteInfo, sizeof(m_info));
+		invokeFunc, afterFunc, memSize, remoteMem, remoteInfo, sizeof(info));
 	if (MessageBox((HWND)NULL, buf, _T("upusp"), MB_OKCANCEL | MB_ICONSTOP) == IDCANCEL) {
-		(m_info.pUpdate)(0, 1);
+		(info.pUpdate)(0, 1);
 		goto exit;
 	}
 #endif
 
-	m_hThread = CreateRemoteThread(m_hProcess, NULL, 0, 
-		(LPTHREAD_START_ROUTINE)m_remoteMem, m_remoteInfo, 0, NULL);
-	if (m_hThread == NULL) {
-		ret = 13;
+	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, 
+		(LPTHREAD_START_ROUTINE)remoteMem, remoteInfo, 0, NULL);
+	if (hThread == NULL) {
+		ret = 4;
 		goto exit;
 	}
 
-	if (WaitForSingleObject(m_hThread, 5000) == WAIT_TIMEOUT) {
-		ret = 14;
-		goto dirty_exit;
+	if (WaitForSingleObject(hThread, 5000) == WAIT_TIMEOUT) {
+		ret = 5;
+		goto exit;
 	}
 	DWORD result = -1;
-	GetExitCodeThread(m_hThread, &result);
+	GetExitCodeThread(hThread, &result);
 	ret = result;
-	CloseHandle(m_hThread);
-	m_hThread = NULL;
+	CloseHandle(hThread);
 
 exit:
-	if (m_remoteMem != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteMem, 0, MEM_RELEASE);
-		m_remoteMem = NULL;
+	if (remoteMem != NULL) {
+		VirtualFreeEx(hProcess, remoteMem, 0, MEM_RELEASE);
 	}
 
-	if (m_remoteInfo != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteInfo, 0, MEM_RELEASE);
-		m_remoteInfo = NULL;
+	if (remoteInfo != NULL) {
+		VirtualFreeEx(hProcess, remoteInfo, 0, MEM_RELEASE);
 	}
 
-	if (m_hProcess != NULL) {
-		CloseHandle(m_hProcess);
-		m_hProcess = NULL;
+	if (hProcess != NULL) {
+		CloseHandle(hProcess);
 	}
 
-dirty_exit:
 	return ret;
 }
 
-int FixScancodeMap::update()
+static int update()
 {
 	MINIMIZEDMETRICS mm;
 	int result = 0;
 
-	result = acquirePrivileges();
-	if (result) {
+	if (acquirePrivileges()) {
+		result = 1;
 		goto exit;
 	}
 
 	DWORD dwPID;
 	if ((dwPID = getWinLogonPid()) == 0) {
-		result = 15;
+		result = 1;
 		goto exit;
 	}
 
@@ -291,8 +311,8 @@ int FixScancodeMap::update()
 	mm.cbSize = sizeof(mm);
 	SystemParametersInfo(SPI_GETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
-	result = injectThread(dwPID);
-	if (result && m_hThread == NULL) {
+	if (injectThread(dwPID)) {
+		result = 1;
 		goto exit;
 	}
 
@@ -302,32 +322,35 @@ exit:
 	return result;
 }
 
-int FixScancodeMap::fix()
+int FixScancodeMap_fix()
 {
 	ScancodeMap *origMap, *fixMap;
+	Registry reg(HKEY_CURRENT_USER, _T("Keyboard Layout"));
+	// Windows7 RC not support Scancode Map on HKCU?
+	//Registry reg(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout"));
 	DWORD origSize, fixSize;
 	bool ret;
 	int result = 0;
 
 	// save original Scancode Map
-	ret = m_pReg->read(_T("Scancode Map"), NULL, &origSize, NULL, 0);
+	ret = reg.read(_T("Scancode Map"), NULL, &origSize, NULL, 0);
 	if (ret) {
 		origMap = reinterpret_cast<ScancodeMap*>(malloc(origSize));
 		if (origMap == NULL) {
-			result = 16;
+			result = 1;
 			goto exit;
 		}
 
-		ret = m_pReg->read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
+		ret = reg.read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
 		if (ret == false) {
-			result = 17;
+			result = 1;
 			goto exit;
 		}
 
 		fixSize = origSize;
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(origSize + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 18;
+			result = 1;
 			goto exit;
 		}
 
@@ -339,7 +362,7 @@ int FixScancodeMap::fix()
 		fixSize = sizeof(ScancodeMap);
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(sizeof(ScancodeMap) + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 19;
+			result = 1;
 			goto exit;
 		}
 
@@ -372,21 +395,21 @@ int FixScancodeMap::fix()
 		fixSize += 4;
 	}
 
-	ret = m_pReg->write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
+	ret = reg.write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
 	if (ret == false) {
-		result = 20;
+		result = 1;
 		goto exit;
 	}
 
 	result = update();
 
 	if (origMap) {
-		ret = m_pReg->write(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), origSize);
+		ret = reg.write(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), origSize);
 	} else {
-		ret = m_pReg->remove(_T("Scancode Map"));
+		ret = reg.remove(_T("Scancode Map"));
 	}
 	if (ret == false) {
-		result = 21;
+		result = 1;
 		goto exit;
 	}
 
@@ -400,68 +423,7 @@ exit:
 	return result;
 }
 
-int FixScancodeMap::restore()
+int FixScancodeMap_restore()
 {
 	return update();
-}
-
-FixScancodeMap::FixScancodeMap() :
-	m_hProcess(NULL),
-	m_remoteMem(NULL),
-	m_remoteInfo(NULL),
-	m_hThread(NULL),
-	m_regHKCU(HKEY_CURRENT_USER, _T("Keyboard Layout")),
-	m_regHKLM(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout")),
-	m_pReg(NULL)
-{
-	HMODULE hMod;
-
-	m_info.pid_ = GetCurrentProcessId();
-
-	memcpy(&m_info.advapi32_, _T("advapi32.dll"), sizeof(m_info.advapi32_));
-	memcpy(&m_info.impersonateLoggedOnUser_, "ImpersonateLoggedOnUser", sizeof(m_info.impersonateLoggedOnUser_));
-	memcpy(&m_info.revertToSelf_, "RevertToSelf", sizeof(m_info.revertToSelf_));
-	memcpy(&m_info.openProcessToken_, "OpenProcessToken", sizeof(m_info.openProcessToken_));
-
-	hMod = GetModuleHandle(_T("user32.dll"));
-	if (hMod != NULL) {
-		m_info.pUpdate = (FpUpdatePerUserSystemParameters)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
-		if (m_info.pUpdate == NULL) {
-			return;
-		}
-	}
-
-	hMod = GetModuleHandle(_T("kernel32.dll"));
-	if (hMod != NULL) {
-		m_info.pGetModuleHandle = (FpGetModuleHandleW)GetProcAddress(hMod, "GetModuleHandleW");
-		if (m_info.pGetModuleHandle == NULL) {
-			return;
-		}
-
-		m_info.pGetProcAddress = (FpGetProcAddress)GetProcAddress(hMod, "GetProcAddress");
-		if (m_info.pGetProcAddress == NULL) {
-			return;
-		}
-
-		m_info.pOpenProcess = (FpOpenProcess)GetProcAddress(hMod, "OpenProcess");
-		if (m_info.pOpenProcess == NULL) {
-			return;
-		}
-
-		m_info.pCloseHandle = (FpCloseHandle)GetProcAddress(hMod, "CloseHandle");
-		if (m_info.pCloseHandle == NULL) {
-			return;
-		}
-	}
-
-	// Windows7 RC not support Scancode Map on HKCU?
-	if (checkWindowsVersion(6, 1) == FALSE) {
-		m_pReg = &m_regHKCU; // Vista or earlier
-	} else {
-		m_pReg = &m_regHKLM; // Windows7 or later
-	}
-}
-
-FixScancodeMap::~FixScancodeMap()
-{
 }

@@ -1,0 +1,12 @@
+#include <windows.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int FixScancodeMap_fix();
+int FixScancodeMap_restore();
+
+#ifdef __cplusplus
+}
+#endif

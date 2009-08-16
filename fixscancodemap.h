@@ -37,6 +37,10 @@ private:
 	static const DWORD s_fixEntry[];
 
 private:
+	HANDLE m_hProcess;
+	LPVOID m_remoteMem;
+	LPVOID m_remoteInfo;
+	HANDLE m_hThread;
 	InjectInfo m_info;
 	Registry m_regHKCU;
 	Registry m_regHKLM;
@@ -45,6 +49,7 @@ private:
 private:
 	int acquirePrivileges();
 	DWORD getWinLogonPid();
+	int clean();
 	int injectThread(DWORD dwPID);
 	int update();
 
