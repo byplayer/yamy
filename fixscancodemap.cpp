@@ -61,7 +61,7 @@ const DWORD FixScancodeMap::s_fixEntry[] = {
 	0x003ae03a,
 	0x0029e029,
 	0x0070e070,
-	0x003b001e,
+	0x007be07b,
 };
 
 int FixScancodeMap::acquirePrivileges()
