@@ -331,7 +331,12 @@ private:
 					if (This->m_isConsoleConnected == false) {
 						This->m_isConsoleConnected = true;
 						if (This->m_escapeNlsKeys) {
-							This->m_fixScancodeMap.fix();
+							int ret;
+							
+							ret = This->m_fixScancodeMap.fix();
+							if (ret) {
+								This->m_log << _T("escape NLS keys failed: ") << ret << std::endl;
+							}
 						}
 					}
 					m = "WTS_CONSOLE_CONNECT";
@@ -354,7 +359,12 @@ private:
 					break;
 				case WTS_SESSION_LOCK: {
 					if (This->m_escapeNlsKeys) {
-						This->m_fixScancodeMap.restore();
+						int ret;
+
+						ret = This->m_fixScancodeMap.restore();
+						if (ret) {
+							This->m_log << _T("restore NLS keys failed: ") << ret << std::endl;
+						}
 					}
 					m = "WTS_SESSION_LOCK";
 					break;
@@ -362,7 +372,12 @@ private:
 				case WTS_SESSION_UNLOCK: {
 					if (This->m_isConsoleConnected == true) {
 						if (This->m_escapeNlsKeys) {
-							This->m_fixScancodeMap.fix();
+							int ret;
+
+							ret = This->m_fixScancodeMap.fix();
+							if (ret) {
+								This->m_log << _T("escape NLS keys failed: ") << ret << std::endl;
+							}
 						}
 					}
 					m = "WTS_SESSION_UNLOCK";
@@ -634,7 +649,11 @@ private:
 					This->m_usingSN = false;
 				}
 				if (This->m_escapeNlsKeys) {
-					This->m_fixScancodeMap.restore();
+					int err;
+					err = This->m_fixScancodeMap.restore();
+					if (err) {
+						This->errorDialogWithCode(IDS_escapeNlsKeysFailed, err);
+					}
 				}
 				return 0;
 
