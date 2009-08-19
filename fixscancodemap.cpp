@@ -135,37 +135,34 @@ DWORD FixScancodeMap::getWinLogonPid()
 }
 
 
-int FixScancodeMap::clean()
+bool FixScancodeMap::clean(WlInfo wl)
 {
 	int ret = 0;
 
-	if (WaitForSingleObject(m_hThread, 5000) == WAIT_TIMEOUT) {
-		ret = 15;
-		goto dirty_exit;
-	}
-	DWORD result = -1;
-	GetExitCodeThread(m_hThread, &result);
-	ret = result;
-	CloseHandle(m_hThread);
-	m_hThread = NULL;
+	if (wl.m_hThread != NULL) {
+		DWORD result;
 
-	if (m_remoteMem != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteMem, 0, MEM_RELEASE);
-		m_remoteMem = NULL;
-	}
+		if (WaitForSingleObject(wl.m_hThread, 5000) == WAIT_TIMEOUT) {
+			return false;
+		}
 
-	if (m_remoteInfo != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteInfo, 0, MEM_RELEASE);
-		m_remoteInfo = NULL;
-	}
+		GetExitCodeThread(wl.m_hThread, &result);
+		CloseHandle(wl.m_hThread);
 
-	if (m_hProcess != NULL) {
-		CloseHandle(m_hProcess);
-		m_hProcess = NULL;
+		if (wl.m_remoteMem != NULL && wl.m_hProcess != NULL) {
+			VirtualFreeEx(wl.m_hProcess, wl.m_remoteMem, 0, MEM_RELEASE);
+		}
+
+		if (wl.m_remoteInfo != NULL && wl.m_hProcess != NULL) {
+			VirtualFreeEx(wl.m_hProcess, wl.m_remoteInfo, 0, MEM_RELEASE);
+		}
+
+		if (wl.m_hProcess != NULL) {
+			CloseHandle(wl.m_hProcess);
+		}
 	}
 
-dirty_exit:
-	return ret;
+	return true;
 }
 
 
@@ -174,44 +171,43 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	int ret = 0;
 	DWORD err = 0;
 	BOOL wFlag;
+	WlInfo wi;
+
+	wi.m_hProcess = NULL;
+	wi.m_remoteMem = NULL;
+	wi.m_remoteInfo = NULL;
+	wi.m_hThread = NULL;
 
 	DWORD invokeFuncAddr = (DWORD)invokeFunc;
 	DWORD afterFuncAddr = (DWORD)afterFunc;
 	DWORD memSize =  afterFuncAddr - invokeFuncAddr;
 
-	if (m_hThread != NULL) {
-		ret = clean();
-		if (ret) {
-			return ret;
-		}
-	}
-
-	if ((m_hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
+	if ((wi.m_hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
 		ret = 8;
 		goto exit;
 	}
 
-	m_remoteMem = VirtualAllocEx(m_hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-	if (m_remoteMem == NULL) {
+	wi.m_remoteMem = VirtualAllocEx(wi.m_hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	if (wi.m_remoteMem == NULL) {
 		ret = 9;
 		err = GetLastError();
 		goto exit;
 	}
 
-	wFlag = WriteProcessMemory(m_hProcess, m_remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
+	wFlag = WriteProcessMemory(wi.m_hProcess, wi.m_remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
 	if (wFlag == FALSE) {
 		ret = 10;
 		goto exit;
 	}
 
-	m_remoteInfo = VirtualAllocEx(m_hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
-	if (m_remoteInfo == NULL) {
+	wi.m_remoteInfo = VirtualAllocEx(wi.m_hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
+	if (wi.m_remoteInfo == NULL) {
 		ret = 11;
 		err = GetLastError();
 		goto exit;
 	}
 
-	wFlag = WriteProcessMemory(m_hProcess, m_remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
+	wFlag = WriteProcessMemory(wi.m_hProcess, wi.m_remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
 	if (wFlag == FALSE) {
 		ret = 12;
 		goto exit;
@@ -234,37 +230,38 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	}
 #endif
 
-	m_hThread = CreateRemoteThread(m_hProcess, NULL, 0, 
-		(LPTHREAD_START_ROUTINE)m_remoteMem, m_remoteInfo, 0, NULL);
-	if (m_hThread == NULL) {
+	wi.m_hThread = CreateRemoteThread(wi.m_hProcess, NULL, 0, 
+		(LPTHREAD_START_ROUTINE)wi.m_remoteMem, wi.m_remoteInfo, 0, NULL);
+	if (wi.m_hThread == NULL) {
 		ret = 13;
 		goto exit;
 	}
 
-	if (WaitForSingleObject(m_hThread, 5000) == WAIT_TIMEOUT) {
+	if (WaitForSingleObject(wi.m_hThread, 5000) == WAIT_TIMEOUT) {
 		ret = 14;
+		m_wlTrash.push_back(wi);
 		goto dirty_exit;
 	}
 	DWORD result = -1;
-	GetExitCodeThread(m_hThread, &result);
+	GetExitCodeThread(wi.m_hThread, &result);
 	ret = result;
-	CloseHandle(m_hThread);
-	m_hThread = NULL;
+	CloseHandle(wi.m_hThread);
+	wi.m_hThread = NULL;
 
 exit:
-	if (m_remoteMem != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteMem, 0, MEM_RELEASE);
-		m_remoteMem = NULL;
+	if (wi.m_remoteMem != NULL && wi.m_hProcess != NULL) {
+		VirtualFreeEx(wi.m_hProcess, wi.m_remoteMem, 0, MEM_RELEASE);
+		wi.m_remoteMem = NULL;
 	}
 
-	if (m_remoteInfo != NULL && m_hProcess != NULL) {
-		VirtualFreeEx(m_hProcess, m_remoteInfo, 0, MEM_RELEASE);
-		m_remoteInfo = NULL;
+	if (wi.m_remoteInfo != NULL && wi.m_hProcess != NULL) {
+		VirtualFreeEx(wi.m_hProcess, wi.m_remoteInfo, 0, MEM_RELEASE);
+		wi.m_remoteInfo = NULL;
 	}
 
-	if (m_hProcess != NULL) {
-		CloseHandle(m_hProcess);
-		m_hProcess = NULL;
+	if (wi.m_hProcess != NULL) {
+		CloseHandle(wi.m_hProcess);
+		wi.m_hProcess = NULL;
 	}
 
 dirty_exit:
@@ -275,6 +272,8 @@ int FixScancodeMap::update()
 {
 	MINIMIZEDMETRICS mm;
 	int result = 0;
+
+	m_wlTrash.erase(remove_if(m_wlTrash.begin(), m_wlTrash.end(), FixScancodeMap::clean), m_wlTrash.end());
 
 	result = acquirePrivileges();
 	if (result) {
@@ -292,8 +291,12 @@ int FixScancodeMap::update()
 	SystemParametersInfo(SPI_GETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
 	result = injectThread(dwPID);
-	if (result && m_hThread == NULL) {
-		goto exit;
+	if (result == 14) {
+		// retry once
+		result = injectThread(dwPID);
+		if (result == 0) {
+			result = 22;
+		}
 	}
 
 	SystemParametersInfo(SPI_SETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
@@ -406,10 +409,6 @@ int FixScancodeMap::restore()
 }
 
 FixScancodeMap::FixScancodeMap() :
-	m_hProcess(NULL),
-	m_remoteMem(NULL),
-	m_remoteInfo(NULL),
-	m_hThread(NULL),
 	m_regHKCU(HKEY_CURRENT_USER, _T("Keyboard Layout")),
 	m_regHKLM(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout")),
 	m_pReg(NULL)

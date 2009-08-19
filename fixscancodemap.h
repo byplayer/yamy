@@ -1,3 +1,4 @@
+#include <list>
 #include <windows.h>
 #include "registry.h"
 
@@ -32,15 +33,19 @@ private:
 		DWORD entry[1];
 	} ScancodeMap;
 
+	typedef struct {
+		HANDLE m_hProcess;
+		LPVOID m_remoteMem;
+		LPVOID m_remoteInfo;
+		HANDLE m_hThread;
+	} WlInfo;
+
 private:
 	static const DWORD s_fixEntryNum;
 	static const DWORD s_fixEntry[];
 
 private:
-	HANDLE m_hProcess;
-	LPVOID m_remoteMem;
-	LPVOID m_remoteInfo;
-	HANDLE m_hThread;
+	std::list<WlInfo> m_wlTrash;
 	InjectInfo m_info;
 	Registry m_regHKCU;
 	Registry m_regHKLM;
@@ -49,7 +54,7 @@ private:
 private:
 	int acquirePrivileges();
 	DWORD getWinLogonPid();
-	int clean();
+	static bool clean(WlInfo wl);
 	int injectThread(DWORD dwPID);
 	int update();
 
