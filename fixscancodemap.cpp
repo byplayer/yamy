@@ -117,7 +117,7 @@ DWORD FixScancodeMap::getWinLogonPid()
 
     BOOL bResult = Process32First(hSnap, &pe);
 	while (bResult){
-		if (!_tcscmp(pe.szExeFile, _T("winlogon.exe"))) {
+		if (!_tcsicmp(pe.szExeFile, _T("winlogon.exe"))) {
 			DWORD sessionId;
 
 			if (ProcessIdToSessionId(pe.th32ProcessID, &sessionId) != FALSE) {

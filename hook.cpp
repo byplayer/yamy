@@ -110,8 +110,8 @@ bool initialize()
 	_TCHAR path[GANA_MAX_PATH];
 	GetModuleFileName(NULL, path, GANA_MAX_PATH);
 	_tsplitpath_s(path, NULL, 0, NULL, 0, g.m_moduleName, GANA_MAX_PATH, NULL, 0);
-	if (_tcsncmp(g.m_moduleName, _T("Dbgview"), sizeof(_T("Dbgview"))/sizeof(_TCHAR)) != 0 &&
-			_tcsncmp(g.m_moduleName, _T("windbg"), sizeof(_T("windbg"))/sizeof(_TCHAR)) != 0) {
+	if (_tcsnicmp(g.m_moduleName, _T("Dbgview"), sizeof(_T("Dbgview"))/sizeof(_TCHAR)) != 0 &&
+			_tcsnicmp(g.m_moduleName, _T("windbg"), sizeof(_T("windbg"))/sizeof(_TCHAR)) != 0) {
 		g.m_isLogging = true;
 	}
 #endif // !NDEBUG
