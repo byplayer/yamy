@@ -273,27 +273,21 @@ int FixScancodeMap::update()
 	MINIMIZEDMETRICS mm;
 	int result = 0;
 
+	if (m_errorOnConstruct) {
+		result = m_errorOnConstruct;
+		goto exit;
+	}
+
 	m_wlTrash.erase(remove_if(m_wlTrash.begin(), m_wlTrash.end(), FixScancodeMap::clean), m_wlTrash.end());
-
-	result = acquirePrivileges();
-	if (result) {
-		goto exit;
-	}
-
-	DWORD dwPID;
-	if ((dwPID = getWinLogonPid()) == 0) {
-		result = 15;
-		goto exit;
-	}
 
 	memset(&mm, 0, sizeof(mm));
 	mm.cbSize = sizeof(mm);
 	SystemParametersInfo(SPI_GETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
-	result = injectThread(dwPID);
+	result = injectThread(m_winlogonPid);
 	if (result == 14) {
 		// retry once
-		result = injectThread(dwPID);
+		result = injectThread(m_winlogonPid);
 		if (result == 0) {
 			result = 22;
 		}
@@ -409,6 +403,8 @@ int FixScancodeMap::restore()
 }
 
 FixScancodeMap::FixScancodeMap() :
+	m_errorOnConstruct(0),
+	m_winlogonPid(0),
 	m_regHKCU(HKEY_CURRENT_USER, _T("Keyboard Layout")),
 	m_regHKLM(HKEY_LOCAL_MACHINE, _T("SYSTEM\\CurrentControlSet\\Control\\Keyboard Layout")),
 	m_pReg(NULL)
@@ -459,6 +455,19 @@ FixScancodeMap::FixScancodeMap() :
 	} else {
 		m_pReg = &m_regHKLM; // Windows7 or later
 	}
+
+	m_errorOnConstruct = acquirePrivileges();
+	if (m_errorOnConstruct) {
+		goto exit;
+	}
+
+	if ((m_winlogonPid = getWinLogonPid()) == 0) {
+		m_errorOnConstruct = 15;
+		goto exit;
+	}
+
+exit:
+	;
 }
 
 FixScancodeMap::~FixScancodeMap()

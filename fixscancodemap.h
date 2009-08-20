@@ -45,6 +45,8 @@ private:
 	static const DWORD s_fixEntry[];
 
 private:
+	int m_errorOnConstruct;
+	DWORD m_winlogonPid;
 	std::list<WlInfo> m_wlTrash;
 	InjectInfo m_info;
 	Registry m_regHKCU;
