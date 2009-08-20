@@ -88,7 +88,12 @@ class Mayu
 	enum {
 		WM_APP_taskTrayNotify = WM_APP + 101,	///
 		WM_APP_msgStreamNotify = WM_APP + 102,	///
+		WM_APP_escapeNLSKeys = WM_APP + 121,	///
 		ID_TaskTrayIcon = 1,			///
+	};
+
+	enum {
+		YAMY_TIMER_ESCAPE_NLS_KEYS = 0,	///
 	};
 
 private:
@@ -288,6 +293,18 @@ private:
 			}
 		else
 			switch (i_message) {
+			case WM_TIMER:
+				if (i_wParam == YAMY_TIMER_ESCAPE_NLS_KEYS) {
+					int ret;
+
+					KillTimer(i_hwnd, YAMY_TIMER_ESCAPE_NLS_KEYS);
+					ret = This->m_fixScancodeMap.fix();
+					if (ret) {
+						This->m_log << _T("(retry)escape NLS keys failed: ") << ret << std::endl;
+					}
+					return 0;
+				}
+				break;
 			case WM_COPYDATA: {
 				COPYDATASTRUCT *cd;
 				cd = reinterpret_cast<COPYDATASTRUCT *>(i_lParam);
@@ -331,12 +348,7 @@ private:
 					if (This->m_isConsoleConnected == false) {
 						This->m_isConsoleConnected = true;
 						if (This->m_escapeNlsKeys) {
-							int ret;
-							
-							ret = This->m_fixScancodeMap.fix();
-							if (ret) {
-								This->m_log << _T("escape NLS keys failed: ") << ret << std::endl;
-							}
+							PostMessage(i_hwnd, WM_APP_escapeNLSKeys, 0, 0);
 						}
 					}
 					m = "WTS_CONSOLE_CONNECT";
@@ -372,12 +384,7 @@ private:
 				case WTS_SESSION_UNLOCK: {
 					if (This->m_isConsoleConnected == true) {
 						if (This->m_escapeNlsKeys) {
-							int ret;
-
-							ret = This->m_fixScancodeMap.fix();
-							if (ret) {
-								This->m_log << _T("escape NLS keys failed: ") << ret << std::endl;
-							}
+							PostMessage(i_hwnd, WM_APP_escapeNLSKeys, 0, 0);
 						}
 					}
 					m = "WTS_SESSION_UNLOCK";
@@ -466,6 +473,18 @@ private:
 					}
 				return 0;
 			}
+
+			case WM_APP_escapeNLSKeys: {
+				int ret;
+
+				ret = This->m_fixScancodeMap.fix();
+				if (ret) {
+					This->m_log << _T("escape NLS keys failed, retry after 500msec: ") << ret << std::endl;
+					SetTimer(i_hwnd, YAMY_TIMER_ESCAPE_NLS_KEYS, 1000, NULL);
+				}
+				return 0;
+				break;
+		   }
 
 			case WM_COMMAND: {
 				int notify_code = HIWORD(i_wParam);
