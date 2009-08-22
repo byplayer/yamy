@@ -370,6 +370,14 @@ void SettingLoader::load_DEFINE_OPTION()
 
 		load_ARGUMENT(&m_setting->m_mouseEvent);
 
+	} else if (*t == _T("drag-threshold")) {
+		if (*getToken() != _T("=")) {
+			throw ErrorMessage()
+			<< _T("there must be `=' after `def option drag-threshold'.");
+		}
+
+		load_ARGUMENT(&m_setting->m_dragThreshold);
+
 	} else {
 		throw ErrorMessage() << _T("syntax error `def option ") << *t << _T("'.");
 	}

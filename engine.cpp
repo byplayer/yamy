@@ -867,7 +867,8 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 			LONG dr = 0;
 			dr += (i_mid->pt.x - m_msllHookCurrent.pt.x) * (i_mid->pt.x - m_msllHookCurrent.pt.x);
 			dr += (i_mid->pt.y - m_msllHookCurrent.pt.y) * (i_mid->pt.y - m_msllHookCurrent.pt.y);
-			if (m_buttonPressed && !m_dragging && (30 * 30 < dr)) {
+			if (m_buttonPressed && !m_dragging && m_setting->m_dragThreshold &&
+				(m_setting->m_dragThreshold * m_setting->m_dragThreshold < dr)) {
 				Acquire a(&m_cskidq);
 
 				m_dragging = true;
