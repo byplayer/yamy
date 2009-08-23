@@ -195,9 +195,9 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	wi.m_remoteInfo = NULL;
 	wi.m_hThread = NULL;
 
-	DWORD invokeFuncAddr = (DWORD)invokeFunc;
-	DWORD afterFuncAddr = (DWORD)afterFunc;
-	DWORD memSize =  afterFuncAddr - invokeFuncAddr;
+	ULONG_PTR invokeFuncAddr = (ULONG_PTR)invokeFunc;
+	ULONG_PTR afterFuncAddr = (ULONG_PTR)afterFunc;
+	SIZE_T memSize =  afterFuncAddr - invokeFuncAddr;
 
 	if ((wi.m_hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
 		ret = 8;
