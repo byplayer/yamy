@@ -310,6 +310,7 @@ int FixScancodeMap::update()
 		}
 	}
 
+	mm.iArrange = ARW_HIDE;
 	SystemParametersInfo(SPI_SETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
 exit:
