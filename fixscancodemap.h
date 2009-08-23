@@ -4,7 +4,8 @@
 
 typedef HMODULE (WINAPI *FpGetModuleHandleW)(LPCWSTR);
 typedef FARPROC (WINAPI *FpGetProcAddress)(HMODULE, LPCSTR);
-typedef BOOL (WINAPI *FpUpdatePerUserSystemParameters)(DWORD, BOOL);
+typedef BOOL (WINAPI *FpUpdatePerUserSystemParameters4)(BOOL);
+typedef BOOL (WINAPI *FpUpdatePerUserSystemParameters8)(DWORD, BOOL);
 typedef HANDLE (WINAPI *FpOpenProcess)(DWORD, BOOL, DWORD);
 typedef BOOL (WINAPI *FpOpenProcessToken)(HANDLE, DWORD, PHANDLE);
 typedef BOOL (WINAPI *FpImpersonateLoggedOnUser)(HANDLE);
@@ -12,6 +13,7 @@ typedef BOOL (WINAPI *FpRevertToSelf)(VOID);
 typedef BOOL (WINAPI *FpCloseHandle)(HANDLE);
 
 typedef struct {
+	DWORD isVistaOrLater_;
 	DWORD pid_;
 	TCHAR advapi32_[64];
 	CHAR impersonateLoggedOnUser_[32];
@@ -19,7 +21,8 @@ typedef struct {
 	CHAR openProcessToken_[32];
 	FpGetModuleHandleW pGetModuleHandle;
 	FpGetProcAddress pGetProcAddress;
-	FpUpdatePerUserSystemParameters pUpdate;
+	FpUpdatePerUserSystemParameters4 pUpdate4;
+	FpUpdatePerUserSystemParameters8 pUpdate8;
 	FpOpenProcess pOpenProcess;
 	FpCloseHandle pCloseHandle;
 } InjectInfo;

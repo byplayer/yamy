@@ -5,11 +5,13 @@
 #include <tlhelp32.h>
 
 #pragma runtime_checks( "", off )
-static DWORD invokeFunc(InjectInfo *info)
+static DWORD WINAPI invokeFunc(InjectInfo *info)
 {
 	BOOL ret;
 	HANDLE hToken;
 	HMODULE hAdvapi32;
+	DWORD result = 0;
+
 	FpImpersonateLoggedOnUser pImpersonateLoggedOnUser;
 	FpRevertToSelf pRevertToSelf;
 	FpOpenProcessToken pOpenProcessToken;
@@ -22,29 +24,44 @@ static DWORD invokeFunc(InjectInfo *info)
 
 	HANDLE hProcess = info->pOpenProcess(PROCESS_QUERY_INFORMATION, FALSE, info->pid_);
 	if (hProcess == NULL) {
-		return 1;
+		result = 1;
+		goto exit;
 	}
 
 	ret = pOpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_DUPLICATE , &hToken);
 	if (ret == FALSE) {
-		return 2;
+		result = 2;
+		goto exit;
 	}
 
 	ret = pImpersonateLoggedOnUser(hToken);
 	if (ret == FALSE) {
-		return 3;
+		result = 3;
+		goto exit;
 	}
 
-	info->pUpdate(0, 1);
+	if (info->isVistaOrLater_) {
+		info->pUpdate4(1);
+	} else {
+		info->pUpdate8(0, 1);
+	}
 
 	ret = pRevertToSelf();
 	if (ret == FALSE) {
-		return 4;
+		result = 4;
+		goto exit;
 	}
 
-	info->pCloseHandle(hToken);
-	info->pCloseHandle(hProcess);
-	return 0;
+exit:
+	if (hToken != NULL) {
+		info->pCloseHandle(hToken);
+	}
+
+	if (hProcess != NULL) {
+		info->pCloseHandle(hProcess);
+	}
+
+	return result;
 }
 static int afterFunc(int arg)
 {
@@ -420,8 +437,9 @@ FixScancodeMap::FixScancodeMap() :
 
 	hMod = GetModuleHandle(_T("user32.dll"));
 	if (hMod != NULL) {
-		m_info.pUpdate = (FpUpdatePerUserSystemParameters)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
-		if (m_info.pUpdate == NULL) {
+		m_info.pUpdate4 = (FpUpdatePerUserSystemParameters4)GetProcAddress(hMod, "UpdatePerUserSystemParameters");
+		m_info.pUpdate8 = (FpUpdatePerUserSystemParameters8)m_info.pUpdate4;
+		if (m_info.pUpdate4 == NULL) {
 			return;
 		}
 	}
@@ -454,6 +472,13 @@ FixScancodeMap::FixScancodeMap() :
 		m_pReg = &m_regHKCU; // Vista or earlier
 	} else {
 		m_pReg = &m_regHKLM; // Windows7 or later
+	}
+
+	// prototype of UpdatePerUserSystemParameters() differ vista or earlier
+	if (checkWindowsVersion(6, 0) == FALSE) {
+		m_info.isVistaOrLater_ = 0; // before Vista
+	} else {
+		m_info.isVistaOrLater_ = 1; // Vista or later
 	}
 
 	m_errorOnConstruct = acquirePrivileges();
