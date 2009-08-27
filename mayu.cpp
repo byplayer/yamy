@@ -838,7 +838,7 @@ private:
 
 		ret = GetUserName(userName, &userNameSize);
 		if (ret == FALSE) {
-			err = 1;
+			err = YAMY_ERROR_ON_GET_USERNAME;
 			goto exit;
 		}
 
@@ -846,14 +846,14 @@ private:
 		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
 		if (ret != FALSE || GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
 			// above call should fail by ERROR_INSUFFICIENT_BUFFER
-			err = 2;
+			err = YAMY_ERROR_ON_GET_LOGONUSERNAME;
 			goto exit;
 		}
 
 		pSid = reinterpret_cast<PSID>(LocalAlloc(LPTR, sidSize));
 		pDomain = reinterpret_cast<TCHAR*>(LocalAlloc(LPTR, domainSize * sizeof(TCHAR)));
 		if (pSid == NULL || pDomain == NULL) {
-			err = 3;
+			err = YAMY_ERROR_NO_MEMORY;
 			goto exit;
 		}
 
@@ -861,21 +861,21 @@ private:
 		ret = LookupAccountName(NULL, userName, pSid, &sidSize, pDomain, &domainSize, &sidType);
 		if (ret == FALSE) {
 			// LookupAccountName() should success in this time
-			err = 4;
+			err = YAMY_ERROR_ON_GET_LOGONUSERNAME;
 			goto exit;
 		}
 
 		// get DACL for hdl
 		ret = GetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, &pOrigDacl, NULL, &pSd);
 		if (ret != ERROR_SUCCESS) {
-			err = 5;
+			err = YAMY_ERROR_ON_GET_SECURITYINFO;
 			goto exit;
 		}
 
 		// get size for original DACL
 		ret = GetAclInformation(pOrigDacl, &aclInfo, sizeof(aclInfo), AclSizeInformation);
 		if (ret == FALSE) {
-			err = 6;
+			err = YAMY_ERROR_ON_GET_DACL;
 			goto exit;
 		}
 
@@ -885,14 +885,14 @@ private:
 		// allocate memory for new DACL
 		pNewDacl = reinterpret_cast<PACL>(LocalAlloc(LPTR, newDaclSize));
 		if (pNewDacl == NULL) {
-			err = 7;
+			err = YAMY_ERROR_NO_MEMORY;
 			goto exit;
 		}
 
 		// initialize new DACL
 		ret = InitializeAcl(pNewDacl, newDaclSize, ACL_REVISION);
 		if (ret == FALSE) {
-			err = 8;
+			err = YAMY_ERROR_ON_INITIALIZE_ACL;
 			goto exit;
 		}
 
@@ -902,7 +902,7 @@ private:
 
 			ret = GetAce(pOrigDacl, aceIndex, &pAce);
 			if (ret == FALSE) {
-				err = 9;
+				err = YAMY_ERROR_ON_GET_ACE;
 				goto exit;
 			}
 
@@ -916,7 +916,7 @@ private:
 
 			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
 			if (ret == FALSE) {
-				err = 10;
+				err = YAMY_ERROR_ON_ADD_ACE;
 				goto exit;
 			}
 
@@ -925,7 +925,7 @@ private:
 
 		ret = AddAccessAllowedAce(pNewDacl, ACL_REVISION, GENERIC_ALL, pSid);
 		if (ret == FALSE) {
-			err = 11;
+			err = YAMY_ERROR_ON_ADD_ALLOWED_ACE;
 			goto exit;
 		}
 
@@ -935,20 +935,20 @@ private:
 
 			ret = GetAce(pOrigDacl, aceIndex, &pAce);
 			if (ret == FALSE) {
-				err = 12;
+				err = YAMY_ERROR_ON_GET_ACE;
 				goto exit;
 			}
 
 			ret = AddAce(pNewDacl, ACL_REVISION, MAXDWORD, pAce, (reinterpret_cast<PACE_HEADER>(pAce))->AceSize);
 			if (ret == FALSE) {
-				err = 13;
+				err = YAMY_ERROR_ON_ADD_ACE;
 				goto exit;
 			}
 		}
 
 		ret = SetSecurityInfo(hdl, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, pNewDacl, NULL);
 		if (ret != ERROR_SUCCESS) {
-			err = 14;
+			err = YAMY_ERROR_ON_SET_SECURITYINFO;
 		}
 
 exit:

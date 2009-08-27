@@ -25,19 +25,19 @@ static DWORD WINAPI invokeFunc(InjectInfo *info)
 
 	HANDLE hProcess = info->pOpenProcess(PROCESS_QUERY_INFORMATION, FALSE, info->pid_);
 	if (hProcess == NULL) {
-		result = 1;
+		result = YAMY_ERROR_ON_OPEN_YAMY_PROCESS;
 		goto exit;
 	}
 
 	ret = pOpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_DUPLICATE , &hToken);
 	if (ret == FALSE) {
-		result = 2;
+		result = YAMY_ERROR_ON_OPEN_YAMY_TOKEN;
 		goto exit;
 	}
 
 	ret = pImpersonateLoggedOnUser(hToken);
 	if (ret == FALSE) {
-		result = 3;
+		result = YAMY_ERROR_ON_IMPERSONATE;
 		goto exit;
 	}
 
@@ -49,7 +49,7 @@ static DWORD WINAPI invokeFunc(InjectInfo *info)
 
 	ret = pRevertToSelf();
 	if (ret == FALSE) {
-		result = 4;
+		result = YAMY_ERROR_ON_REVERT_TO_SELF;
 		goto exit;
 	}
 
@@ -88,13 +88,13 @@ int FixScancodeMap::acquirePrivileges()
 	HANDLE hToken = NULL;
 
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken)) {
-		ret = 5;
+		ret = YAMY_ERROR_ON_OPEN_CURRENT_PROCESS;
 		goto exit;
 	}
 
 	LUID luid;
 	if (!LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid)) {
-		ret = 6;
+		ret = YAMY_ERROR_ON_LOOKUP_PRIVILEGE;
 		goto exit;
 	}
 
@@ -104,7 +104,7 @@ int FixScancodeMap::acquirePrivileges()
 	tk_priv.Privileges[0].Luid = luid;
 
 	if (!AdjustTokenPrivileges(hToken, FALSE, &tk_priv, 0, NULL, NULL)) {
-		ret = 7;
+		ret = YAMY_ERROR_ON_ADJUST_PRIVILEGE;
 		goto exit;
 	}
 
@@ -201,62 +201,45 @@ int FixScancodeMap::injectThread(DWORD dwPID)
 	SIZE_T memSize =  afterFuncAddr - invokeFuncAddr;
 
 	if ((wi.m_hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID)) == NULL) {
-		ret = 8;
+		ret = YAMY_ERROR_ON_OPEN_WINLOGON_PROCESS;
 		goto exit;
 	}
 
 	wi.m_remoteMem = VirtualAllocEx(wi.m_hProcess, NULL, memSize, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if (wi.m_remoteMem == NULL) {
-		ret = 9;
+		ret = YAMY_ERROR_ON_VIRTUALALLOCEX;
 		err = GetLastError();
 		goto exit;
 	}
 
 	wFlag = WriteProcessMemory(wi.m_hProcess, wi.m_remoteMem, (char*)invokeFunc, memSize, (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 10;
+		ret = YAMY_ERROR_ON_WRITEPROCESSMEMORY;
 		goto exit;
 	}
 
 	wi.m_remoteInfo = VirtualAllocEx(wi.m_hProcess, NULL, sizeof(m_info), MEM_COMMIT, PAGE_READWRITE);
 	if (wi.m_remoteInfo == NULL) {
-		ret = 11;
+		ret = YAMY_ERROR_ON_VIRTUALALLOCEX;
 		err = GetLastError();
 		goto exit;
 	}
 
 	wFlag = WriteProcessMemory(wi.m_hProcess, wi.m_remoteInfo, (char*)&m_info, sizeof(m_info), (SIZE_T*)0);
 	if (wFlag == FALSE) {
-		ret = 12;
+		ret = YAMY_ERROR_ON_WRITEPROCESSMEMORY;
 		goto exit;
 	}
-
-#if 0
-	TCHAR buf[1024];
-
-	_stprintf_s(buf, sizeof(buf)/sizeof(buf[0]),
-		_T("execute UpdatePerUserSystemParameters(), inject code to winlogon.exe?\r\n")
-		_T("invokeFunc=0x%p\r\n")
-		_T("afterFunc=0x%p\r\n")
-		_T("afterFunc - invokeFunc=%d\r\n")
-		_T("remoteMem=0x%p\r\n")
-		_T("remoteInfo=0x%p(size: %d)\r\n"),
-		invokeFunc, afterFunc, memSize, m_remoteMem, m_remoteInfo, sizeof(m_info));
-	if (MessageBox((HWND)NULL, buf, _T("upusp"), MB_OKCANCEL | MB_ICONSTOP) == IDCANCEL) {
-		(m_info.pUpdate)(0, 1);
-		goto exit;
-	}
-#endif
 
 	wi.m_hThread = CreateRemoteThread(wi.m_hProcess, NULL, 0, 
 		(LPTHREAD_START_ROUTINE)wi.m_remoteMem, wi.m_remoteInfo, 0, NULL);
 	if (wi.m_hThread == NULL) {
-		ret = 13;
+		ret = YAMY_ERROR_ON_CREATEREMOTETHREAD;
 		goto exit;
 	}
 
 	if (WaitForSingleObject(wi.m_hThread, 5000) == WAIT_TIMEOUT) {
-		ret = 14;
+		ret = YAMY_ERROR_TIMEOUT_INJECTION;
 		m_wlTrash.push_back(wi);
 		goto dirty_exit;
 	}
@@ -303,11 +286,11 @@ int FixScancodeMap::update()
 	SystemParametersInfo(SPI_GETMINIMIZEDMETRICS, sizeof(mm), &mm, 0);
 
 	result = injectThread(m_winlogonPid);
-	if (result == 14) {
+	if (result == YAMY_ERROR_TIMEOUT_INJECTION) {
 		// retry once
 		result = injectThread(m_winlogonPid);
-		if (result == 0) {
-			result = 22;
+		if (result == YAMY_SUCCESS) {
+			result = YAMY_ERROR_RETRY_INJECTION_SUCCESS;
 		}
 	}
 
@@ -330,20 +313,20 @@ int FixScancodeMap::fix()
 	if (ret) {
 		origMap = reinterpret_cast<ScancodeMap*>(malloc(origSize));
 		if (origMap == NULL) {
-			result = 16;
+			result = YAMY_ERROR_NO_MEMORY;
 			goto exit;
 		}
 
 		ret = m_pReg->read(_T("Scancode Map"), reinterpret_cast<BYTE*>(origMap), &origSize, NULL, 0);
 		if (ret == false) {
-			result = 17;
+			result = YAMY_ERROR_ON_READ_SCANCODE_MAP;
 			goto exit;
 		}
 
 		fixSize = origSize;
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(origSize + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 18;
+			result = YAMY_ERROR_NO_MEMORY;
 			goto exit;
 		}
 
@@ -355,7 +338,7 @@ int FixScancodeMap::fix()
 		fixSize = sizeof(ScancodeMap);
 		fixMap = reinterpret_cast<ScancodeMap*>(malloc(sizeof(ScancodeMap) + s_fixEntryNum * sizeof(s_fixEntry[0])));
 		if (fixMap == NULL) {
-			result = 19;
+			result = YAMY_ERROR_NO_MEMORY;
 			goto exit;
 		}
 
@@ -390,7 +373,7 @@ int FixScancodeMap::fix()
 
 	ret = m_pReg->write(_T("Scancode Map"), reinterpret_cast<BYTE*>(fixMap), fixSize);
 	if (ret == false) {
-		result = 20;
+		result = YAMY_ERROR_ON_WRITE_SCANCODE_MAP;
 		goto exit;
 	}
 
@@ -402,7 +385,7 @@ int FixScancodeMap::fix()
 		ret = m_pReg->remove(_T("Scancode Map"));
 	}
 	if (ret == false) {
-		result = 21;
+		result = YAMY_ERROR_ON_WRITE_SCANCODE_MAP;
 		goto exit;
 	}
 
@@ -547,7 +530,7 @@ FixScancodeMap::FixScancodeMap() :
 	}
 
 	if ((m_winlogonPid = getWinLogonPid()) == 0) {
-		m_errorOnConstruct = 15;
+		m_errorOnConstruct = YAMY_ERROR_ON_GET_WINLOGON_PID;
 		goto exit;
 	}
 
