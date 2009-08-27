@@ -3,6 +3,7 @@
 #include "windowstool.h"
 #include <tchar.h>
 #include <tlhelp32.h>
+#include <process.h>
 
 #pragma runtime_checks( "", off )
 static DWORD WINAPI invokeFunc(InjectInfo *info)
@@ -420,7 +421,56 @@ int FixScancodeMap::restore()
 	return update();
 }
 
+int FixScancodeMap::escape(bool i_escape)
+{
+	if (i_escape) {
+		SetEvent(m_hFixEvent);
+	} else {
+		SetEvent(m_hRestoreEvent);
+	}
+	return 0;
+}
+
+unsigned int WINAPI FixScancodeMap::threadLoop(void *i_this)
+{
+	int err;
+	DWORD ret;
+	FixScancodeMap *This = reinterpret_cast<FixScancodeMap*>(i_this);
+	HANDLE handles[] = {This->m_hFixEvent, This->m_hRestoreEvent, This->m_hQuitEvent};
+	while ((ret = MsgWaitForMultipleObjects(NUMBER_OF(handles), &handles[0],
+		FALSE, INFINITE, QS_POSTMESSAGE)) != WAIT_FAILED) {
+		switch (ret) {
+		case WAIT_OBJECT_0:			// m_hFixEvent
+			ResetEvent(This->m_hFixEvent);
+			err = This->fix();
+			PostMessage(This->m_hwnd, This->m_messageOnFail, err, 1);
+			break;
+		case WAIT_OBJECT_0 + 1:		// m_hRestoreEvent
+			ResetEvent(This->m_hRestoreEvent);
+			err = This->restore();
+			PostMessage(This->m_hwnd, This->m_messageOnFail, err, 0);
+			break;
+		case WAIT_OBJECT_0 + 2:		// m_hQuiteEvent
+			ResetEvent(This->m_hQuitEvent);
+			// through below
+		default:
+			return 0;
+			break;
+		}
+	}
+	return 1;
+}
+
+int FixScancodeMap::init(HWND i_hwnd, UINT i_messageOnFail)
+{
+	m_hwnd = i_hwnd;
+	m_messageOnFail = i_messageOnFail;
+	return 0;
+}
+
 FixScancodeMap::FixScancodeMap() :
+	m_hwnd(NULL),
+	m_messageOnFail(WM_NULL),
 	m_errorOnConstruct(0),
 	m_winlogonPid(0),
 	m_regHKCU(HKEY_CURRENT_USER, _T("Keyboard Layout")),
@@ -435,6 +485,15 @@ FixScancodeMap::FixScancodeMap() :
 	memcpy(&m_info.impersonateLoggedOnUser_, "ImpersonateLoggedOnUser", sizeof(m_info.impersonateLoggedOnUser_));
 	memcpy(&m_info.revertToSelf_, "RevertToSelf", sizeof(m_info.revertToSelf_));
 	memcpy(&m_info.openProcessToken_, "OpenProcessToken", sizeof(m_info.openProcessToken_));
+
+	m_hFixEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	ASSERT(m_hFixEvent);
+	m_hRestoreEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	ASSERT(m_hRestoreEvent);
+	m_hQuitEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	ASSERT(m_hQuitEvent);
+
+	m_hThread = (HANDLE)_beginthreadex(NULL, 0, threadLoop, this, 0, &m_threadId);
 
 	hMod = GetModuleHandle(_T("user32.dll"));
 	if (hMod != NULL) {
@@ -498,4 +557,6 @@ exit:
 
 FixScancodeMap::~FixScancodeMap()
 {
+	SetEvent(m_hQuitEvent);
+	WaitForSingleObject(m_hThread, INFINITE);
 }

@@ -88,7 +88,7 @@ class Mayu
 	enum {
 		WM_APP_taskTrayNotify = WM_APP + 101,	///
 		WM_APP_msgStreamNotify = WM_APP + 102,	///
-		WM_APP_escapeNLSKeys = WM_APP + 121,	///
+		WM_APP_escapeNLSKeysFailed = WM_APP + 121,	///
 		ID_TaskTrayIcon = 1,			///
 	};
 
@@ -277,12 +277,9 @@ private:
 			case WM_CREATE:
 				This = reinterpret_cast<Mayu *>(
 						   reinterpret_cast<CREATESTRUCT *>(i_lParam)->lpCreateParams);
+				This->m_fixScancodeMap.init(i_hwnd, WM_APP_escapeNLSKeysFailed);
 				if (This->m_escapeNlsKeys) {
-					int err;
-					err = This->m_fixScancodeMap.fix();
-					if (err) {
-						This->errorDialogWithCode(IDS_escapeNlsKeysFailed, err);
-					}
+					This->m_fixScancodeMap.escape(true);
 				}
 #ifdef MAYU64
 				SetWindowLongPtr(i_hwnd, 0, (LONG_PTR)This);
@@ -293,18 +290,6 @@ private:
 			}
 		else
 			switch (i_message) {
-			case WM_TIMER:
-				if (i_wParam == YAMY_TIMER_ESCAPE_NLS_KEYS) {
-					int ret;
-
-					KillTimer(i_hwnd, YAMY_TIMER_ESCAPE_NLS_KEYS);
-					ret = This->m_fixScancodeMap.fix();
-					if (ret) {
-						This->m_log << _T("(retry)escape NLS keys failed: ") << ret << std::endl;
-					}
-					return 0;
-				}
-				break;
 			case WM_COPYDATA: {
 				COPYDATASTRUCT *cd;
 				cd = reinterpret_cast<COPYDATASTRUCT *>(i_lParam);
@@ -347,8 +332,8 @@ private:
 				case WTS_CONSOLE_CONNECT:
 					if (This->m_isConsoleConnected == false) {
 						This->m_isConsoleConnected = true;
-						if (This->m_escapeNlsKeys) {
-							PostMessage(i_hwnd, WM_APP_escapeNLSKeys, 0, 0);
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(true);
 						}
 					}
 					m = "WTS_CONSOLE_CONNECT";
@@ -370,21 +355,16 @@ private:
 					m = "WTS_SESSION_LOGOFF";
 					break;
 				case WTS_SESSION_LOCK: {
-					if (This->m_escapeNlsKeys) {
-						int ret;
-
-						ret = This->m_fixScancodeMap.restore();
-						if (ret) {
-							This->m_log << _T("restore NLS keys failed: ") << ret << std::endl;
-						}
+					if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+						This->m_fixScancodeMap.escape(false);
 					}
 					m = "WTS_SESSION_LOCK";
 					break;
 			   }
 				case WTS_SESSION_UNLOCK: {
 					if (This->m_isConsoleConnected == true) {
-						if (This->m_escapeNlsKeys) {
-							PostMessage(i_hwnd, WM_APP_escapeNLSKeys, 0, 0);
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(true);
 						}
 					}
 					m = "WTS_SESSION_UNLOCK";
@@ -474,17 +454,20 @@ private:
 				return 0;
 			}
 
-			case WM_APP_escapeNLSKeys: {
-				int ret;
-
-				ret = This->m_fixScancodeMap.fix();
-				if (ret) {
-					This->m_log << _T("escape NLS keys failed, retry after 500msec: ") << ret << std::endl;
-					SetTimer(i_hwnd, YAMY_TIMER_ESCAPE_NLS_KEYS, 1000, NULL);
+			case WM_APP_escapeNLSKeysFailed:
+				if (i_lParam) {
+					This->m_log << _T("escape NLS keys done code=") << i_wParam << std::endl;
+					if (i_wParam) {
+						int ret = This->errorDialogWithCode(IDS_escapeNlsKeysFailed, i_wParam, MB_RETRYCANCEL | MB_ICONSTOP);
+						if (ret == IDRETRY) {
+							This->m_fixScancodeMap.escape(true);
+						}
+					}
+				} else {
+					This->m_log << _T("restore NLS keys done with code=") << i_wParam << std::endl;
 				}
 				return 0;
 				break;
-		   }
 
 			case WM_COMMAND: {
 				int notify_code = HIWORD(i_wParam);
@@ -581,6 +564,11 @@ private:
 					}
 					case ID_MENUITEM_disable:
 						This->m_engine.enable(!This->m_engine.getIsEnabled());
+						if (This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(true);
+						} else {
+							This->m_fixScancodeMap.escape(false);
+						}
 						This->showTasktrayIcon();
 						break;
 					case ID_MENUITEM_quit:
@@ -667,12 +655,8 @@ private:
 					wtsUnRegisterSessionNotification(i_hwnd);
 					This->m_usingSN = false;
 				}
-				if (This->m_escapeNlsKeys) {
-					int err;
-					err = This->m_fixScancodeMap.restore();
-					if (err) {
-						This->errorDialogWithCode(IDS_escapeNlsKeysFailed, err);
-					}
+				if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+					This->m_fixScancodeMap.escape(false);
 				}
 				return 0;
 
@@ -818,15 +802,14 @@ private:
 		}
 	}
 
-	bool errorDialogWithCode(UINT ids, int code)
+	int errorDialogWithCode(UINT ids, int code, UINT style = MB_OK | MB_ICONSTOP)
 	{
 		_TCHAR title[1024];
 		_TCHAR text[1024];
 
 		_sntprintf_s(title, NUMBER_OF(title), _TRUNCATE, loadString(IDS_mayu).c_str());
 		_sntprintf_s(text, NUMBER_OF(text), _TRUNCATE, loadString(ids).c_str(), code);
- 		MessageBox((HWND)NULL, text, title, MB_OK | MB_ICONSTOP);
-		return true;
+ 		return MessageBox((HWND)NULL, text, title, style);
 	}
 
 	int enableToWriteByUser(HANDLE hdl)

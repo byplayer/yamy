@@ -48,6 +48,8 @@ private:
 	static const DWORD s_fixEntry[];
 
 private:
+	HWND m_hwnd;
+	UINT m_messageOnFail;
 	int m_errorOnConstruct;
 	DWORD m_winlogonPid;
 	std::list<WlInfo> m_wlTrash;
@@ -55,6 +57,11 @@ private:
 	Registry m_regHKCU;
 	Registry m_regHKLM;
 	Registry *m_pReg;
+	HANDLE m_hFixEvent;
+	HANDLE m_hRestoreEvent;
+	HANDLE m_hQuitEvent;
+	HANDLE m_hThread;
+	unsigned m_threadId;
 
 private:
 	int acquirePrivileges();
@@ -62,11 +69,14 @@ private:
 	static bool clean(WlInfo wl);
 	int injectThread(DWORD dwPID);
 	int update();
+	int fix();
+	int restore();
+	static unsigned int WINAPI threadLoop(void *i_this);
 
 public:
 	FixScancodeMap();
 	~FixScancodeMap();
 
-	int fix();
-	int restore();
+	int init(HWND i_hwnd, UINT i_messageOnFail);
+	int escape(bool i_escape);
 };
