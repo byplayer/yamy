@@ -1121,7 +1121,9 @@ rewait:
 
 		if (!m_currentFocusOfThread ||
 				!m_currentKeymap) {
-#ifndef NO_DRIVER
+#ifdef NO_DRIVER
+			injectInput(&kid, NULL);
+#else
 			WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
 			GetOverlappedResult(m_device, &m_ol, &len, TRUE);
 #endif // !NO_DRIVER
