@@ -1081,7 +1081,7 @@ public:
 		tstring tip = loadString(IDS_mayu);
 		tcslcpy(m_ni.szTip, tip.c_str(), NUMBER_OF(m_ni.szTip));
 		if (m_canUseTasktrayBaloon) {
-			m_ni.cbSize = sizeof(m_ni);
+			m_ni.cbSize = NOTIFYICONDATA_V3_SIZE;
 			m_ni.uFlags |= NIF_INFO;
 		} else
 			m_ni.cbSize = NOTIFYICONDATA_V1_SIZE;
