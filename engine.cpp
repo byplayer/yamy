@@ -1232,13 +1232,18 @@ rewait:
 				m_oneShotKey.m_key = NULL;
 				m_oneShotRepeatableRepeatCount = 0;
 			}
-		} else if (c.m_mkey.m_key)
+		} else if (c.m_mkey.m_key) {
 			// normal key
-		{
 			outputToLog(&key, c.m_mkey, 1);
 			if (isPhysicallyPressed)
 				m_oneShotKey.m_key = NULL;
 			beginGeneratingKeyboardEvents(c, isModifier);
+		} else {
+			// undefined key
+			if (kid.Flags & KEYBOARD_INPUT_DATA::E1) {
+				// through mouse event even if undefined for fail safe
+				injectInput(&kid, NULL);
+			}
 		}
 
 		// if counter is zero, reset modifiers and keys on win32
