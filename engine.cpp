@@ -1101,6 +1101,10 @@ rewait:
 				Key key;
 				key.addScanCode(ScanCode(kid.MakeCode, kid.Flags));
 				outputToLog(&key, ModifiedKey(), 0);
+				if (kid.Flags & KEYBOARD_INPUT_DATA::E1) {
+					// through mouse event even if log mode
+					injectInput(&kid, NULL);
+				}
 			} else {
 #ifdef NO_DRIVER
 				injectInput(&kid, NULL);
