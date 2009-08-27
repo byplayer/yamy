@@ -457,7 +457,7 @@ private:
 			case WM_APP_escapeNLSKeysFailed:
 				if (i_lParam) {
 					This->m_log << _T("escape NLS keys done code=") << i_wParam << std::endl;
-					if (i_wParam) {
+					if (i_wParam != YAMY_SUCCESS && i_wParam != YAMY_ERROR_RETRY_INJECTION_SUCCESS) {
 						int ret = This->errorDialogWithCode(IDS_escapeNlsKeysFailed, i_wParam, MB_RETRYCANCEL | MB_ICONSTOP);
 						if (ret == IDRETRY) {
 							This->m_fixScancodeMap.escape(true);
