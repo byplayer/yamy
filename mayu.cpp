@@ -73,7 +73,10 @@ class Mayu
 	OVERLAPPED m_olNotify;			///
 	BYTE m_notifyBuf[NOTIFY_MESSAGE_SIZE];
 #endif // USE_MAILSLOT
-	bool m_isConsoleConnected;
+	static const DWORD SESSION_LOCKED = 1<<0;
+	static const DWORD SESSION_DISCONNECTED = 1<<1;
+	static const DWORD SESSION_END_QUERIED = 1<<2;
+	DWORD m_sessionState;
 	int m_escapeNlsKeys;
 	FixScancodeMap m_fixScancodeMap;
 
@@ -296,6 +299,12 @@ private:
 				return This->notifyHandler(cd);
 			}
 			case WM_QUERYENDSESSION:
+				if (!This->m_sessionState) {
+					if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+						This->m_fixScancodeMap.escape(false);
+					}
+				}
+				This->m_sessionState |= Mayu::SESSION_END_QUERIED;
 				This->m_engine.prepairQuit();
 				PostQuitMessage(0);
 				return TRUE;
@@ -316,22 +325,14 @@ private:
 #  define WTS_SESSION_LOCK                   0x7
 #  define WTS_SESSION_UNLOCK                 0x8
 #endif
-/*
-	order of WTS_* messages:
-	<case1>screen lock -> screen unlock
-	<case2>change of user -> logon by same user
-		(1)WTS_SESSION_LOCK			... restore Scancode Map
-		(2)WTS_SESSION_UNLOCK		... re-fix Scancode Map
-
-	<case3>change of user -> logon by another user -> change of user -> logon by previous user
-		(1)WTS_SESSION_LOCK			... restore Scancode Map
-		(2)WTS_CONSOLE_CONNECT		... mark disconnection(m_isConsoleConnected=false)
-		(3)WTS_SESSION_UNLOCK		... (re-fix Scancode Map is not effective here!)
-		(4)WTS_CONSOLE_DISCONNECT	... re-fix Scancode Map
-*/
+				/*
+					restore NLS keys when any bits of m_sessionState is on
+					and
+					escape NLS keys when all bits of m_sessionState cleared
+				*/
 				case WTS_CONSOLE_CONNECT:
-					if (This->m_isConsoleConnected == false) {
-						This->m_isConsoleConnected = true;
+					This->m_sessionState &= ~Mayu::SESSION_DISCONNECTED;
+					if (!This->m_sessionState) {
 						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
 							This->m_fixScancodeMap.escape(true);
 						}
@@ -339,13 +340,30 @@ private:
 					m = "WTS_CONSOLE_CONNECT";
 					break;
 				case WTS_CONSOLE_DISCONNECT:
-					This->m_isConsoleConnected = false;
+					if (!This->m_sessionState) {
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(false);
+						}
+					}
+					This->m_sessionState |= Mayu::SESSION_DISCONNECTED;
 					m = "WTS_CONSOLE_DISCONNECT";
 					break;
 				case WTS_REMOTE_CONNECT:
+					This->m_sessionState &= ~Mayu::SESSION_DISCONNECTED;
+					if (!This->m_sessionState) {
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(true);
+						}
+					}
 					m = "WTS_REMOTE_CONNECT";
 					break;
 				case WTS_REMOTE_DISCONNECT:
+					if (!This->m_sessionState) {
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(false);
+						}
+					}
+					This->m_sessionState |= Mayu::SESSION_DISCONNECTED;
 					m = "WTS_REMOTE_DISCONNECT";
 					break;
 				case WTS_SESSION_LOGON:
@@ -355,14 +373,18 @@ private:
 					m = "WTS_SESSION_LOGOFF";
 					break;
 				case WTS_SESSION_LOCK: {
-					if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
-						This->m_fixScancodeMap.escape(false);
+					if (!This->m_sessionState) {
+						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(false);
+						}
 					}
+					This->m_sessionState |= Mayu::SESSION_LOCKED;
 					m = "WTS_SESSION_LOCK";
 					break;
 			   }
 				case WTS_SESSION_UNLOCK: {
-					if (This->m_isConsoleConnected == true) {
+					This->m_sessionState &= ~Mayu::SESSION_LOCKED;
+					if (!This->m_sessionState) {
 						if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
 							This->m_fixScancodeMap.escape(true);
 						}
@@ -655,8 +677,10 @@ private:
 					wtsUnRegisterSessionNotification(i_hwnd);
 					This->m_usingSN = false;
 				}
-				if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
-					This->m_fixScancodeMap.escape(false);
+				if (!This->m_sessionState) {
+					if (This->m_escapeNlsKeys && This->m_engine.getIsEnabled()) {
+						This->m_fixScancodeMap.escape(false);
+					}
 				}
 				return 0;
 
@@ -674,6 +698,11 @@ private:
 					switch (static_cast<MayuIPCCommand>(i_wParam)) {
 					case MayuIPCCommand_Enable:
 						This->m_engine.enable(!!i_lParam);
+						if (This->m_engine.getIsEnabled()) {
+							This->m_fixScancodeMap.escape(true);
+						} else {
+							This->m_fixScancodeMap.escape(false);
+						}
 						This->showTasktrayIcon();
 						if (i_lParam) {
 							Acquire a(&This->m_log, 1);
@@ -973,7 +1002,7 @@ public:
 			m_log(WM_APP_msgStreamNotify),
 			m_setting(NULL),
 			m_isSettingDialogOpened(false),
-			m_isConsoleConnected(true),
+			m_sessionState(0),
 			m_engine(m_log) {
 		Registry reg(MAYU_REGISTRY_ROOT);
 		reg.read(_T("escapeNLSKeys"), &m_escapeNlsKeys, 0);
