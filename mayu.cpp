@@ -1134,7 +1134,18 @@ public:
 		// create mutex to block yamyd
 		m_hMutexYamyd = CreateMutex((SECURITY_ATTRIBUTES *)NULL, TRUE, MUTEX_YAMYD_BLOCKER);
 
-		BOOL result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE,
+		tstring yamydPath;
+		_TCHAR exePath[GANA_MAX_PATH];
+		_TCHAR exeDrive[GANA_MAX_PATH];
+		_TCHAR exeDir[GANA_MAX_PATH];
+
+		GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
+		_tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
+		yamydPath = exeDrive;
+		yamydPath += exeDir;
+		yamydPath += _T("yamyd32");
+
+		BOOL result = CreateProcess(yamydPath.c_str(), NULL, NULL, NULL, FALSE,
 							   NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
 		if (result == FALSE) {
 			TCHAR buf[1024];

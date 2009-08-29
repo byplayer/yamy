@@ -3,6 +3,7 @@
 
 #include <windows.h>
 #include <tchar.h>
+#include "stringtool.h"
 #include "mayurc.h"
 
 /// main
@@ -15,7 +16,15 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
 	BOOL result;
-	TCHAR *yamyPath = _T("yamy32");
+	tstring yamyPath;
+	_TCHAR exePath[GANA_MAX_PATH];
+	_TCHAR exeDrive[GANA_MAX_PATH];
+	_TCHAR exeDir[GANA_MAX_PATH];
+
+	GetModuleFileName(NULL, exePath, GANA_MAX_PATH);
+	_tsplitpath_s(exePath, exeDrive, GANA_MAX_PATH, exeDir, GANA_MAX_PATH, NULL, 0, NULL, 0);
+	yamyPath = exeDrive;
+	yamyPath += exeDir;
 
 	pIsWow64Process =
 		(ISWOW64PROCESS)::GetProcAddress(::GetModuleHandle(_T("kernel32.dll")),
@@ -27,11 +36,15 @@ int WINAPI _tWinMain(HINSTANCE i_hInstance, HINSTANCE /* i_hPrevInstance */,
 	if (pIsWow64Process) {
 		result = pIsWow64Process(::GetCurrentProcess(), &isWow64);
 		if (result != FALSE && isWow64 == TRUE) {
-			yamyPath = _T("yamy64");
+			yamyPath += _T("yamy64");
+		} else {
+			yamyPath += _T("yamy32");
 		}
+	} else {
+		yamyPath += _T("yamy32");
 	}
 
-	result = CreateProcess(yamyPath, yamyPath, NULL, NULL, FALSE,
+	result = CreateProcess(yamyPath.c_str(), NULL, NULL, NULL, FALSE,
 						   NORMAL_PRIORITY_CLASS, 0, NULL, &si, &pi);
 
 	if (result == FALSE) {
