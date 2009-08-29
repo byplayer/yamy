@@ -481,12 +481,23 @@ private:
 
 			case WM_APP_escapeNLSKeysFailed:
 				if (i_lParam) {
+					int ret;
+
 					This->m_log << _T("escape NLS keys done code=") << i_wParam << std::endl;
-					if (i_wParam != YAMY_SUCCESS && i_wParam != YAMY_ERROR_RETRY_INJECTION_SUCCESS) {
-						int ret = This->errorDialogWithCode(IDS_escapeNlsKeysFailed, i_wParam, MB_RETRYCANCEL | MB_ICONSTOP);
+					switch (i_wParam) {
+					case YAMY_SUCCESS:
+					case YAMY_ERROR_RETRY_INJECTION_SUCCESS:
+						// escape NLS keys success
+						break;
+					case YAMY_ERROR_TIMEOUT_INJECTION:
+						ret = This->errorDialogWithCode(IDS_escapeNlsKeysRetry, i_wParam, MB_RETRYCANCEL | MB_ICONSTOP);
 						if (ret == IDRETRY) {
 							This->m_fixScancodeMap.escape(true);
 						}
+						break;
+					default:
+						This->errorDialogWithCode(IDS_escapeNlsKeysFailed, i_wParam, MB_OK);
+						break;
 					}
 				} else {
 					This->m_log << _T("restore NLS keys done with code=") << i_wParam << std::endl;

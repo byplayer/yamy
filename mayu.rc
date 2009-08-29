@@ -245,7 +245,8 @@ BEGIN
     IDS_readFromHomeDirectory "(ホームディレクトリから)"
     IDS_cannotInvoke        "%s を起動できません(0x%08x)"
     IDS_cannotPermitStandardUser "標準ユーザへの許可に失敗しました(エラーコード=%d)"
-    IDS_escapeNlsKeysFailed "NLSキーのエスケープに失敗しました(エラーコード=%d) 再試行しますか？"
+    IDS_escapeNlsKeysFailed "NLSキーのエスケープに失敗しました(エラーコード=%d)"
+    IDS_escapeNlsKeysRetry  "NLSキーのエスケープに失敗しました(エラーコード=%d) 再試行しますか？"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -491,7 +492,8 @@ BEGIN
     IDS_readFromHomeDirectory "(from home directory)"
     IDS_cannotInvoke        "can't invoke %s(0x%08x)"
     IDS_cannotPermitStandardUser "failed to permit standard user(error code=%d)"
-    IDS_escapeNlsKeysFailed "failed to escape NLS keys(error code=%d), retry?"
+    IDS_escapeNlsKeysFailed "failed to escape NLS keys(error code=%d)"
+    IDS_escapeNlsKeysRetry  "failed to escape NLS keys(error code=%d), retry?"
 END
 
 STRINGTABLE DISCARDABLE 
