@@ -8,7 +8,7 @@
 int WINAPI _tWinMain(HINSTANCE /* i_hInstance */, HINSTANCE /* i_hPrevInstance */,
 					 LPTSTR /* i_lpszCmdLine */, int /* i_nCmdShow */)
 {
-	HANDLE mutex = OpenMutex(SYNCHRONIZE, FALSE, MUTEX_MAYU_EXCLUSIVE_RUNNING);
+	HANDLE mutex = OpenMutex(SYNCHRONIZE, FALSE, MUTEX_YAMYD_BLOCKER);
 	if (mutex != NULL) {
 		CHECK_FALSE( installMessageHook() );
 
@@ -17,7 +17,6 @@ int WINAPI _tWinMain(HINSTANCE /* i_hInstance */, HINSTANCE /* i_hPrevInstance *
 		ReleaseMutex(mutex);
 
 		CHECK_FALSE( uninstallMessageHook() );
-		PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
 	}
 
 	return 0;

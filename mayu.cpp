@@ -64,8 +64,11 @@ class Mayu
 #endif // LOG_TO_FILE
 
 	HMENU m_hMenuTaskTray;			/// tasktray menu
+#ifdef _WIN64
+	HANDLE m_hMutexYamyd;
 	STARTUPINFO m_si;
 	PROCESS_INFORMATION m_pi;
+#endif // _WIN64
 	HANDLE m_mutex;
 #ifdef USE_MAILSLOT
 	HANDLE m_hNotifyMailslot;			/// mailslot to receive notify
@@ -1123,19 +1126,22 @@ public:
 		// set initial lock state
 		notifyLockState();
 
-		BOOL result;
-
+#ifdef _WIN64
 		ZeroMemory(&m_pi,sizeof(m_pi));
 		ZeroMemory(&m_si,sizeof(m_si));
 		m_si.cb=sizeof(m_si);
-#ifdef _WIN64
-		result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE,
+
+		// create mutex to block yamyd
+		m_hMutexYamyd = CreateMutex((SECURITY_ATTRIBUTES *)NULL, TRUE, MUTEX_YAMYD_BLOCKER);
+
+		BOOL result = CreateProcess(_T("yamyd32"), _T("yamyd32"), NULL, NULL, FALSE,
 							   NORMAL_PRIORITY_CLASS, 0, NULL, &m_si, &m_pi);
 		if (result == FALSE) {
 			TCHAR buf[1024];
 			TCHAR text[1024];
 			TCHAR title[1024];
 
+			m_pi.hProcess = NULL;
 			LoadString(GetModuleHandle(NULL), IDS_cannotInvoke,
 					   text, sizeof(text)/sizeof(text[0]));
 			LoadString(GetModuleHandle(NULL), IDS_mayu,
@@ -1145,7 +1151,6 @@ public:
 	 		MessageBox((HWND)NULL, buf, title, MB_OK | MB_ICONSTOP);
 		} else {
 			CloseHandle(m_pi.hThread);
-			CloseHandle(m_pi.hProcess);
 		}
 #endif // _WIN64
 	}
@@ -1169,7 +1174,19 @@ public:
 		// stop notify from mayu.dll
 		g_hookData->m_hwndTaskTray = NULL;
 		CHECK_FALSE( uninstallMessageHook() );
-		PostMessage(HWND_BROADCAST, WM_NULL, 0, 0);
+
+#ifdef _WIN64
+		ReleaseMutex(m_hMutexYamyd);
+		if (m_pi.hProcess) {
+			WaitForSingleObject(m_pi.hProcess, 5000);
+			CloseHandle(m_pi.hProcess);
+		}
+		CloseHandle(m_hMutexYamyd);
+#endif // _WIN64
+		if (!(m_sessionState & SESSION_END_QUERIED)) {
+			DWORD_PTR result;
+			SendMessageTimeout(HWND_BROADCAST, WM_NULL, 0, 0, SMTO_ABORTIFHUNG, 3000, &result);
+		}
 
 		// destroy windows
 		CHECK_TRUE( DestroyWindow(m_hwndVersion) );
