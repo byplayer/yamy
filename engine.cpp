@@ -610,7 +610,6 @@ void Engine::beginGeneratingKeyboardEvents(
 unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw)
 {
 	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
-		Acquire a(&m_cskidq);
 		INPUT kid[2];
 		int count = 1;
 
