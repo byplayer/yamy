@@ -7,9 +7,7 @@
 
 #  include "misc.h"
 #  include <tchar.h>
-#ifdef NO_DRIVER
-#  include <windows.h>
-#endif // NO_DRIVER
+#  include <windef.h>
 
 ///
 #  define HOOK_PIPE_NAME \
@@ -115,10 +113,8 @@ enum MouseHookType {
 	MouseHookType_WindowMove = 1 << 1,		/// window move
 };
 
-#ifdef NO_DRIVER
 class Engine;
 typedef unsigned int (WINAPI *INPUT_DETOUR)(Engine *i_engine, WPARAM i_wParam, LPARAM i_lParam);
-#endif // NO_DRIVER
 
 ///
 class HookData

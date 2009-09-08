@@ -289,13 +289,7 @@ void Engine::generateKeyEvent(Key *i_key, bool i_doPress, bool i_isByAssign)
 				kid.Flags = sc[i].m_flags;
 				if (!i_doPress)
 					kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
-#ifdef NO_DRIVER
 				injectInput(&kid, NULL);
-#else // !NO_DRIVER
-				DWORD len;
-				WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
-				CHECK_TRUE( GetOverlappedResult(m_device, &m_ol, &len, TRUE) );
-#endif // !NO_DRIVER
 			}
 
 			m_lastGeneratedKey = i_doPress ? i_key : NULL;
@@ -606,7 +600,6 @@ void Engine::beginGeneratingKeyboardEvents(
 }
 
 
-#ifdef NO_DRIVER
 unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw)
 {
 	if (i_kid->Flags & KEYBOARD_INPUT_DATA::E1) {
@@ -743,7 +736,6 @@ unsigned int Engine::injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHO
 	}
 	return 1;
 }
-#endif // NO_DRIVER
 
 
 // pop all pressed key on win32
@@ -757,7 +749,6 @@ void Engine::keyboardResetOnWin32()
 }
 
 
-#ifdef NO_DRIVER
 unsigned int WINAPI Engine::keyboardDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam)
 {
 	return i_this->keyboardDetour(reinterpret_cast<KBDLLHOOKSTRUCT*>(i_lParam));
@@ -790,9 +781,10 @@ unsigned int Engine::keyboardDetour(KBDLLHOOKSTRUCT *i_kid)
 		kid.Reserved = 0;
 		kid.ExtraInformation = 0;
 
-		Acquire a(&m_cskidq);
-		m_kidq.push_back(kid);
+		WaitForSingleObject(m_queueMutex, INFINITE);
+		m_inputQueue->push_back(kid);
 		SetEvent(m_readEvent);
+		ReleaseMutex(m_queueMutex);
 		return 1;
 	}
 }
@@ -868,12 +860,12 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 			dr += (i_mid->pt.y - m_msllHookCurrent.pt.y) * (i_mid->pt.y - m_msllHookCurrent.pt.y);
 			if (m_buttonPressed && !m_dragging && m_setting->m_dragThreshold &&
 				(m_setting->m_dragThreshold * m_setting->m_dragThreshold < dr)) {
-				Acquire a(&m_cskidq);
-
-				m_dragging = true;
 				kid.MakeCode = 0;
-				m_kidq.push_back(kid);
+				WaitForSingleObject(m_queueMutex, INFINITE);
+				m_dragging = true;
+				m_inputQueue->push_back(kid);
 				SetEvent(m_readEvent);
+				ReleaseMutex(m_queueMutex);
 			}
 
 			switch (g_hookData->m_mouseHookType) {
@@ -928,7 +920,7 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 			break;
 		}
 
-		Acquire a(&m_cskidq);
+		WaitForSingleObject(m_queueMutex, INFINITE);
 
 		if (kid.Flags & KEYBOARD_INPUT_DATA::BREAK) {
 			m_buttonPressed = false;
@@ -941,30 +933,29 @@ unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 				kid2.Reserved = 0;
 				kid2.ExtraInformation = 0;
 				kid2.MakeCode = 0;
-				m_kidq.push_back(kid2);
-				SetEvent(m_readEvent);
+				m_inputQueue->push_back(kid2);
 			}
 		} else if (i_message != WM_MOUSEWHEEL && i_message != WM_MOUSEHWHEEL) {
 			m_buttonPressed = true;
 			m_msllHookCurrent = *i_mid;
 		}
 
-		m_kidq.push_back(kid);
-		SetEvent(m_readEvent);
+		m_inputQueue->push_back(kid);
 
 		if (i_message == WM_MOUSEWHEEL || i_message == WM_MOUSEHWHEEL) {
 			kid.UnitId = 0;
 			kid.Flags |= KEYBOARD_INPUT_DATA::BREAK;
 			kid.Reserved = 0;
 			kid.ExtraInformation = 0;
-			m_kidq.push_back(kid);
-			SetEvent(m_readEvent);
+			m_inputQueue->push_back(kid);
 		}
+
+		SetEvent(m_readEvent);
+		ReleaseMutex(m_queueMutex);
 
 		return 1;
 	}
 }
-#endif // NO_DRIVER
 
 // keyboard handler thread
 unsigned int WINAPI Engine::keyboardHandler(void *i_this)
@@ -975,88 +966,32 @@ unsigned int WINAPI Engine::keyboardHandler(void *i_this)
 }
 void Engine::keyboardHandler()
 {
-	// initialize ok
-	CHECK_TRUE( SetEvent(m_threadEvent) );
-
 	// loop
 	Key key;
-	while (!m_doForceTerminate) {
+	while (1) {
 		KEYBOARD_INPUT_DATA kid;
 
-#ifndef NO_DRIVER
-		DWORD len;
-#endif // !NO_DRIVER
-		{
-			Acquire a(&m_log, 1);
-			m_log << _T("begin ReadFile();") << std::endl;
-		}
-#ifdef NO_DRIVER
-		if (1) {
-#else // !NO_DRIVER
-		if (!ReadFile(m_device, &kid, sizeof(kid), &len, &m_ol)) {
-			if (GetLastError() != ERROR_IO_PENDING)
+		WaitForSingleObject(m_queueMutex, INFINITE);
+		while (SignalObjectAndWait(m_queueMutex, m_readEvent, INFINITE, true) == WAIT_OBJECT_0) {
+			if (m_inputQueue == NULL) {
+				ReleaseMutex(m_queueMutex);
+				return;
+			}
+
+			if (m_inputQueue->empty()) {
+				ResetEvent(m_readEvent);
 				continue;
-#endif // !NO_DRIVER
+			}
 
-			HANDLE handles[] = { m_readEvent, m_interruptThreadEvent };
-rewait:
-			switch (MsgWaitForMultipleObjects(NUMBER_OF(handles), &handles[0],
-											  FALSE, INFINITE, QS_POSTMESSAGE)) {
-			case WAIT_OBJECT_0:			// m_readEvent
-#ifdef NO_DRIVER
-				{
-					Acquire a(&m_cskidq);
-					if (m_kidq.empty()) {
-						goto rewait;
-					}
-					kid = m_kidq.front();
-					m_kidq.pop_front();
-					if (!m_kidq.empty()) {
-						SetEvent(m_readEvent);
-					}
-				}
-#else // !NO_DRIVER
-				if (!GetOverlappedResult(m_device, &m_ol, &len, FALSE))
-					continue;
-#endif // !NO_DRIVER
-				break;
+			kid = m_inputQueue->front();
+			m_inputQueue->pop_front();
+			if (m_inputQueue->empty()) {
+				ResetEvent(m_readEvent);
+			}
 
-			case WAIT_OBJECT_0 + 1:			// m_interruptThreadEvent
-				CancelIo(m_device);
-				switch (m_interruptThreadReason) {
-				default: {
-					ASSERT( false );
-					Acquire a(&m_log, 0);
-					m_log << _T("internal error: m_interruptThreadReason == ")
-					<< m_interruptThreadReason << std::endl;
-					break;
-				}
+			break;
 
-				case InterruptThreadReason_Terminate:
-					goto break_while;
-
-				case InterruptThreadReason_Pause: {
-					CHECK_TRUE( SetEvent(m_threadEvent) );
-					while (WaitForMultipleObjects(1, &m_interruptThreadEvent,
-												  FALSE, INFINITE) != WAIT_OBJECT_0)
-						;
-					switch (m_interruptThreadReason) {
-					case InterruptThreadReason_Terminate:
-						goto break_while;
-
-					case InterruptThreadReason_Resume:
-						break;
-
-					default:
-						ASSERT( false );
-						break;
-					}
-					CHECK_TRUE( SetEvent(m_threadEvent) );
-					break;
-				}
-				}
-				break;
-
+#if 0
 			case WAIT_OBJECT_0 + NUMBER_OF(handles): {
 				MSG message;
 
@@ -1081,16 +1016,9 @@ rewait:
 				}
 				goto rewait;
 			}
-
-			default:
-				ASSERT( false );
-				continue;
-			}
+#endif
 		}
-		{
-			Acquire a(&m_log, 1);
-			m_log << _T("end ReadFile();") << std::endl;
-		}
+		ReleaseMutex(m_queueMutex);
 
 		checkFocusWindow();
 
@@ -1105,12 +1033,7 @@ rewait:
 					injectInput(&kid, NULL);
 				}
 			} else {
-#ifdef NO_DRIVER
 				injectInput(&kid, NULL);
-#else // !NO_DRIVER
-				WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
-				GetOverlappedResult(m_device, &m_ol, &len, TRUE);
-#endif // !NO_DRIVER
 			}
 			updateLastPressedKey(NULL);
 			continue;
@@ -1120,12 +1043,7 @@ rewait:
 
 		if (!m_currentFocusOfThread ||
 				!m_currentKeymap) {
-#ifdef NO_DRIVER
 			injectInput(&kid, NULL);
-#else
-			WriteFile(m_device, &kid, sizeof(kid), &len, &m_ol);
-			GetOverlappedResult(m_device, &m_ol, &len, TRUE);
-#endif // !NO_DRIVER
 			Acquire a(&m_log, 0);
 			if (!m_currentFocusOfThread)
 				m_log << _T("internal error: m_currentFocusOfThread == NULL")
@@ -1264,27 +1182,21 @@ rewait:
 		key.initialize();
 		updateLastPressedKey(isPhysicallyPressed ? c.m_mkey.m_key : NULL);
 	}
-break_while:
-	CHECK_TRUE( SetEvent(m_threadEvent) );
 }
 
 
 Engine::Engine(tomsgstream &i_log)
 		: m_hwndAssocWindow(NULL),
 		m_setting(NULL),
-		m_device(INVALID_HANDLE_VALUE),
-		m_didMayuStartDevice(false),
-		m_threadEvent(NULL),
-		m_mayudVersion(_T("unknown")),
 		m_buttonPressed(false),
 		m_dragging(false),
 		m_keyboardHandler(installKeyboardHook, Engine::keyboardDetour),
 		m_mouseHandler(installMouseHook, Engine::mouseDetour),
+		m_inputQueue(NULL),
 		m_readEvent(NULL),
-		m_interruptThreadEvent(NULL),
+		m_queueMutex(NULL),
 		m_sts4mayu(NULL),
 		m_cts4mayu(NULL),
-		m_doForceTerminate(false),
 		m_isLogMode(false),
 		m_isEnabled(true),
 		m_isSynchronizing(false),
@@ -1310,24 +1222,6 @@ Engine::Engine(tomsgstream &i_log)
 	for (int i = Modifier::Type_Lock0; i <= Modifier::Type_Lock9; ++ i)
 		m_currentLock.release(static_cast<Modifier::Type>(i));
 
-#ifndef NO_DRIVER
-	if (!open()) {
-		throw ErrorMessage() << loadString(IDS_driverNotInstalled);
-	}
-#endif // !NO_DRIVER
-
-#ifndef NO_DRIVER
-	{
-		TCHAR versionBuf[256];
-		DWORD length = 0;
-
-		if (DeviceIoControl(m_device, IOCTL_MAYU_GET_VERSION, NULL, 0,
-							versionBuf, sizeof(versionBuf), &length, NULL)
-				&& length
-				&& length < sizeof(versionBuf))			// fail safe
-			m_mayudVersion = tstring(versionBuf, length / 2);
-	}
-#endif // !NO_DRIVER
 	// create event for sync
 	CHECK_TRUE( m_eSync = CreateEvent(NULL, FALSE, FALSE, NULL) );
 	// create named pipe for &SetImeString
@@ -1346,138 +1240,41 @@ Engine::Engine(tomsgstream &i_log)
 }
 
 
-// open mayu device
-bool Engine::open() {
-	// open mayu m_device
-#ifndef NO_DRIVER
-	m_device = CreateFile(MAYU_DEVICE_FILE_NAME, GENERIC_READ | GENERIC_WRITE,
-						  0, NULL, OPEN_EXISTING,
-						  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-#endif // !NO_DRIVER
-
-	if (m_device != INVALID_HANDLE_VALUE) {
-		return true;
-	}
-
-#ifndef NO_DRIVER
-	// start mayud
-	SC_HANDLE hscm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-	if (hscm) {
-		SC_HANDLE hs = OpenService(hscm, MAYU_DRIVER_NAME, SERVICE_START);
-		if (hs) {
-			StartService(hs, 0, NULL);
-			CloseServiceHandle(hs);
-			m_didMayuStartDevice = true;
-		}
-		CloseServiceHandle(hscm);
-	}
-
-	// open mayu m_device
-	m_device = CreateFile(MAYU_DEVICE_FILE_NAME, GENERIC_READ | GENERIC_WRITE,
-						  0, NULL, OPEN_EXISTING,
-						  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
-#endif // !NO_DRIVER
-	return (m_device != INVALID_HANDLE_VALUE);
-}
-
-
-// close mayu device
-void Engine::close() {
-	if (m_device != INVALID_HANDLE_VALUE) {
-#ifndef NO_DRIVER
-		CHECK_TRUE( CloseHandle(m_device) );
-#endif // !NO_DRIVER
-	}
-	m_device = INVALID_HANDLE_VALUE;
-}
 
 
 // start keyboard handler thread
 void Engine::start() {
 	m_keyboardHandler.start(this);
 	m_mouseHandler.start(this);
-	CHECK_TRUE( m_threadEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
 
-	CHECK_TRUE( m_readEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
-	CHECK_TRUE( m_interruptThreadEvent = CreateEvent(NULL, FALSE, FALSE, NULL) );
+	CHECK_TRUE( m_inputQueue = new std::deque<KEYBOARD_INPUT_DATA> );
+	CHECK_TRUE( m_queueMutex = CreateMutex(NULL, FALSE, NULL) );
+	CHECK_TRUE( m_readEvent = CreateEvent(NULL, TRUE, FALSE, NULL) );
 	m_ol.Offset = 0;
 	m_ol.OffsetHigh = 0;
 	m_ol.hEvent = m_readEvent;
 
 	CHECK_TRUE( m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, keyboardHandler, this, 0, &m_threadId) );
-	CHECK( WAIT_OBJECT_0 ==, WaitForSingleObject(m_threadEvent, INFINITE) );
 }
 
 
 // stop keyboard handler thread
 void Engine::stop() {
-	if (m_threadEvent) {
-		m_doForceTerminate = true;
-		do {
-			m_interruptThreadReason = InterruptThreadReason_Terminate;
-			SetEvent(m_interruptThreadEvent);
-			//DWORD buf;
-			//M_DeviceIoControl(m_device, IOCTL_MAYU_DETOUR_CANCEL,
-			//                &buf, sizeof(buf), &buf, sizeof(buf), &buf, NULL);
-
-			// wait for message handler thread terminate
-		} while (WaitForSingleObject(m_threadEvent, 100) != WAIT_OBJECT_0);
-		CHECK_TRUE( CloseHandle(m_threadEvent) );
-		m_threadEvent = NULL;
-		WaitForSingleObject(m_threadHandle, 100);
-		CHECK_TRUE( CloseHandle(m_threadHandle) );
-		m_threadHandle = NULL;
-
-		// stop mayud
-		if (m_didMayuStartDevice) {
-			SC_HANDLE hscm = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
-			if (hscm) {
-				SC_HANDLE hs = OpenService(hscm, MAYU_DRIVER_NAME, SERVICE_STOP);
-				if (hs) {
-					SERVICE_STATUS ss;
-					ControlService(hs, SERVICE_CONTROL_STOP, &ss);
-					CloseServiceHandle(hs);
-				}
-				CloseServiceHandle(hscm);
-			}
-		}
-
-		CHECK_TRUE( CloseHandle(m_readEvent) );
-		m_readEvent = NULL;
-		CHECK_TRUE( CloseHandle(m_interruptThreadEvent) );
-		m_interruptThreadEvent = NULL;
-	}
 	m_mouseHandler.stop();
 	m_keyboardHandler.stop();
-}
 
-bool Engine::pause() {
-	if (m_device != INVALID_HANDLE_VALUE) {
-		do {
-			m_interruptThreadReason = InterruptThreadReason_Pause;
-			SetEvent(m_interruptThreadEvent);
-		} while (WaitForSingleObject(m_threadEvent, 100) != WAIT_OBJECT_0);
-#ifndef NO_DRIVER
-		close();
-#endif // !NO_DRIVER
-	}
-	return true;
-}
+	WaitForSingleObject(m_queueMutex, INFINITE);
+	delete m_inputQueue;
+	m_inputQueue = NULL;
+	SetEvent(m_readEvent);
+	ReleaseMutex(m_queueMutex);
 
+	WaitForSingleObject(m_threadHandle, 20000);
+	CHECK_TRUE( CloseHandle(m_threadHandle) );
+	m_threadHandle = NULL;
 
-bool Engine::resume() {
-	if (m_device == INVALID_HANDLE_VALUE) {
-#ifndef NO_DRIVER
-		if (!open()) {
-			return false;				// FIXME
-		}
-#endif // !NO_DRIVER
-		do {
-			m_interruptThreadReason = InterruptThreadReason_Resume;
-			SetEvent(m_interruptThreadEvent);
-		} while (WaitForSingleObject(m_threadEvent, 100) != WAIT_OBJECT_0);
-	}
-	return true;
+	CHECK_TRUE( CloseHandle(m_readEvent) );
+	m_readEvent = NULL;
 }
 
 
@@ -1495,10 +1292,6 @@ Engine::~Engine() {
 	stop();
 	CHECK_TRUE( CloseHandle(m_eSync) );
 
-	// close m_device
-#ifndef NO_DRIVER
-	close();
-#endif // !NO_DRIVER
 	// destroy named pipe for &SetImeString
 	if (m_hookPipe && m_hookPipe != INVALID_HANDLE_VALUE) {
 		DisconnectNamedPipe(m_hookPipe);

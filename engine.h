@@ -179,34 +179,22 @@ private:
 	Setting * volatile m_setting;			/// setting
 
 	// engine thread state
-	HANDLE m_device;				/// mayu device
-	bool m_didMayuStartDevice;			/** Did the mayu start the
-                                                    mayu-device ? */
-	HANDLE m_threadEvent;				/** 1. thread has been started
-						    2. thread is about to end*/
 	HANDLE m_threadHandle;
 	unsigned m_threadId;
-	tstring m_mayudVersion;			/// version of mayud.sys
-#ifdef NO_DRIVER
-	std::deque<KEYBOARD_INPUT_DATA> m_kidq;
-	CriticalSection m_cskidq;
+	std::deque<KEYBOARD_INPUT_DATA> *m_inputQueue;
+	HANDLE m_queueMutex;
 	MSLLHOOKSTRUCT m_msllHookCurrent;
 	bool m_buttonPressed;
 	bool m_dragging;
 	InputHandler m_keyboardHandler;
 	InputHandler m_mouseHandler;
-#endif // NO_DRIVER
 	HANDLE m_readEvent;				/** reading from mayu device
                                                     has been completed */
-	HANDLE m_interruptThreadEvent;		/// interrupt thread event
-	volatile InterruptThreadReason
-	m_interruptThreadReason;			/// interrupt thread reason
 	OVERLAPPED m_ol;				/** for async read/write of
 						    mayu device */
 	HANDLE m_hookPipe;				/// named pipe for &SetImeString
 	HMODULE m_sts4mayu;				/// DLL module for ThumbSense
 	HMODULE m_cts4mayu;				/// DLL module for ThumbSense
-	bool volatile m_doForceTerminate;		/// terminate engine thread
 	bool volatile m_isLogMode;			/// is logging mode ?
 	bool volatile m_isEnabled;			/// is enabled  ?
 	bool volatile m_isSynchronizing;		/// is synchronizing ?
@@ -267,7 +255,6 @@ public:
                                                     dialog's edit) */
 
 public:
-#ifdef NO_DRIVER
 	/// keyboard handler thread
 	static unsigned int WINAPI keyboardDetour(Engine *i_this, WPARAM i_wParam, LPARAM i_lParam);
 	/// mouse handler thread
@@ -279,7 +266,6 @@ private:
 	unsigned int mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid);
 	///
 	unsigned int injectInput(const KEYBOARD_INPUT_DATA *i_kid, const KBDLLHOOKSTRUCT *i_kidRaw);
-#endif // NO_DRIVER
 
 private:
 	/// keyboard handler thread
@@ -629,11 +615,6 @@ public:
 	/// get current window title name
 	const tstringi &getCurrentWindowTitleName() const {
 		return m_currentFocusOfThread->m_titleName;
-	}
-
-	/// get mayud version
-	const tstring &getMayudVersion() const {
-		return m_mayudVersion;
 	}
 };
 

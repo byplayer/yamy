@@ -9,7 +9,7 @@
 	<Tool
 		Name="VCCLCompilerTool"
 		AdditionalIncludeDirectories="../../boost_$(BOOST_MAJOR)_$(BOOST_MINOR)"
-		PreprocessorDefinitions="VERSION=\&quot;$(VERSION)\&quot;;LOGNAME=\&quot;$(USERNAME)\&quot;;COMPUTERNAME=\&quot;$(COMPUTERNAME)\&quot;;_CRT_SECURE_NO_WARNINGS;MAYU64;NO_DRIVER;USE_MAILSLOT;USE_INI"
+		PreprocessorDefinitions="VERSION=\&quot;$(VERSION)\&quot;;LOGNAME=\&quot;$(USERNAME)\&quot;;COMPUTERNAME=\&quot;$(COMPUTERNAME)\&quot;;_CRT_SECURE_NO_WARNINGS;MAYU64;USE_MAILSLOT;USE_INI"
 	/>
 	<Tool
 		Name="VCLinkerTool"

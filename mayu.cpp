@@ -1088,7 +1088,7 @@ public:
 		m_hwndVersion =
 			CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_DIALOG_version),
 							  NULL, dlgVersion_dlgProc,
-							  (LPARAM)m_engine.getMayudVersion().c_str());
+							  (LPARAM)_T(""));
 		CHECK_TRUE( m_hwndVersion );
 
 		// attach log

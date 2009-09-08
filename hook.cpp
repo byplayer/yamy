@@ -71,12 +71,10 @@ struct Globals {
 	bool m_isImeLock;				///
 	bool m_isImeCompositioning;			///
 	HHOOK m_hHookMouseProc;			///
-#ifdef NO_DRIVER
 	HHOOK m_hHookKeyboardProc;			///
 	INPUT_DETOUR m_keyboardDetour;
 	INPUT_DETOUR m_mouseDetour;
 	Engine *m_engine;
-#endif // NO_DRIVER
 	DWORD m_hwndTaskTray;				///
 	HANDLE m_hMailslot;
 	bool m_isInitialized;
@@ -768,7 +766,6 @@ through:
 }
 
 
-#ifdef NO_DRIVER
 static LRESULT CALLBACK lowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	KBDLLHOOKSTRUCT *pKbll = (KBDLLHOOKSTRUCT*)lParam;
@@ -790,7 +787,6 @@ through:
 	return CallNextHookEx(g.m_hHookKeyboardProc,
 						  nCode, wParam, lParam);
 }
-#endif // NO_DRIVER
 
 
 /// install message hook
@@ -826,7 +822,6 @@ DllExport int uninstallMessageHook()
 /// install keyboard hook
 DllExport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install)
 {
-#ifdef NO_DRIVER
 	if (i_install) {
 		if (!g.m_isInitialized)
 			initialize();
@@ -841,7 +836,6 @@ DllExport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engin
 			UnhookWindowsHookEx(g.m_hHookKeyboardProc);
 		g.m_hHookKeyboardProc = NULL;
 	}
-#endif // NO_DRIVER
 	return 0;
 }
 
