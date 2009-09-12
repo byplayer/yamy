@@ -1269,7 +1269,7 @@ void Engine::stop() {
 	SetEvent(m_readEvent);
 	ReleaseMutex(m_queueMutex);
 
-	WaitForSingleObject(m_threadHandle, 20000);
+	WaitForSingleObject(m_threadHandle, 2000);
 	CHECK_TRUE( CloseHandle(m_threadHandle) );
 	m_threadHandle = NULL;
 
@@ -1289,7 +1289,6 @@ bool Engine::prepairQuit() {
 
 
 Engine::~Engine() {
-	stop();
 	CHECK_TRUE( CloseHandle(m_eSync) );
 
 	// destroy named pipe for &SetImeString
