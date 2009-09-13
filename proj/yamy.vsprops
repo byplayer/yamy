@@ -18,7 +18,7 @@
 	/>
 	<UserMacro
 		Name="VERSION"
-		Value="0.02"
+		Value="0.03"
 		PerformEnvironmentSet="true"
 	/>
 	<UserMacro
