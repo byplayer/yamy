@@ -1213,6 +1213,13 @@ Engine::Engine(tomsgstream &i_log)
 		m_afShellExecute(NULL),
 		m_variable(0),
 		m_log(i_log) {
+	BOOL (WINAPI *pChangeWindowMessageFilter)(UINT, DWORD) =
+		reinterpret_cast<BOOL (WINAPI*)(UINT, DWORD)>(GetProcAddress(GetModuleHandle(_T("user32.dll")), "ChangeWindowMessageFilter"));
+
+	if(pChangeWindowMessageFilter != NULL) {
+		pChangeWindowMessageFilter(WM_COPYDATA, MSGFLT_ADD);
+	}
+
 	for (size_t i = 0; i < NUMBER_OF(m_lastPressedKey); ++ i)
 		m_lastPressedKey[i] = NULL;
 

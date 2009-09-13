@@ -70,12 +70,10 @@ class Mayu
 	PROCESS_INFORMATION m_pi;
 #endif // _WIN64
 	HANDLE m_mutex;
-#ifdef USE_MAILSLOT
 	HANDLE m_hNotifyMailslot;			/// mailslot to receive notify
 	HANDLE m_hNotifyEvent;			/// event on receive notify
 	OVERLAPPED m_olNotify;			///
 	BYTE m_notifyBuf[NOTIFY_MESSAGE_SIZE];
-#endif // USE_MAILSLOT
 	static const DWORD SESSION_LOCKED = 1<<0;
 	static const DWORD SESSION_DISCONNECTED = 1<<1;
 	static const DWORD SESSION_END_QUERIED = 1<<2;
@@ -103,7 +101,6 @@ class Mayu
 	};
 
 private:
-#ifdef USE_MAILSLOT
 	static VOID CALLBACK mailslotProc(DWORD i_code, DWORD i_len, LPOVERLAPPED i_ol) {
 		Mayu *pThis;
 
@@ -131,7 +128,6 @@ private:
 							&m_olNotify, Mayu::mailslotProc);
 		return result;
 	}
-#endif // USE_MAILSLOT
 
 	/// register class for tasktray
 	ATOM Register_tasktray() {
@@ -1020,7 +1016,6 @@ public:
 			m_engine(m_log) {
 		Registry reg(MAYU_REGISTRY_ROOT);
 		reg.read(_T("escapeNLSKeys"), &m_escapeNlsKeys, 0);
-#ifdef USE_MAILSLOT
 		m_hNotifyMailslot = CreateMailslot(NOTIFY_MAILSLOT_NAME, 0, MAILSLOT_WAIT_FOREVER, (SECURITY_ATTRIBUTES *)NULL);
 		ASSERT(m_hNotifyMailslot != INVALID_HANDLE_VALUE);
 		int err;
@@ -1036,7 +1031,6 @@ public:
 		m_olNotify.Offset = 0;
 		m_olNotify.OffsetHigh = 0;
 		m_olNotify.hEvent = m_hNotifyEvent;
-#endif // USE_MAILSLOT
 		time(&m_startTime);
 
 		CHECK_TRUE( Register_focus() );
@@ -1062,10 +1056,7 @@ public:
 		CHECK_TRUE( m_hwndTaskTray );
 
 		// set window handle of tasktray to hooks
-#ifndef USE_MAILSLOT
-		g_hookData->m_hwndTaskTray = reinterpret_cast<DWORD>(m_hwndTaskTray);
-#endif // !USE_MAILSLOT
-		CHECK_FALSE( installMessageHook() );
+		CHECK_FALSE( installMessageHook(reinterpret_cast<DWORD>(m_hwndTaskTray)) );
 		m_usingSN = wtsRegisterSessionNotification(m_hwndTaskTray,
 					NOTIFY_FOR_THIS_SESSION);
 
@@ -1179,12 +1170,10 @@ public:
 
 	///
 	~Mayu() {
-#ifdef USE_MAILSLOT
 		CancelIo(m_hNotifyMailslot);
 		SleepEx(0, TRUE);
 		CloseHandle(m_hNotifyMailslot);
 		CloseHandle(m_hNotifyEvent);
-#endif // USE_MAILSLOT
 		ReleaseMutex(m_mutex);
 		WaitForSingleObject(m_mutex, INFINITE);
 		// first, detach log from edit control to avoid deadlock
@@ -1236,7 +1225,6 @@ public:
 		showBanner(false);
 		load();
 
-#ifdef USE_MAILSLOT
 		mailslotHandler(0, 0);
 		while (1) {
 			HANDLE handles[] = { m_hNotifyEvent };
@@ -1273,20 +1261,6 @@ public:
 				break;
 			}
 		}
-#else // !USE_MAILSLOT
-		MSG msg;
-		while (0 < GetMessage(&msg, NULL, 0, 0)) {
-			if (IsDialogMessage(m_hwndLog, &msg))
-				continue;
-			if (IsDialogMessage(m_hwndInvestigate, &msg))
-				continue;
-			if (IsDialogMessage(m_hwndVersion, &msg))
-				continue;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		return msg.wParam;
-#endif // !USE_MAILSLOT
 	}
 };
 

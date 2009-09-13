@@ -13,11 +13,9 @@
 #  define HOOK_PIPE_NAME \
  _T("\\\\.\\pipe\\GANAware\\mayu\\{4B22D464-7A4E-494b-982A-C2B2BBAAF9F3}") _T(VERSION)
 ///
-#ifdef USE_MAILSLOT
 #  define NOTIFY_MAILSLOT_NAME \
 _T("\\\\.\\mailslot\\GANAware\\mayu\\{330F7914-EB5B-49be-ACCE-D2B8DF585B32}") _T(VERSION)
 ///
-#endif // USE_MAILSLOT
 #  define WM_MAYU_MESSAGE_NAME _T("GANAware\\mayu\\WM_MAYU_MESSAGE")
 
 ///
@@ -140,7 +138,7 @@ public:
 
 #  ifndef _HOOK_CPP
 extern DllImport HookData *g_hookData;
-extern DllImport int installMessageHook();
+extern DllImport int installMessageHook(DWORD i_hwndTaskTray);
 extern DllImport int uninstallMessageHook();
 extern DllImport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engine, bool i_install);
 extern DllImport int installMouseHook(INPUT_DETOUR i_mouseDetour, Engine *i_engine, bool i_install);

@@ -78,6 +78,9 @@ struct Globals {
 	DWORD m_hwndTaskTray;				///
 	HANDLE m_hMailslot;
 	bool m_isInitialized;
+#ifdef HOOK_LOG_TO_FILE
+	HANDLE m_logFile;
+#endif // HOOK_LOG_TO_FILE
 #ifndef NDEBUG
 	bool m_isLogging;
 	_TCHAR m_moduleName[GANA_MAX_PATH];
@@ -94,15 +97,33 @@ static Globals g;
 static void notifyThreadDetach();
 static void notifyShow(NotifyShow::Show i_show, bool i_isMDI);
 static void notifyLog(_TCHAR *i_msg);
-static bool mapHookData();
+static bool mapHookData(bool i_isYamy);
 static void unmapHookData();
-static bool initialize();
+static bool initialize(bool i_isYamy);
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Functions
 
-bool initialize()
+
+#ifdef HOOK_LOG_TO_FILE
+static void WriteToLog(const char *data)
+{
+	char buf[1024];
+	DWORD count;
+
+	WideCharToMultiByte(CP_THREAD_ACP, 0, g.m_moduleName, -1, buf, NUMBER_OF(buf), NULL, NULL);
+	strcat(buf, ": ");
+	strcat(buf, data);
+	SetFilePointer(g.m_logFile, 0, NULL, FILE_END);
+	WriteFile(g.m_logFile, buf, strlen(buf), &count, NULL);
+	FlushFileBuffers(g.m_logFile);
+}
+#else // !HOOK_LOG_TO_FILE
+#define WriteToLog(data)
+#endif // !HOOK_LOG_TO_FILE
+
+bool initialize(bool i_isYamy)
 {
 #ifndef NDEBUG
 	_TCHAR path[GANA_MAX_PATH];
@@ -113,7 +134,14 @@ bool initialize()
 		g.m_isLogging = true;
 	}
 #endif // !NDEBUG
-#ifdef USE_MAILSLOT
+#ifdef HOOK_LOG_TO_FILE
+	_TCHAR logFileName[GANA_MAX_PATH];
+	GetEnvironmentVariable(_T("USERPROFILE"), logFileName, NUMBER_OF(logFileName));
+	_tcsncat(logFileName, _T("\\AppData\\LocalLow\\yamydll.txt"), _tcslen(_T("\\AppData\\LocalLow\\yamydll.log")));
+	g.m_logFile = CreateFile(logFileName, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+		OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+#endif // HOOK_LOG_TO_FILE
+	WriteToLog("try to open mailslot\r\n");
 	g.m_hMailslot =
 		CreateFile(NOTIFY_MAILSLOT_NAME, GENERIC_WRITE,
 				   FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -121,11 +149,12 @@ bool initialize()
 				   FILE_ATTRIBUTE_NORMAL, (HANDLE)NULL);
 	if (g.m_hMailslot == INVALID_HANDLE_VALUE) {
 		HOOK_RPT2("MAYU: %S create mailslot failed(0x%08x)\r\n", g.m_moduleName, GetLastError());
+		WriteToLog("open mailslot NG\r\n");
 	} else {
 		HOOK_RPT1("MAYU: %S create mailslot successed\r\n", g.m_moduleName);
+		WriteToLog("open mailslot OK\r\n");
 	}
-#endif //USE_MAILSLOT
-	if (!mapHookData())
+	if (!mapHookData(i_isYamy))
 		return false;
 	_tsetlocale(LC_ALL, _T(""));
 	g.m_WM_MAYU_MESSAGE =
@@ -153,12 +182,16 @@ BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
 	case DLL_PROCESS_DETACH:
 		notifyThreadDetach();
 		unmapHookData();
-#ifdef USE_MAILSLOT
 		if (g.m_hMailslot != INVALID_HANDLE_VALUE) {
 			CloseHandle(g.m_hMailslot);
 			g.m_hMailslot = INVALID_HANDLE_VALUE;
 		}
-#endif //USE_MAILSLOT
+#ifdef HOOK_LOG_TO_FILE
+		if (g.m_logFile != INVALID_HANDLE_VALUE) {
+			CloseHandle(g.m_logFile);
+			g.m_logFile = INVALID_HANDLE_VALUE;
+		}
+#endif // HOOK_LOG_TO_FILE
 		break;
 	case DLL_THREAD_DETACH:
 		notifyThreadDetach();
@@ -171,36 +204,27 @@ BOOL WINAPI DllMain(HINSTANCE i_hInstDLL, DWORD i_fdwReason,
 
 
 /// map hook data
-static bool mapHookData()
+static bool mapHookData(bool i_isYamy)
 {
-	g.m_hHookData = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
-									  0, sizeof(HookData),
-									  addSessionId(HOOK_DATA_NAME).c_str());
-	if (!g.m_hHookData) {
+	DWORD access = FILE_MAP_READ;
+
+	if (i_isYamy) {
+		access |= FILE_MAP_WRITE;
+		g.m_hHookData = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,	0, sizeof(HookData), addSessionId(HOOK_DATA_NAME).c_str());
+		g.m_hHookDataArch = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,	0, sizeof(HookDataArch), addSessionId(HOOK_DATA_NAME_ARCH).c_str());
+	} else {
+		g.m_hHookData = OpenFileMapping(access, FALSE, addSessionId(HOOK_DATA_NAME).c_str());
+		g.m_hHookDataArch = OpenFileMapping(access, FALSE, addSessionId(HOOK_DATA_NAME_ARCH).c_str());
+	}
+
+	if (g.m_hHookData == NULL || g.m_hHookDataArch == NULL) {
 		unmapHookData();
 		return false;
 	}
 
-	g_hookData =
-		(HookData *)MapViewOfFile(g.m_hHookData, FILE_MAP_READ | FILE_MAP_WRITE,
-								  0, 0, sizeof(HookData));
-	if (!g_hookData) {
-		unmapHookData();
-		return false;
-	}
-
-	g.m_hHookDataArch = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE,
-										  0, sizeof(HookDataArch),
-										  addSessionId(HOOK_DATA_NAME_ARCH).c_str());
-	if (!g.m_hHookDataArch) {
-		unmapHookData();
-		return false;
-	}
-
-	s_hookDataArch =
-		(HookDataArch *)MapViewOfFile(g.m_hHookDataArch, FILE_MAP_READ | FILE_MAP_WRITE,
-									  0, 0, sizeof(HookDataArch));
-	if (!s_hookDataArch) {
+	g_hookData = (HookData *)MapViewOfFile(g.m_hHookData, access, 0, 0, sizeof(HookData));
+	s_hookDataArch = (HookDataArch *)MapViewOfFile(g.m_hHookDataArch, access, 0, 0, sizeof(HookDataArch));
+	if (g_hookData == NULL || s_hookDataArch == NULL) {
 		unmapHookData();
 		return false;
 	}
@@ -237,7 +261,6 @@ DllExport bool notify(void *i_data, size_t i_dataSize)
 	DWORD result;
 #endif // MAYU64
 
-#ifdef USE_MAILSLOT
 	DWORD len;
 	if (g.m_hMailslot != INVALID_HANDLE_VALUE) {
 		BOOL ret;
@@ -249,20 +272,19 @@ DllExport bool notify(void *i_data, size_t i_dataSize)
 			HOOK_RPT1("MAYU: %S WriteFile to mailslot successed\r\n", g.m_moduleName);
 		}
 #endif // !NDEBUG
+	} else {
+		cd.dwData = reinterpret_cast<Notify *>(i_data)->m_type;
+		cd.cbData = i_dataSize;
+		cd.lpData = i_data;
+		if (g.m_hwndTaskTray == 0 || cd.dwData == Notify::Type_threadDetach)
+			return false;
+		if (!SendMessageTimeout(reinterpret_cast<HWND>(g.m_hwndTaskTray),
+								WM_COPYDATA, NULL, reinterpret_cast<LPARAM>(&cd),
+								SMTO_ABORTIFHUNG | SMTO_NORMAL, 5000, &result)) {
+			_RPT0(_CRT_WARN, "MAYU: SendMessageTimeout() timeouted\r\n");
+			return false;
+		}
 	}
-#else // !USE_MAILSLOT
-	cd.dwData = reinterpret_cast<Notify *>(i_data)->m_type;
-	cd.cbData = i_dataSize;
-	cd.lpData = i_data;
-	if (g.m_hwndTaskTray == 0)
-		return false;
-	if (!SendMessageTimeout(reinterpret_cast<HWND>(g.m_hwndTaskTray),
-							WM_COPYDATA, NULL, reinterpret_cast<LPARAM>(&cd),
-							SMTO_ABORTIFHUNG | SMTO_NORMAL, 5000, &result)) {
-		_RPT0(_CRT_WARN, "MAYU: SendMessageTimeout() timeouted\r\n");
-		return false;
-	}
-#endif // !USE_MAILSLOT
 	return true;
 }
 
@@ -554,7 +576,7 @@ DllExport void notifyLockState()
 LRESULT CALLBACK getMessageProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 {
 	if (!g.m_isInitialized)
-		initialize();
+		initialize(false);
 
 	if (!g_hookData)
 		return 0;
@@ -635,7 +657,7 @@ finally:
 LRESULT CALLBACK callWndProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 {
 	if (!g.m_isInitialized)
-		initialize();
+		initialize(false);
 
 	if (!g_hookData)
 		return 0;
@@ -747,7 +769,7 @@ LRESULT CALLBACK callWndProc(int i_nCode, WPARAM i_wParam, LPARAM i_lParam)
 static LRESULT CALLBACK lowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	if (!g.m_isInitialized)
-		initialize();
+		initialize(false);
 
 	if (!g_hookData || nCode < 0)
 		goto through;
@@ -771,7 +793,7 @@ static LRESULT CALLBACK lowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
 	KBDLLHOOKSTRUCT *pKbll = (KBDLLHOOKSTRUCT*)lParam;
 
 	if (!g.m_isInitialized)
-		initialize();
+		initialize(false);
 
 	if (!g_hookData || nCode < 0)
 		goto through;
@@ -790,11 +812,14 @@ through:
 
 
 /// install message hook
-DllExport int installMessageHook()
+DllExport int installMessageHook(DWORD i_hwndTaskTray)
 {
 	if (!g.m_isInitialized)
-		initialize();
+		initialize(true);
 
+	if (i_hwndTaskTray) {
+		g_hookData->m_hwndTaskTray = i_hwndTaskTray;
+	}
 	g.m_hwndTaskTray = g_hookData->m_hwndTaskTray;
 	s_hookDataArch->m_hHookGetMessage =
 		SetWindowsHookEx(WH_GETMESSAGE, (HOOKPROC)getMessageProc,
@@ -824,7 +849,7 @@ DllExport int installKeyboardHook(INPUT_DETOUR i_keyboardDetour, Engine *i_engin
 {
 	if (i_install) {
 		if (!g.m_isInitialized)
-			initialize();
+			initialize(true);
 
 		g.m_keyboardDetour = i_keyboardDetour;
 		g.m_engine = i_engine;
@@ -845,7 +870,7 @@ DllExport int installMouseHook(INPUT_DETOUR i_mouseDetour, Engine *i_engine, boo
 {
 	if (i_install) {
 		if (!g.m_isInitialized)
-			initialize();
+			initialize(true);
 
 		g.m_mouseDetour = i_mouseDetour;
 		g.m_engine = i_engine;
