@@ -276,6 +276,9 @@ window	InternetExplorer /:Internet Explorer_Server$/ : EmacsEdit
  key C-S-Z		= &Sync&WindowMaximize	# ウィンドウの最大化
  key C-A-Z		= C-&WindowMaximize	# ウィンドウの全画面化
 
+# 以下はチケット #18663 を参照のこと
+window	IEFrame	/:IEFrame/ : EmacsEdit
+
 window	MicrosoftJava	/:Microsoft VM For Java\(TM\) Host Window Class:/ \
 	: EmacsEdit
 
