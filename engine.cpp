@@ -763,7 +763,7 @@ unsigned int Engine::keyboardDetour(KBDLLHOOKSTRUCT *i_kid)
 	<< _T(" scanCode=") << i_kid->scanCode
 	<< _T(" flags=") << i_kid->flags << std::endl;
 #endif
-	if (i_kid->flags & LLKHF_INJECTED) {
+	if ((i_kid->flags & LLKHF_INJECTED) || !m_isEnabled) {
 		return 0;
 	} else {
 		Key key;
@@ -796,7 +796,7 @@ unsigned int WINAPI Engine::mouseDetour(Engine *i_this, WPARAM i_wParam, LPARAM 
 
 unsigned int Engine::mouseDetour(WPARAM i_message, MSLLHOOKSTRUCT *i_mid)
 {
-	if (i_mid->flags & LLMHF_INJECTED || !m_setting || !m_setting->m_mouseEvent) {
+	if (i_mid->flags & LLMHF_INJECTED || !m_isEnabled || !m_setting || !m_setting->m_mouseEvent) {
 		return 0;
 	} else {
 		KEYBOARD_INPUT_DATA kid;
