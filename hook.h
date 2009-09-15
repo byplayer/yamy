@@ -36,7 +36,8 @@ struct Notify {
 		Type_lockState,				/// NotifyLockState
 		Type_sync,					/// Notify
 		Type_threadDetach,				/// NotifyThreadDetach
-		Type_command,				/// NotifyThreadDetach
+		Type_command64,				/// NotifyCommand64
+		Type_command32,				/// NotifyCommand32
 		Type_show,					/// NotifyShow
 		Type_log,					/// NotifyLog
 	};
@@ -72,11 +73,20 @@ struct NotifyThreadDetach : public Notify {
 
 
 ///
-struct NotifyCommand : public Notify {
+struct NotifyCommand32 : public Notify {
 	HWND m_hwnd;					///
 	UINT m_message;				///
-	WPARAM m_wParam;				///
-	LPARAM m_lParam;				///
+	unsigned int m_wParam;				///
+	long m_lParam;				///
+};
+
+
+///
+struct NotifyCommand64 : public Notify {
+	HWND m_hwnd;					///
+	UINT m_message;				///
+	unsigned __int64 m_wParam;				///
+	__int64 m_lParam;				///
 };
 
 

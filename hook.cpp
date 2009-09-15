@@ -427,17 +427,20 @@ static void notifyThreadDetach()
 static void notifyCommand(
 	HWND i_hwnd, UINT i_message, WPARAM i_wParam, LPARAM i_lParam)
 {
-#ifndef _WIN64
 	if (g_hookData->m_doesNotifyCommand) {
-		NotifyCommand ntc;
-		ntc.m_type = Notify::Type_command;
+#ifdef _WIN64
+		NotifyCommand64 ntc;
+		ntc.m_type = Notify::Type_command64;
+#else // !_WIN64
+		NotifyCommand32 ntc;
+		ntc.m_type = Notify::Type_command32;
+#endif // !_WIN64
 		ntc.m_hwnd = i_hwnd;
 		ntc.m_message = i_message;
 		ntc.m_wParam = i_wParam;
 		ntc.m_lParam = i_lParam;
 		notify(&ntc, sizeof(ntc));
 	}
-#endif
 }
 
 

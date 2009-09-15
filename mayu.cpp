@@ -230,8 +230,15 @@ private:
 			break;
 		}
 
-		case Notify::Type_command: {
-			NotifyCommand *n = (NotifyCommand *)cd->lpData;
+		case Notify::Type_command64: {
+			NotifyCommand64 *n = (NotifyCommand64 *)cd->lpData;
+			m_engine.commandNotify(n->m_hwnd, n->m_message,
+								   n->m_wParam, n->m_lParam);
+			break;
+		}
+
+		case Notify::Type_command32: {
+			NotifyCommand32 *n = (NotifyCommand32 *)cd->lpData;
 			m_engine.commandNotify(n->m_hwnd, n->m_message,
 								   n->m_wParam, n->m_lParam);
 			break;

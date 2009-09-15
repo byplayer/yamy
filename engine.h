@@ -604,8 +604,83 @@ public:
 	void getHelpMessages(tstring *o_helpMessage, tstring *o_helpTitle);
 
 	/// command notify
-	void commandNotify(HWND i_hwnd, UINT i_message, WPARAM i_wParam,
-					   LPARAM i_lParam);
+	template <typename WPARAM_T, typename LPARAM_T>
+	void commandNotify(HWND i_hwnd, UINT i_message, WPARAM_T i_wParam,
+					   LPARAM_T i_lParam)
+	{
+		Acquire b(&m_log, 0);
+		HWND hf = m_hwndFocus;
+		if (!hf)
+			return;
+
+		if (GetWindowThreadProcessId(hf, NULL) ==
+				GetWindowThreadProcessId(m_hwndAssocWindow, NULL))
+			return;	// inhibit the investigation of MADO TSUKAI NO YUUTSU
+
+		const _TCHAR *target = NULL;
+		int number_target = 0;
+
+		if (i_hwnd == hf)
+			target = _T("ToItself");
+		else if (i_hwnd == GetParent(hf))
+			target = _T("ToParentWindow");
+		else {
+			// Function::toMainWindow
+			HWND h = hf;
+			while (true) {
+				HWND p = GetParent(h);
+				if (!p)
+					break;
+				h = p;
+			}
+			if (i_hwnd == h)
+				target = _T("ToMainWindow");
+			else {
+				// Function::toOverlappedWindow
+				HWND h = hf;
+				while (h) {
+#ifdef MAYU64
+					LONG_PTR style = GetWindowLongPtr(h, GWL_STYLE);
+#else
+					LONG style = GetWindowLong(h, GWL_STYLE);
+#endif
+					if ((style & WS_CHILD) == 0)
+						break;
+					h = GetParent(h);
+				}
+				if (i_hwnd == h)
+					target = _T("ToOverlappedWindow");
+				else {
+					// number
+					HWND h = hf;
+					for (number_target = 0; h; number_target ++, h = GetParent(h))
+						if (i_hwnd == h)
+							break;
+					return;
+				}
+			}
+		}
+
+		m_log << _T("&PostMessage(");
+		if (target)
+			m_log << target;
+		else
+			m_log << number_target;
+		m_log << _T(", ") << i_message
+		<< _T(", 0x") << std::hex << i_wParam
+		<< _T(", 0x") << i_lParam << _T(") # hwnd = ")
+		<< reinterpret_cast<int>(i_hwnd) << _T(", ")
+		<< _T("message = ") << std::dec;
+		if (i_message == WM_COMMAND)
+			m_log << _T("WM_COMMAND, ");
+		else if (i_message == WM_SYSCOMMAND)
+			m_log << _T("WM_SYSCOMMAND, ");
+		else
+			m_log << i_message << _T(", ");
+		m_log << _T("wNotifyCode = ") << HIWORD(i_wParam) << _T(", ")
+		<< _T("wID = ") << LOWORD(i_wParam) << _T(", ")
+		<< _T("hwndCtrl = 0x") << std::hex << i_lParam << std::dec << std::endl;
+	}
 
 	/// get current window class name
 	const tstringi &getCurrentWindowClassName() const {
