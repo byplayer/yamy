@@ -38,7 +38,7 @@ restart:
 
 			// erase dead thread
 			if (!m_detachedThreadIds.empty()) {
-				for (DetachedThreadIds::iterator i = m_detachedThreadIds.begin();
+				for (ThreadIds::iterator i = m_detachedThreadIds.begin();
 						i != m_detachedThreadIds.end(); i ++) {
 					FocusOfThreads::iterator j = m_focusOfThreads.find((*i));
 					if (j != m_focusOfThreads.end()) {
@@ -1282,6 +1282,11 @@ void Engine::stop() {
 
 	CHECK_TRUE( CloseHandle(m_readEvent) );
 	m_readEvent = NULL;
+
+	for (ThreadIds::iterator i = m_attachedThreadIds.begin();
+		 i != m_attachedThreadIds.end(); i++) {
+		 PostThreadMessage(*i, WM_NULL, 0, 0);
+	}
 }
 
 
@@ -1478,7 +1483,7 @@ bool Engine::setFocus(HWND i_hwndFocus, DWORD i_threadId,
 
 	// remove newly created thread's id from m_detachedThreadIds
 	if (!m_detachedThreadIds.empty()) {
-		DetachedThreadIds::iterator i;
+		ThreadIds::iterator i;
 		bool retry;
 		do {
 			retry = false;
@@ -1580,10 +1585,20 @@ bool Engine::syncNotify() {
 }
 
 
+// thread attach notify
+bool Engine::threadAttachNotify(DWORD i_threadId) {
+	Acquire a(&m_cs);
+	m_attachedThreadIds.push_back(i_threadId);
+	return true;
+}
+
+
 // thread detach notify
 bool Engine::threadDetachNotify(DWORD i_threadId) {
 	Acquire a(&m_cs);
 	m_detachedThreadIds.push_back(i_threadId);
+	m_attachedThreadIds.erase(remove(m_attachedThreadIds.begin(), m_attachedThreadIds.end(), i_threadId),
+							  m_attachedThreadIds.end());
 	return true;
 }
 

@@ -100,6 +100,7 @@ static void notifyLog(_TCHAR *i_msg);
 static bool mapHookData(bool i_isYamy);
 static void unmapHookData();
 static bool initialize(bool i_isYamy);
+static bool notify(void *i_data, size_t i_dataSize);
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,6 +161,12 @@ bool initialize(bool i_isYamy)
 	g.m_WM_MAYU_MESSAGE =
 		RegisterWindowMessage(addSessionId(WM_MAYU_MESSAGE_NAME).c_str());
 	g.m_hwndTaskTray = g_hookData->m_hwndTaskTray;
+	if (!i_isYamy) {
+		NotifyThreadAttach ntd;
+		ntd.m_type = Notify::Type_threadAttach;
+		ntd.m_threadId = GetCurrentThreadId();
+		notify(&ntd, sizeof(ntd));
+	}
 	g.m_isInitialized = true;
 	return true;
 }
@@ -252,7 +259,7 @@ static void unmapHookData()
 
 
 /// notify
-DllExport bool notify(void *i_data, size_t i_dataSize)
+bool notify(void *i_data, size_t i_dataSize)
 {
 	COPYDATASTRUCT cd;
 #ifdef MAYU64

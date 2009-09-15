@@ -35,6 +35,7 @@ struct Notify {
 		Type_name,					/// NotifySetFocus
 		Type_lockState,				/// NotifyLockState
 		Type_sync,					/// Notify
+		Type_threadAttach,				/// NotifyThreadAttach
 		Type_threadDetach,				/// NotifyThreadDetach
 		Type_command64,				/// NotifyCommand64
 		Type_command32,				/// NotifyCommand32
@@ -63,6 +64,12 @@ struct NotifyLockState : public Notify {
 	bool m_isKanaLockToggled;			///
 	bool m_isImeLockToggled;			///
 	bool m_isImeCompToggled;			///
+};
+
+
+///
+struct NotifyThreadAttach : public Notify {
+	DWORD m_threadId;				///
 };
 
 

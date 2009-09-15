@@ -59,7 +59,7 @@ private:
 	};
 	typedef std::map<DWORD /*ThreadId*/, FocusOfThread> FocusOfThreads;	///
 
-	typedef std::list<DWORD /*ThreadId*/> DetachedThreadIds;	///
+	typedef std::list<DWORD /*ThreadId*/> ThreadIds;	///
 
 	/// current status in generateKeyboardEvents
 	class Current
@@ -235,7 +235,8 @@ private:
 	FocusOfThread * volatile m_currentFocusOfThread; ///
 	FocusOfThread m_globalFocus;			///
 	HWND m_hwndFocus;				/// current focus window
-	DetachedThreadIds m_detachedThreadIds;	///
+	ThreadIds m_attachedThreadIds;	///
+	ThreadIds m_detachedThreadIds;	///
 
 	// for functions
 	KeymapPtrList m_keymapPrefixHistory;		/// for &amp;KeymapPrevPrefix
@@ -593,6 +594,9 @@ public:
 
 	/// sync
 	bool syncNotify();
+
+	/// thread attach notify
+	bool threadAttachNotify(DWORD i_threadId);
 
 	/// thread detach notify
 	bool threadDetachNotify(DWORD i_threadId);

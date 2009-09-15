@@ -14,9 +14,8 @@ int WINAPI _tWinMain(HINSTANCE /* i_hInstance */, HINSTANCE /* i_hPrevInstance *
 
 		// wait for master process exit
 		WaitForSingleObject(mutex, INFINITE);
-		ReleaseMutex(mutex);
-
 		CHECK_FALSE( uninstallMessageHook() );
+		ReleaseMutex(mutex);
 	}
 
 	return 0;

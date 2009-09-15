@@ -224,6 +224,12 @@ private:
 			break;
 		}
 
+		case Notify::Type_threadAttach: {
+			NotifyThreadAttach *n = (NotifyThreadAttach *)cd->lpData;
+			m_engine.threadAttachNotify(n->m_threadId);
+			break;
+		}
+
 		case Notify::Type_threadDetach: {
 			NotifyThreadDetach *n = (NotifyThreadDetach *)cd->lpData;
 			m_engine.threadDetachNotify(n->m_threadId);
@@ -1177,18 +1183,6 @@ public:
 
 	///
 	~Mayu() {
-		CancelIo(m_hNotifyMailslot);
-		SleepEx(0, TRUE);
-		CloseHandle(m_hNotifyMailslot);
-		CloseHandle(m_hNotifyEvent);
-		ReleaseMutex(m_mutex);
-		WaitForSingleObject(m_mutex, INFINITE);
-		// first, detach log from edit control to avoid deadlock
-		m_log.detach();
-#ifdef LOG_TO_FILE
-		m_logFile.close();
-#endif // LOG_TO_FILE
-
 		// stop notify from mayu.dll
 		g_hookData->m_hwndTaskTray = NULL;
 		CHECK_FALSE( uninstallMessageHook() );
@@ -1201,10 +1195,18 @@ public:
 		}
 		CloseHandle(m_hMutexYamyd);
 #endif // _WIN64
-		if (!(m_sessionState & SESSION_END_QUERIED)) {
-			DWORD_PTR result;
-			SendMessageTimeout(HWND_BROADCAST, WM_NULL, 0, 0, SMTO_ABORTIFHUNG, 3000, &result);
-		}
+
+		CancelIo(m_hNotifyMailslot);
+		SleepEx(0, TRUE);
+		CloseHandle(m_hNotifyMailslot);
+		CloseHandle(m_hNotifyEvent);
+		ReleaseMutex(m_mutex);
+		WaitForSingleObject(m_mutex, INFINITE);
+		// first, detach log from edit control to avoid deadlock
+		m_log.detach();
+#ifdef LOG_TO_FILE
+		m_logFile.close();
+#endif // LOG_TO_FILE
 
 		// destroy windows
 		CHECK_TRUE( DestroyWindow(m_hwndVersion) );
@@ -1222,6 +1224,11 @@ public:
 
 		// stop keyboard handler thread
 		m_engine.stop();
+
+		if (!(m_sessionState & SESSION_END_QUERIED)) {
+			DWORD_PTR result;
+			SendMessageTimeout(HWND_BROADCAST, WM_NULL, 0, 0, 0, 3000, &result);
+		}
 
 		// remove setting;
 		delete m_setting;
